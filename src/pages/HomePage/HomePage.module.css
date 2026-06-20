@@ -1,0 +1,67 @@
+.page {
+  min-height: 100vh;
+}
+
+.main {
+  padding: var(--content-padding);
+  padding-top: var(--content-padding-top);
+  background: var(--bg);
+}
+
+.inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.center {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  max-width: var(--feed-max);
+  width: 100%;
+  justify-self: center;
+}
+
+.sidebarLeft {
+  grid-column: 1;
+  display: grid;
+  /* колонка по ширине сайдбара (а не по контенту) — иначе длинные имена в
+     карточках (nowrap) раздувают блоки шире сайдбара */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-content: start;
+}
+
+.sidebarRight {
+  grid-column: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-content: start;
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .center {
+    grid-column: 1;
+    max-width: none;
+    order: 1;
+  }
+  /* На мобилке рекомендации идут каруселями внутри ленты, а футер — в бургере,
+     поэтому боковые колонки скрываем (без дублирования). */
+  .sidebarLeft,
+  .sidebarRight {
+    display: none;
+  }
+}

@@ -1,0 +1,7 @@
+.badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 5px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}

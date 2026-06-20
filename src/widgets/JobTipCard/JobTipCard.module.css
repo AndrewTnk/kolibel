@@ -1,0 +1,48 @@
+.card {
+  background: linear-gradient(180deg, #fff8f3 0%, #fdece2 100%);
+  border: 1px solid #f3d8c4;
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.title {
+  font-size: 11.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.body {
+  margin: 10px 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: #7a5c49;
+}
+
+.body b {
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  justify-content: center;
+  border: none;
+  border-radius: 11px;
+  background: var(--primary);
+  color: var(--onPrimary);
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: var(--primaryHover);
+}

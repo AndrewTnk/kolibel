@@ -1,0 +1,79 @@
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.04s;
+}
+
+.card:hover {
+  border-color: #d8dbe0;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.card:active {
+  transform: translateY(1px);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.delta {
+  font-size: 12px;
+  font-weight: 800;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+.sparkBox {
+  height: 64px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.item {
+  min-width: 0;
+}
+
+.num {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.up {
+  font-size: 11px;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+.label {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.25;
+}

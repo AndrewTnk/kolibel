@@ -1,0 +1,132 @@
+import { useState, type ReactNode } from 'react'
+import { AppHeader } from '../../../../shared/ui/AppHeader/AppHeader'
+import { useAppSelector } from '../../../../app/store/hooks'
+import { useIsMobile } from '../../../../shared/lib/useMediaQuery'
+import { PostComposer } from '../../../feed/ui/PostComposer'
+import { FeedList } from '../../../feed/ui/FeedList'
+import { BlockSkeleton } from '../../../../shared/ui/Skeleton/Skeleton'
+import type { Resume } from '../../model/types'
+import { Hero } from './Hero'
+import { ResumeView, DEFAULT_LAYOUT, type SectionId } from './ResumeView'
+import { SideRail } from './SideRail'
+import { ProfileModals, type ProfileModalState } from './ProfileModals'
+import { Ic } from './icons'
+import s from './ProfileSheet.module.css'
+
+type Props = {
+  /** Данные резюме для просмотра чужого профиля. Без него — свой (из стора). */
+  resume?: Resume
+  /** Режим просмотра: без редактирования, своя строка действий и рейл. */
+  readOnly?: boolean
+  /** Строка действий в hero (для публичного: +Связь / Написать / ⋯). */
+  heroActions?: ReactNode
+  /** Правый рейл (для публичного: сеть + похожие). По умолчанию — `SideRail` владельца. */
+  rail?: ReactNode
+  /** Чей фид постов показывать (по умолчанию — текущий пользователь). */
+  postsAuthorId?: string
+  /** Кнопка «назад» в баннере (мобилка, просмотр чужого профиля). */
+  onBack?: () => void
+}
+
+export function ProfileSheet({ resume, readOnly = false, heroActions, rail, postsAuthorId, onBack }: Props) {
+  const storeLoaded = useAppSelector((st) => st.profile.loaded)
+  const loaded = resume ? true : storeLoaded
+  const isMobile = useIsMobile()
+  const myId = useAppSelector((st) => st.auth.user?.id)
+  const authorId = postsAuthorId ?? myId
+  const postCount = useAppSelector(
+    (st) => st.feed.posts.filter((p) => p.authorId === authorId).length,
+  )
+
+  const [tab, setTab] = useState<'resume' | 'posts'>('resume')
+  const [expanded, setExpanded] = useState(readOnly)
+  const [modal, setModal] = useState<ProfileModalState>(null)
+  const [layout, setLayout] = useState<SectionId[]>(DEFAULT_LAYOUT)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    window.setTimeout(() => setToast((cur) => (cur === msg ? null : cur)), 2400)
+  }
+
+  return (
+    <div className={s.page}>
+      <AppHeader />
+      <main className={s.main}>
+        <div className={s.layout}>
+          <div className={s.colCenter}>
+            {!loaded ? (
+              <BlockSkeleton height={520} />
+            ) : (
+              <div className={s.sheet}>
+                <Hero
+                  open={setModal}
+                  showToast={showToast}
+                  resume={resume}
+                  readOnly={readOnly}
+                  actions={heroActions}
+                  viewedId={postsAuthorId}
+                  onBack={onBack}
+                />
+
+                <div className={s.sheetTabs} role="tablist">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'resume'}
+                    className={[s.tab, tab === 'resume' ? s.tabOn : ''].filter(Boolean).join(' ')}
+                    onClick={() => setTab('resume')}
+                  >
+                    <Ic.briefcase /> Резюме
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'posts'}
+                    className={[s.tab, tab === 'posts' ? s.tabOn : ''].filter(Boolean).join(' ')}
+                    onClick={() => setTab('posts')}
+                  >
+                    <Ic.chart /> Посты
+                    {postCount > 0 ? <span className={s.tabCount}>{postCount}</span> : null}
+                  </button>
+                </div>
+
+                {tab === 'resume' ? (
+                  <ResumeView
+                    expanded={expanded}
+                    onToggle={() => setExpanded((v) => !v)}
+                    layout={layout}
+                    open={setModal}
+                    resume={resume}
+                    readOnly={readOnly}
+                  />
+                ) : (
+                  <div className={s.bodyPadPosts}>
+                    {readOnly || isMobile ? null : <PostComposer compact />}
+                    <FeedList authorId={authorId} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <aside className={s.colRail} aria-label="Готовность, аналитика и рекомендации">
+            {rail ?? <SideRail open={setModal} showToast={showToast} />}
+          </aside>
+        </div>
+      </main>
+
+      {readOnly ? null : (
+        <ProfileModals active={modal} onClose={() => setModal(null)} showToast={showToast} layout={layout} onLayoutChange={setLayout} />
+      )}
+
+      {toast ? (
+        <div className={s.toastWrap}>
+          <div className={s.toast}>
+            <Ic.check size={14} /> {toast}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}

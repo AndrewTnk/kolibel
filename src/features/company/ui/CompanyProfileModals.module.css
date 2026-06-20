@@ -1,0 +1,273 @@
+.sub {
+  margin: -6px 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-2);
+}
+
+.hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.input {
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--field-bg);
+}
+
+.input:focus,
+.area:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.area {
+  min-height: 84px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--field-bg);
+  resize: vertical;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.itemEditor {
+  display: grid;
+  gap: 12px;
+}
+
+.itemRow {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--field-bg);
+}
+
+.del {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.del:hover {
+  border-color: #f0c6c2;
+  color: #dc2626;
+}
+
+.addItem {
+  height: 42px;
+  border-radius: 11px;
+  border: 1px dashed var(--primary);
+  background: transparent;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.addItem:hover {
+  background: var(--primarySoft);
+}
+
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.galCell {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--field-bg);
+}
+
+.galCell img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.galDel {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(15, 23, 42, 0.6);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.galUpload {
+  aspect-ratio: 4 / 3;
+  height: auto !important;
+}
+
+.foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cancel {
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-2);
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cancel:hover {
+  background: var(--hover);
+}
+
+.save {
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--primary);
+  color: var(--onPrimary);
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.save:hover:not(:disabled) {
+  background: var(--primaryHover);
+}
+
+.save:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Share */
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field-bg);
+  margin-bottom: 16px;
+}
+
+.url {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--onPrimary);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.copyDone {
+  background: #16a34a;
+}
+
+.shareGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.shareTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.shareTile:hover {
+  border-color: #d1d5db;
+}
+
+.shareIco {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+@media (max-width: 560px) {
+  .grid2,
+  .shareGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .galleryGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

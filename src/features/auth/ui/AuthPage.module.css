@@ -1,0 +1,442 @@
+/* ── Сплит-каркас ─────────────────────────────── */
+.auth{
+  /* Фиксируем высоту вьюпорта: левая колонка скроллится внутри себя,
+     а правая (граф) не «прыгает» при росте формы в режиме регистрации. */
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 600px 1fr;
+}
+
+/* ЛЕВО: форма */
+.left{
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  padding: clamp(22px, 3vw, 40px);
+  overflow-y: auto;
+}
+
+.brandRow{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brandLogo{
+  height: 34px;
+  width: auto;
+  display: block;
+}
+
+.formWrap{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* Якорим к верху, а не центрируем по вертикали: иначе при переключении
+     Вход↔Регистрация (разная высота) форма «прыгает». */
+  justify-content: flex-start;
+  width: min(400px, 100%);
+  margin: 0 auto;
+  padding: clamp(20px, 6vh, 64px) 0 28px;
+}
+
+/* Табы Вход / Регистрация */
+.tabs{
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: #f3f4f6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  align-self: flex-start;
+  margin-bottom: 26px;
+}
+.tab{
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  height: 34px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--muted);
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.tabActive{ background: #fff; color: var(--text); box-shadow: 0 1px 3px rgba(15,23,42,.1); }
+
+.headline{
+  font-size: clamp(26px, 2.6vw, 32px);
+  font-weight: 900;
+  letter-spacing: -.025em;
+  line-height: 1.08;
+  margin: 0 0 8px;
+}
+.subhead{ color: var(--muted); font-size: 15px; margin: 0 0 24px; }
+
+/* Соц-кнопки */
+.social{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.socBtn{
+  height: 48px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color .15s, background .15s, transform .04s;
+}
+.socBtn:hover{ border-color: #d1d5db; background: #fafbfc; }
+.socBtn:active{ transform: translateY(1px); }
+.socGlyph{
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  font-weight: 900;
+  font-size: 13px;
+  color: #fff;
+}
+
+.divider{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 20px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.divider::before, .divider::after{
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Форма (поля через общий Input — gap между ними) */
+.form{
+  display: grid;
+  gap: 14px;
+}
+
+/* Плейсхолдер в полях формы исчезает при фокусе. */
+.form input::placeholder{ color: #9aa1ad; transition: color .12s ease; }
+.form input:focus::placeholder{ color: transparent; }
+
+/* Сегмент Пользователь/Компания */
+.segmented{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: #f3f4f6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.segItem{
+  height: 40px;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.segItemActive{ background: #fff; color: var(--text); box-shadow: 0 1px 3px rgba(15,23,42,.1); }
+.segItem svg{ width: 16px; height: 16px; }
+
+/* Кнопка «глаз» внутри поля пароля (endAdornment Input) */
+.eye{
+  position: absolute;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+.eye:hover{ background: var(--hover); color: var(--text); }
+.eye svg{ width: 18px; height: 18px; }
+
+/* Ряд: запомнить + забыли */
+.rowBetween{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 0 6px;
+}
+.check{
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.check input{ position: absolute; opacity: 0; width: 0; height: 0; }
+.box{
+  width: 19px;
+  height: 19px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  transition: background .15s, border-color .15s;
+}
+.check input:checked + .box{ background: var(--primary); border-color: var(--primary); }
+.box svg{ width: 12px; height: 12px; color: #fff; opacity: 0; transition: opacity .12s; }
+.check input:checked + .box svg{ opacity: 1; }
+.check input:focus-visible + .box{ box-shadow: 0 0 0 4px var(--ring); }
+.forgot{
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.forgot:hover{ text-decoration: underline; }
+
+/* Сабмит — поверх базового Button (.primary даёт коралл/тень) */
+.submit{
+  height: 50px;
+  font-weight: 800;
+  font-size: 15px;
+  box-shadow: 0 8px 22px rgba(255,127,80,.32);
+}
+
+.swap{ text-align: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.swap button{ border: 0; background: none; padding: 0; cursor: pointer; color: var(--primary); font-weight: 800; }
+.swap button:hover{ text-decoration: underline; }
+.disclaimer{ text-align: center; margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.disclaimer a{ color: var(--text-2); font-weight: 600; text-decoration: none; }
+.disclaimer a:hover{ text-decoration: underline; }
+
+.serverError{
+  border: 1px solid rgba(220,38,38,.25);
+  background: rgba(220,38,38,.06);
+  color: #b91c1c;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.leftFoot{
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.leftFoot a{ color: inherit; text-decoration: none; }
+.leftFoot a:hover{ color: var(--text); }
+
+/* ПРАВО: визуал-граф */
+.right{
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 120% at 78% 18%, rgba(255,127,80,0.20) 0%, rgba(255,127,80,0) 52%),
+    radial-gradient(120% 120% at 12% 92%, rgba(241,221,207,0.55) 0%, rgba(241,221,207,0) 55%),
+    linear-gradient(155deg, #fff5ef 0%, #fdece2 48%, #fbe3d6 100%);
+}
+.right::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(61,43,31,0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(80% 80% at 60% 40%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(80% 80% at 60% 40%, #000 30%, transparent 75%);
+}
+.rightOverlay{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(28px, 3vw, 48px);
+  pointer-events: none;
+}
+.heroEyebrow{
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  align-self: flex-start;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(61,43,31,0.08);
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+  box-shadow: 0 4px 14px rgba(61,43,31,.08);
+}
+.heroEyebrow img{ height: 20px; width: auto; display: block; }
+.heroText{ max-width: 460px; }
+.heroTitle{
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 900;
+  letter-spacing: -.03em;
+  line-height: 1.06;
+  color: var(--accent);
+  margin: 0 0 14px;
+  text-wrap: balance;
+}
+.heroTitle b{ color: var(--primary); }
+.heroSub{
+  font-size: clamp(15px, 1.3vw, 18px);
+  color: #7a5c49;
+  line-height: 1.5;
+  margin: 0 0 22px;
+  max-width: 400px;
+}
+.heroStats{ display: flex; gap: 26px; }
+.num{ font-size: 24px; font-weight: 900; color: var(--accent); letter-spacing: -.02em; }
+.lab{ font-size: 12.5px; font-weight: 700; color: #9a7c69; }
+.legend{
+  display: flex;
+  gap: 16px;
+  align-self: flex-start;
+  flex-wrap: wrap;
+  background: rgba(255,255,255,0.66);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(61,43,31,0.07);
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.legItem{ display: inline-flex; align-items: center; gap: 7px; }
+.legDot{ width: 11px; height: 11px; border-radius: 50%; }
+.legDotSq{ border-radius: 3px; }
+
+/* ── Интро-оверлей (мобилка): правая часть на весь экран → плавный уход к форме ── */
+.intro{
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  cursor: pointer;
+  background:
+    radial-gradient(120% 120% at 78% 18%, rgba(255,127,80,0.20) 0%, rgba(255,127,80,0) 52%),
+    radial-gradient(120% 120% at 12% 92%, rgba(241,221,207,0.55) 0%, rgba(241,221,207,0) 55%),
+    linear-gradient(155deg, #fff5ef 0%, #fdece2 48%, #fbe3d6 100%);
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .6s ease, transform .6s cubic-bezier(.4, 0, .2, 1);
+  animation: introIn .5s ease backwards;
+}
+.intro::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(61,43,31,0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(80% 80% at 60% 40%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(80% 80% at 60% 40%, #000 30%, transparent 75%);
+  pointer-events: none;
+}
+.introHiding{
+  opacity: 0;
+  transform: translateY(-30px);
+  pointer-events: none;
+}
+@keyframes introIn{
+  from{ opacity: 0; }
+  to{ opacity: 1; }
+}
+/* На десктопной ширине интро не показываем (на случай ресайза во время показа) */
+@media (min-width: 921px){
+  .intro{ display: none; }
+}
+
+/* Адаптив: на узких — форма поверх, граф уходит */
+@media (max-width: 920px){
+  .auth{
+    height: auto;
+    min-height: 100dvh;
+    grid-template-columns: 1fr;
+    background:
+      radial-gradient(120% 60% at 80% 0%, rgba(255,127,80,0.16) 0%, rgba(255,127,80,0) 55%),
+      linear-gradient(180deg, #fff6f1, #eef1f6 40%);
+  }
+  .right{ display: none; }
+  .left{ background: transparent; }
+  .formWrap{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 28px;
+    margin-top: 18px;
+    margin-bottom: 18px;
+    width: min(600px, 100%);
+  }
+}
+
+/* Мобилка: помещаем форму во весь экран без скролла (компактнее отступы) */
+@media (max-width: 640px){
+  .auth{
+    height: 100dvh;
+    min-height: 0;
+  }
+  .left{
+    padding: 14px;
+  }
+  .formWrap{
+    /* content-sized (без растяжения flex:1) — нет белого «филлера» снизу и скролла */
+    flex: 0 0 auto;
+    /* отступ между логотипом и формой (бывшее пустое место «уходит» наверх) */
+    margin: 28px auto 0;
+    padding: 18px 18px 20px;
+    width: min(440px, 100%);
+  }
+  .tabs{ margin-bottom: 14px; }
+  .headline{ font-size: 23px; margin-bottom: 5px; }
+  .subhead{ font-size: 13.5px; margin-bottom: 14px; }
+  .social{ gap: 8px; margin-bottom: 12px; }
+  .socBtn{ height: 44px; }
+  .divider{ margin: 2px 0 12px; }
+  .form{ gap: 11px; }
+  .rowBetween{ margin: 0 0 4px; }
+  .submit{ height: 46px; }
+  .swap{ margin-top: 12px; }
+  .disclaimer{ margin-top: 10px; }
+  .leftFoot{ margin-top: 10px; }
+}
+
+@media (max-width: 460px){
+  .social{ grid-template-columns: repeat(2, 1fr); }
+}

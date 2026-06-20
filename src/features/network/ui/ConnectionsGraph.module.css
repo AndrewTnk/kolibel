@@ -1,0 +1,188 @@
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 14px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.expandBtn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.expandBtn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.box {
+  width: 100%;
+  height: 180px;
+  margin-top: 4px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffaf6, #fdece2);
+  border: 1px solid #f3d8c4;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.box:hover {
+  box-shadow: inset 0 0 0 2px var(--primarySoftMd, rgba(255, 127, 80, 0.14));
+  border-color: var(--primarySoftMd, rgba(255, 127, 80, 0.14));
+}
+
+.empty {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Счётчики сети под графом */
+.statsSection {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Модалка полноэкранного графа ─────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  width: min(1100px, 94vw);
+  height: min(820px, 88vh);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* На мобилке граф разворачивается на весь экран */
+@media (max-width: 980px) {
+  .overlay {
+    padding: 0;
+  }
+  .modal {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    border: none;
+    border-radius: 0;
+  }
+}
+
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.close:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.modalBody {
+  flex: 1;
+  min-height: 0;
+  background:
+    radial-gradient(70% 90% at 20% 20%, rgba(255, 127, 80, 0.1) 0%, rgba(255, 127, 80, 0) 55%),
+    radial-gradient(70% 90% at 80% 80%, rgba(241, 221, 207, 0.55) 0%, rgba(241, 221, 207, 0) 60%),
+    linear-gradient(155deg, #fff5ef 0%, #fdece2 100%);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dotMe {
+  background: #ff7f50;
+}
+.dotDirect {
+  background: #5b6472;
+}
+.dotSecond {
+  background: #c7ccd6;
+}

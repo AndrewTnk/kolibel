@@ -1,0 +1,480 @@
+/* ════════ Карточка-рекомендация (баннер + причина) ════════ */
+.pCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.pCard:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: #dcdfe5;
+}
+.pCard:active {
+  transform: translateY(1px);
+}
+
+.pBanner {
+  position: relative;
+  aspect-ratio: 4 / 1;
+  background: linear-gradient(135deg, var(--c1, #fdece2), var(--c2, #f3b89e));
+}
+.pBannerImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.kindChip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--accent);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.pTag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--accent);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.pBody {
+  padding: 0 14px 14px;
+  margin-top: -26px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.pAva {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 3px solid var(--card);
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+  color: #fff;
+  font-weight: 900;
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+  margin-bottom: 4px;
+  overflow: visible;
+}
+.pAvaImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+.pAva.pOnline::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #19c37d;
+  border: 2.5px solid var(--card);
+  z-index: 2;
+}
+
+.pName {
+  font-weight: 900;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.pNameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pCompanyDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #fdece2, #f3b89e);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.pRole {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pLoc {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pFooter {
+  margin-top: auto;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pReason {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--primarySoftBg);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.pReason svg {
+  flex-shrink: 0;
+  color: var(--primary);
+  margin-top: 1px;
+}
+.pReasonMutual {
+  background: rgba(22, 163, 74, 0.08);
+  color: #0f5132;
+}
+.pReasonMutual svg {
+  color: var(--green);
+}
+
+.pActions {
+  display: flex;
+  gap: 6px;
+}
+.btnFollow {
+  flex: 1;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.btnFollow:hover {
+  background: var(--primarySoft);
+}
+.btnFollowDone {
+  background: var(--primarySoft);
+}
+.btnFollowSolid {
+  background: var(--primary);
+  color: var(--onPrimary);
+}
+.btnFollowSolid:hover {
+  background: var(--primaryHover);
+  border-color: var(--primaryHover);
+}
+.btnMsg {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--text-2);
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+.btnMsg:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ── Шапка детального вида: фото + значок компании + тег ──────── */
+.photoWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.92) 0%,
+    rgba(51, 65, 85, 0.92) 55%,
+    var(--primary) 100%
+  );
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+}
+
+.onlineDot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--card);
+}
+
+.online {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.offline {
+  background: var(--muted);
+}
+
+/* Круглый значок компании */
+.companyLogo {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+/* Тег роли (HR / Founder / React …) */
+.tag {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--primarySoft);
+  border: 1px solid var(--primarySoftMd);
+  white-space: nowrap;
+}
+
+/* ── Тело ─────────────────────────────────────── */
+.body {
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jobTitle {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ════════ Детальный вид (для модалок) ════════ */
+.cardDetailed {
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+a.cardDetailed:hover {
+  border-color: var(--primary);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.detHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.avatarLg {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.92) 0%,
+    rgba(51, 65, 85, 0.92) 55%,
+    var(--primary) 100%
+  );
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+}
+
+.detMeta {
+  min-width: 0;
+  flex: 1;
+}
+
+.nameLg {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.jobTitleLg {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.detCompany {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.detInfoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.detStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(107, 114, 128, 0.1);
+}
+
+.detStatusOnline {
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.actionBtn,
+.actionBtnPrimary {
+  height: 36px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.actionBtn {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.actionBtn:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.actionBtnPrimary {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--onPrimary);
+}
+
+.actionBtnPrimary:hover {
+  background: var(--primaryHover);
+  border-color: var(--primaryHover);
+}

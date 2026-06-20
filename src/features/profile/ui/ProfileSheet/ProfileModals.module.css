@@ -1,0 +1,942 @@
+/* ── Каркас модалок профиля ───────────────────────────────── */
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 1200;
+  padding: 24px;
+  animation: scrimIn 0.18s ease-out;
+}
+
+@keyframes scrimIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: var(--card);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.32);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalIn 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.modalLg {
+  max-width: 760px;
+}
+
+.modalXl {
+  max-width: 980px;
+}
+
+.mHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mTitle {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.mSub {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.mClose {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.mClose:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.mBody {
+  padding: 18px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.mFoot {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.mFootSpacer {
+  flex: 1;
+}
+
+/* ── Кнопки футера ────────────────────────────────────────── */
+.btn,
+.btnPrimary,
+.btnGhost {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.12s, border-color 0.12s, transform 0.08s;
+}
+
+.btnPrimary:active,
+.btnGhost:active {
+  transform: translateY(1px);
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: var(--onPrimary);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: var(--primaryHover);
+}
+
+.btnGhost {
+  background: var(--field-bg);
+  color: var(--text-2);
+  border-color: var(--border);
+}
+
+.btnGhost:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: #d1d5db;
+}
+
+.btnPrimary:disabled,
+.btnGhost:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ── Поля форм ────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.fLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fHint {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--field-bg);
+  padding: 0 12px;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: inherit;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.textarea {
+  padding: 10px 12px;
+  height: auto;
+  min-height: 96px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.fGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.checkRow input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--primary);
+}
+
+.toggleGroup {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: #f3f4f6;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.toggleBtn {
+  flex: 1;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--muted);
+  font-family: inherit;
+}
+
+.toggleBtnOn {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* Статус */
+.statusChoice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.statusOpt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  background: var(--card);
+  text-align: left;
+  font: inherit;
+}
+
+.statusOpt:hover {
+  border-color: #d1d5db;
+  background: var(--field-bg);
+}
+
+.statusOptOn {
+  border-color: var(--primary);
+  background: var(--primarySoftBg);
+}
+
+.statusRad {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+
+.statusOptOn .statusRad {
+  border-color: var(--primary);
+}
+
+.statusOptOn .statusRad::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.statusMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.statusTitle {
+  font-weight: 900;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+}
+
+.statusDesc {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.statusEmoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* Чип-редактор (стек/навыки) */
+.chipsEditor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--field-bg);
+  min-height: 80px;
+  align-content: flex-start;
+}
+
+.chipPill {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--primarySoft);
+  border-radius: 8px;
+  padding: 5px 6px 5px 10px;
+  border: 1px solid rgba(255, 127, 80, 0.18);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chipPill .x {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--accent);
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.chipPill .x:hover {
+  background: rgba(255, 127, 80, 0.2);
+}
+
+.chipsEditor input {
+  flex: 1;
+  min-width: 140px;
+  border: 0;
+  background: transparent;
+  outline: none;
+  height: 32px;
+  font-size: 14px;
+  padding: 0 6px;
+  font-family: inherit;
+  color: inherit;
+}
+
+.suggestRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.addChip {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--card);
+  border-radius: 8px;
+  padding: 5px 10px;
+  border: 1px dashed var(--primaryBorder);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: inherit;
+}
+
+.addChip:hover {
+  background: var(--primarySoftBg);
+}
+
+/* Список-строк (языки/контакты) */
+.rowList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rowItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--field-bg);
+}
+
+.rowItemName {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.rowItemSub {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.rowItemLab {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 80px;
+}
+
+.rowItemVal {
+  flex: 1;
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowDel {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.rowDel:hover {
+  background: var(--hover);
+  color: var(--bad, #dc2626);
+}
+
+/* Share */
+.linkRow {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  align-items: center;
+}
+
+.linkUrl {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linkCopy {
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--onPrimary);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+.linkCopy:hover {
+  background: var(--primaryHover);
+}
+
+.linkCopyDone {
+  background: var(--good, #16a34a);
+  color: #fff;
+}
+
+.shareGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.shareTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field-bg);
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.08s;
+  font-family: inherit;
+}
+
+.shareTile:hover {
+  border-color: #d1d5db;
+  background: var(--card);
+}
+
+.shareTile:active {
+  transform: translateY(1px);
+}
+
+.shareTileIco {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.shareTileLab {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-2);
+}
+
+/* PDF */
+.pdfRow {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.pdfPreview {
+  aspect-ratio: 1 / 1.414;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  overflow: hidden;
+  position: relative;
+  padding: 12px;
+}
+
+.pdfPreview::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(90deg, var(--c1, var(--primary)), #fbe3d6);
+}
+
+.pdfName {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.pdfRole {
+  font-size: 8px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.pdfLns {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pdfLns i {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: #f3f4f6;
+  width: 95%;
+}
+
+.pdfLns i:nth-child(even) {
+  width: 75%;
+}
+
+.pdfLns i.hd {
+  height: 5px;
+  width: 40%;
+  background: var(--accent);
+  margin-top: 6px;
+}
+
+.pdfTemplates {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.pdfTpl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  background: var(--card);
+  text-align: left;
+  font: inherit;
+}
+
+.pdfTpl:hover {
+  border-color: #d1d5db;
+}
+
+.pdfTplOn {
+  border-color: var(--primary);
+  background: var(--primarySoftBg);
+}
+
+.pdfSwatch {
+  width: 30px;
+  height: 42px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.pdfTplNm {
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.pdfTplDs {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Analytics */
+.anGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.anCard {
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.anCardN {
+  font-weight: 900;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.anDelta {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--good, #16a34a);
+}
+
+.anCardL {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.anChart {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.anChartTi {
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.anChartMe {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.anChartBox {
+  height: 140px;
+  margin-top: 8px;
+}
+
+.anBreak {
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.anRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.anRowLab {
+  flex: none;
+  width: 150px;
+  font-size: 12.5px;
+}
+
+.anRowBar {
+  flex: 1;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.anRowBar i {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+}
+
+.anRowV {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+  min-width: 34px;
+  text-align: right;
+}
+
+.anTwoCol {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Layout reorder */
+.layoutEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.layoutRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field-bg);
+}
+
+.layoutRowDragging {
+  opacity: 0.5;
+}
+
+.layoutDrag {
+  color: var(--muted);
+  cursor: grab;
+  display: grid;
+  place-items: center;
+}
+
+.layoutNm {
+  font-weight: 800;
+  font-size: 14px;
+  flex: 1;
+}
+
+.layoutToggle {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  border: 0;
+}
+
+.layoutToggleOn {
+  background: var(--primary);
+}
+
+.layoutToggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.18s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+}
+
+.layoutToggleOn::after {
+  transform: translateX(18px);
+}
+
+/* Upload drop (внутри banner/avatar модалок — рядом с ImageUploadField) */
+.uploadNote {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.uploadNoteText {
+  flex: 1;
+}
+
+.uploadNoteTitle {
+  font-weight: 900;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.uploadNoteSub {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.qrCard {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field-bg);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.qrBox {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.qrTitle {
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.qrSub {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .fGrid2,
+  .pdfRow,
+  .anTwoCol {
+    grid-template-columns: 1fr;
+  }
+}

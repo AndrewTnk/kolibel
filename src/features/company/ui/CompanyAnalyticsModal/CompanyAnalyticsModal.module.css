@@ -1,0 +1,135 @@
+.subtitle {
+  margin: -6px 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kpiCard {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--card);
+}
+
+.kpiNum {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.kpiDelta {
+  font-size: 13px;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+.kpiLabel {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.chartCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--card);
+}
+
+.chartCard + .chartCard {
+  margin-top: 16px;
+}
+
+.chartHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.chartTitle {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.chartSub {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.chartHint {
+  font-size: 13px;
+  font-weight: 800;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+.chartBox {
+  margin-top: 12px;
+  height: 140px;
+  width: 100%;
+}
+
+.breakdown {
+  display: grid;
+  gap: 12px;
+}
+
+.breakRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.breakLabel {
+  min-width: 180px;
+}
+
+.breakBar {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--hover);
+  overflow: hidden;
+}
+
+.breakBar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.breakValue {
+  min-width: 28px;
+  text-align: right;
+  font-weight: 800;
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+  .breakLabel {
+    min-width: 120px;
+  }
+}

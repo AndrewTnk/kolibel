@@ -1,0 +1,24 @@
+.row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+  /* чтобы тени карточек не обрезались сверху/снизу */
+  margin: 0 -2px;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.row::-webkit-scrollbar {
+  display: none;
+}
+
+/* Каждый слайд: фиксированная ширина, привязка к началу */
+.row > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  width: min(78%, 280px);
+}

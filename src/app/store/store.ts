@@ -1,0 +1,52 @@
+import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import { resetStores } from './resetStores'
+import { authReducer } from '../../features/auth/model/authSlice'
+import { chatReducer } from '../../features/chat/model/chatSlice'
+import { chatUiReducer } from '../../features/chat/model/chatUiSlice'
+import { feedReducer } from '../../features/feed/model/feedSlice'
+import { vacanciesReducer } from '../../features/vacancies/model/vacanciesSlice'
+import { vacanciesListReducer } from '../../features/vacancies/model/vacanciesListSlice'
+import { profileReducer } from '../../features/profile/model/profileSlice'
+import { companyReducer } from '../../features/company/model/companySlice'
+import { accountReducer } from '../../features/account/model/accountSlice'
+import { networkReducer } from '../../features/network/model/networkSlice'
+import { notificationsReducer } from '../../features/notifications/model/notificationsSlice'
+import { analyticsReducer } from '../../features/analytics/model/analyticsSlice'
+
+const combinedReducer = combineReducers({
+  auth: authReducer,
+  feed: feedReducer,
+  chat: chatReducer,
+  chatUi: chatUiReducer,
+  vacancies: vacanciesReducer,
+  vacanciesList: vacanciesListReducer,
+  profile: profileReducer,
+  company: companyReducer,
+  account: accountReducer,
+  network: networkReducer,
+  notifications: notificationsReducer,
+  analytics: analyticsReducer,
+})
+
+export type RootState = ReturnType<typeof combinedReducer>
+
+/**
+ * Корневой редьюсер с поддержкой resetStores: при сбросе оставляем только `auth`,
+ * остальные слайсы переинициализируются (combineReducers подставит их initialState).
+ */
+const rootReducer = (
+  state: RootState | undefined,
+  action: Parameters<typeof combinedReducer>[1],
+): RootState => {
+  if (action.type === resetStores.type && state) {
+    return combinedReducer({ auth: state.auth } as RootState, action)
+  }
+  return combinedReducer(state, action)
+}
+
+export const store = configureStore({
+  reducer: rootReducer,
+})
+
+export type AppDispatch = typeof store.dispatch
+

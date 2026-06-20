@@ -1,0 +1,62 @@
+/* Нижний таб-бар: только мобильный шелл (≤980px). На десктопе скрыт. */
+.bar {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  /* Плавающий закруглённый блок (Telegram-стиль) */
+  .bar {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 40;
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 4px;
+    height: 64px;
+    padding: 7px 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
+  }
+
+  .item {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .icon {
+    display: grid;
+    place-items: center;
+    line-height: 0;
+  }
+
+  .label {
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* Выделенный пункт — наш коралловый + мягкая коралловая подложка */
+  .itemActive {
+    color: var(--primary);
+    background: var(--primarySoft);
+  }
+}

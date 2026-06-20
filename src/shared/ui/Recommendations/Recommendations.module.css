@@ -1,0 +1,438 @@
+.sideCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 14px;
+}
+
+.sideTitle {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+}
+
+/* ── Рекомендации: список карточек-баннеров ───── */
+.recList {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Свайп-пагинатор рекомендаций ─────────────── */
+.pager {
+  margin-top: 12px;
+}
+
+.pagerWindow {
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.pagerWindow:active {
+  cursor: grabbing;
+}
+
+.pagerTrack {
+  display: flex;
+  align-items: stretch;
+}
+
+.pagerPage {
+  flex: 0 0 100%;
+  /* ширину задаёт flex-basis; min-width:0 не даёт длинным именам (nowrap)
+     раздувать страницу и весь блок — текст обрезается многоточием */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pagerDots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pagerDot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.15s ease, width 0.15s ease;
+}
+
+.pagerDot:hover {
+  background: var(--muted);
+}
+
+.pagerDotActive {
+  width: 18px;
+  background: var(--primary);
+}
+
+.pagerDotActive:hover {
+  background: var(--primary);
+}
+
+/* ── Рекомендации: компактные строки (как в макете) ── */
+.recRowList {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.recRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field-bg);
+  cursor: pointer;
+  text-decoration: none;
+  min-width: 0;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.recRow:hover {
+  border-color: #d1d5db;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.recRowAva {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  object-fit: cover;
+  color: #fff;
+  font-weight: 900;
+  font-size: 13px;
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+}
+
+.recRowAvaSq {
+  border-radius: 10px;
+}
+
+.recRowMeta {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.recRowNameRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.recRowName {
+  font-weight: 900;
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recRowRole {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recRowFollow {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.12s ease;
+}
+
+.recRowFollow:hover {
+  background: var(--primarySoft);
+}
+
+.recRowFollowDone {
+  background: var(--primarySoft);
+}
+
+/* «Посмотреть все» — текстовая ссылка (без бордера и заливки) */
+.recShowAll {
+  display: inline-block;
+  margin-top: 12px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.12s ease;
+}
+
+.recShowAll:hover {
+  color: var(--primaryHover);
+  text-decoration: underline;
+}
+
+.recModalGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.sideList {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.sideItem {
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  padding: 10px 12px;
+  display: grid;
+  gap: 3px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.sideItem:hover {
+  border-color: #d1d5db;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.sideItemTitle {
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.sideItemSub {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ── Промо-блок «Возможно будет интересно» ───── */
+.promoTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.promoHead {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.promoLogo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.92) 0%,
+    rgba(51, 65, 85, 0.92) 55%,
+    var(--primary) 100%
+  );
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+}
+
+.promoMeta {
+  min-width: 0;
+}
+
+.promoName {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.promoField {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.promoDesc {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.promoBtn {
+  margin-top: 14px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--accent);
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.promoBtn:hover {
+  background: var(--primarySoft);
+}
+
+.promoBtnDone {
+  background: var(--primarySoft);
+  border-color: var(--primarySoftMd);
+  color: var(--accent);
+}
+
+/* ── Ссылки (о нас / тех. поддержка) — в строку с переносом, по центру ── */
+.linkList {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  padding: 4px 8px;
+}
+
+.linkRow {
+  width: fit-content;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.12s ease;
+}
+
+.linkRow:hover {
+  color: var(--primary);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+}
+
+.footerBrand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.footerBrandImg {
+  height: 22px;
+  width: auto;
+  display: block;
+  opacity: 0.95;
+}
+
+.userList {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.userItem {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  background: var(--field-bg);
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.userItem:hover {
+  border-color: #d1d5db;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.userAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  flex: 0 0 auto;
+}
+
+.userAvatarFallback {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: white;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.9) 0%,
+    rgba(51, 65, 85, 0.9) 55%,
+    rgba(255, 127, 80, 0.92) 100%
+  );
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.1);
+  flex: 0 0 auto;
+}
+
+.userMeta {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.userName {
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+.userRole {
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
+}

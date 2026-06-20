@@ -1,0 +1,273 @@
+.page {
+  min-height: 100vh;
+}
+
+.main {
+  padding: var(--content-padding);
+  padding-top: var(--content-padding-top);
+  background: var(--bg);
+}
+
+.layout {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+/* Новый вид пользователя: одна колонка с секциями */
+.userInner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+  z-index: 80;
+}
+
+/* ── Общий блок-панель ────────────────────────── */
+.companies,
+.block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 18px;
+}
+
+/* ── Левая колонка: компании + ссылки ─────────── */
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.colHead,
+.blockHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.colTitle {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.companyList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Правая колонка: люди ─────────────────────── */
+.peopleCol {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.block {
+  min-width: 0;
+}
+
+.blockTitle {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.showAll {
+  flex: 0 0 auto;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 8px;
+  transition: color 0.12s ease;
+}
+
+.showAll:hover {
+  color: var(--primaryHover);
+}
+
+/* Счётчик людей рядом с заголовком блока */
+.blockCount {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+/* «Показать ещё» — разворачивает блок на месте */
+.showMore {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid var(--primaryBorder);
+  background: var(--primarySoft);
+  color: var(--accent);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.showMore:hover {
+  background: var(--primarySoftStrong);
+  border-color: var(--primary);
+}
+
+/* Пустые состояния (мало пользователей / нет подписок) */
+.empty {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Сетка людей — 5 в ряд */
+.peopleGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* ── Контент модалок ──────────────────────────── */
+.modalCompanies {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.modalPeople {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+/* ── Полноэкранная модалка графа сети (мобилка) ─── */
+.graphModal {
+  position: fixed;
+  inset: 0;
+  z-index: 50; /* выше шапки(10)/таб-бара(40), ниже CompositionListModal(60) */
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  animation: graphModalIn 0.18s ease;
+}
+
+@keyframes graphModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.graphModalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  padding-top: calc(14px + env(safe-area-inset-top));
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.graphModalTitle {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.graphModalClose {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--field-bg);
+  border-radius: 11px;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.graphModalClose:hover {
+  color: var(--text);
+}
+
+.graphModalBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+/* ── Адаптив ──────────────────────────────────── */
+@media (max-width: 1100px) {
+  .peopleGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .leftCol {
+    position: static;
+  }
+
+  .peopleGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .peopleGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modalCompanies {
+    grid-template-columns: 1fr;
+  }
+}

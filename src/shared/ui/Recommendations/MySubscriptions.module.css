@@ -1,0 +1,167 @@
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 14px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Встроенный режим (внутри блока «Моя сеть»): без карточки, с верхним разделителем */
+.embedded {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.subTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.searchBtn {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: color 0.12s ease;
+}
+
+.searchBtn:hover {
+  color: var(--accent);
+}
+
+.searchBtnActive {
+  color: var(--primary);
+}
+
+.search {
+  margin-top: 10px;
+  width: 100%;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+  background: var(--field-bg);
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* Список с фиксированной высотой — скролл внутри блока, без видимого скроллбара */
+.list {
+  margin-top: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.list::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
+}
+
+/* Компактная строка: фото + имя + суть */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.12s ease;
+}
+
+.item:hover {
+  background: var(--hover);
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: #fff;
+  object-fit: cover;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.92) 0%,
+    rgba(51, 65, 85, 0.92) 55%,
+    var(--primary) 100%
+  );
+}
+
+.avatarSquare {
+  border-radius: 9px;
+}
+
+.meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 16px 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}

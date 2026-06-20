@@ -1,0 +1,196 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  background: var(--field-bg);
+  color: var(--text);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* Плейсхолдер — лёгкая подсказка, не путать с заполненным значением */
+.input::placeholder,
+.textarea::placeholder {
+  color: #c2c8d2;
+  font-weight: 400;
+  opacity: 1;
+}
+
+.textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Навыки ───────────────────────────────────── */
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skillChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--primarySoft);
+  border: 1px solid var(--primarySoftMd);
+}
+
+.skillRemove {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(61, 43, 31, 0.12);
+  color: var(--accent);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.skillRemove:hover {
+  background: var(--primary);
+  color: var(--onPrimary);
+}
+
+.skillAdd {
+  display: flex;
+  gap: 8px;
+}
+
+.skillAddBtn {
+  flex: 0 0 auto;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--primaryBorder);
+  background: var(--primarySoft);
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.skillAddBtn:hover {
+  background: var(--primarySoftStrong);
+  border-color: var(--primary);
+}
+
+/* Строка с чекбоксом «Работаю в настоящее время» */
+.checkRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkRow input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* ── Опыт ─────────────────────────────────────── */
+.expItem {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.expItemHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.expItemTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.expRemove {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+
+.expRemove:hover {
+  color: #b91c1c;
+  background: rgba(185, 28, 28, 0.08);
+}
+
+.addExpBtn {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px dashed var(--primaryBorder);
+  background: var(--primarySoftBg);
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.addExpBtn:hover {
+  border-color: var(--primary);
+  background: var(--primarySoft);
+}

@@ -1,0 +1,153 @@
+:root {
+  --bg: #f4f6fa;
+  --card: #ffffff;
+  --text: #1f2328;
+  --muted: #6b7280;
+  --primary: #ff7f50;
+  --primaryHover: #e86a3d;
+  --onPrimary: #3d2b1f;
+  --accent: #3d2b1f;
+  --border: #e5e7eb;
+  --ring: rgba(255, 127, 80, 0.22);
+  --primarySoft: rgba(255, 127, 80, 0.1);
+  --primarySoftMd: rgba(255, 127, 80, 0.14);
+  --primarySoftStrong: rgba(255, 127, 80, 0.18);
+  --primarySoftBg: rgba(255, 127, 80, 0.08);
+  --primaryBorder: rgba(255, 127, 80, 0.22);
+  --primaryFocus: rgba(255, 127, 80, 0.35);
+  --primaryShadow: rgba(255, 127, 80, 0.28);
+  --shadow: 0 12px 36px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.1);
+  --green: #16a34a;
+  --red: #dc2626;
+  --radius: 14px;
+  --header-height: 88px;
+  --bottom-nav-height: 60px;
+  --font: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --content-max: 1320px;
+  --content-padding: clamp(20px, 3vw, 40px);
+  /* Верхний отступ контента под хедером — вдвое меньше бокового. */
+  --content-padding-top: clamp(10px, 1.5vw, 20px);
+  --feed-max: 760px;
+  --text-base: 16px;
+  --text-sm: 14px;
+  --text-lg: 18px;
+  /* Семантические токены (для корректной тёмной темы) */
+  --field-bg: #ffffff; /* фон полей ввода / контролов */
+  --text-2: #374151; /* вторичный тёмный текст */
+  --hover: rgba(15, 23, 42, 0.04); /* фон при наведении */
+  --overlay: rgba(15, 23, 42, 0.55); /* подложка модалок */
+  --header-bg: rgba(255, 255, 255, 0.92); /* фон шапки (с blur) */
+  --app-bg: radial-gradient(1100px 700px at 12% 10%, #ffffff 0%, var(--bg) 45%, #eef2ff 100%);
+  /* Чат-канва (тёплый кремовый + коралловые точки) и пузыри Telegram-стиля */
+  --chat-canvas: #f6ede4;
+  --chat-dot: rgba(255, 127, 80, 0.1);
+  --chat-list-bg: #fbfaf7;
+  --bubble-them: #ffffff;
+  --bubble-me: #ffe1cf;
+  --bubble-text-me: #3d2b1f;
+  --bubble-time: #9a7c69;
+  --read-blue: #3b82f6;
+}
+
+/* Мобильный шелл: компактный тайтл-бар вместо десктопного хедера + плавающий
+   нижний таб-бар. Меняем переменные — sticky-офсеты и padding-bottom следуют за ними.
+   --bottom-nav-height учитывает высоту плавающего блока (64) + нижний отступ + воздух. */
+@media (max-width: 980px) {
+  :root {
+    --header-height: 56px;
+    --bottom-nav-height: 86px;
+  }
+}
+
+/* ── Тёмная тема ──────────────────────────────── */
+:root[data-theme='dark'] {
+  --bg: #141414; /* RGB(20,20,20) — основной фон, нейтральный (без синевы) */
+  --card: #363738; /* RGB(54,55,56) — блоки/карточки */
+  --text: #e6e9ee;
+  --text-2: #b3bccb;
+  --muted: #8a94a3;
+  --accent: #f1ddcf; /* тёплый светлый — заголовки/акцентный текст */
+  --border: #45464a; /* нейтральный серый */
+  --field-bg: #2c2d2e; /* поля ввода — чуть темнее блока */
+  --hover: rgba(255, 255, 255, 0.06);
+  --overlay: rgba(0, 0, 0, 0.62);
+  --shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  --primarySoft: rgba(255, 127, 80, 0.16);
+  --primarySoftMd: rgba(255, 127, 80, 0.24);
+  --primarySoftStrong: rgba(255, 127, 80, 0.3);
+  --primarySoftBg: rgba(255, 127, 80, 0.12);
+  --primaryBorder: rgba(255, 127, 80, 0.34);
+  --header-bg: rgba(20, 20, 20, 0.86);
+  --app-bg: radial-gradient(1100px 700px at 12% 10%, #1c1c1c 0%, var(--bg) 55%, #0e0e0e 100%);
+  --chat-canvas: #1b1a18;
+  --chat-dot: rgba(255, 127, 80, 0.14);
+  --chat-list-bg: #2c2d2e;
+  --bubble-them: #2c2d2e;
+  --bubble-me: #5a3a28;
+  --bubble-text-me: #f1ddcf;
+  --bubble-time: #b89a86;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  height: 100%;
+  /* Всегда резервируем место под вертикальный скроллбар — чтобы ширина
+     контента не «прыгала» между страницами со скроллом и без него. */
+  scrollbar-gutter: stable;
+}
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--app-bg);
+}
+
+/* На мобильном шелле (≤980px) основная навигация — фиксированный нижний таб-бар.
+   Резервируем место снизу, чтобы он не перекрывал контент, и уменьшаем отступы. */
+@media (max-width: 980px) {
+  :root {
+    --content-padding: 14px;
+    --content-padding-top: 7px;
+  }
+  /* App-shell: вьюпорт зафиксирован (html), скроллится body — документ не растёт по
+     контенту, поэтому фиксированный таб-бар/шапка встают корректно (в т.ч. в превью,
+     где иначе innerHeight раздувается по длине страницы). Страницы не трогаем. */
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  }
+  /* Утилита: скрыть элемент в мобильном шелле (напр. дублирующийся футер,
+     который на мобилке доступен из бургер-меню). */
+  .hideOnMobile {
+    display: none !important;
+  }
+}
+
+a {
+  color: inherit;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  /* Form-контролы по умолчанию не наследуют цвет текста — задаём явно,
+     иначе в тёмной теме текст в полях остаётся чёрным. */
+  color: inherit;
+}

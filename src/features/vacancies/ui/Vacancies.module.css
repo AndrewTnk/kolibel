@@ -1,0 +1,2382 @@
+/* Filters */
+.filters {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.filtersHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.filtersTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.resetBtn {
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+
+.resetBtn:hover {
+  background: var(--primarySoftBg);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: #374151;
+}
+
+.control {
+  height: 42px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  padding: 0 10px;
+  font: inherit;
+  font-size: var(--text-sm);
+  background: var(--field-bg);
+  width: 100%;
+}
+
+.control:focus {
+  outline: none;
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* Бледные плейсхолдеры — как в редакторе профиля */
+.control::placeholder {
+  color: #c2c8d2;
+  font-weight: 400;
+  opacity: 1;
+}
+
+.skillChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skillChip {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #374151;
+}
+
+.skillChip:hover {
+  border-color: #d1d5db;
+}
+
+.skillChipActive {
+  background: var(--primarySoft);
+  border-color: var(--primarySoftMd);
+  color: var(--accent);
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.cardBtn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+}
+
+.cardBtn:hover {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.cardCompany {
+  margin-top: 3px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.appliedBadge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--accent);
+  background: var(--primarySoft);
+  border: 1px solid var(--primarySoftMd);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.cardSalary {
+  font-weight: 900;
+  font-size: var(--text-base);
+  color: var(--accent);
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.cardSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skillTag {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(229, 231, 235, 0.9);
+}
+
+.skillMore {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
+  align-self: center;
+}
+
+.cardFooter {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Modal */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  /* Затемнение фона — как в увеличенном просмотре поста (PostLightbox). */
+  background: rgba(0, 0, 0, 0.82);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.modal {
+  width: min(640px, 100%);
+  max-height: min(90vh, 820px);
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modalHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modalHeadMeta {
+  min-width: 0;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.modalCompany {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.modalClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.modalClose:hover {
+  background: var(--primarySoft);
+  color: var(--accent);
+}
+
+.modalBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.modalSalary {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.modalTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.modalTag {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--primarySoftBg);
+  border: 1px solid var(--primarySoftMd);
+  color: var(--accent);
+}
+
+.modalSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.modalSection {
+  display: grid;
+  gap: 6px;
+}
+
+.modalSectionTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.modalText {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.modalList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--text-base);
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.modalActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Отклики (модалка) ────────────────────────── */
+.applicant {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.applicant:last-child {
+  border-bottom: 0;
+}
+
+.applicantAvatar {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(51, 65, 85, 0.9) 55%, var(--primary) 100%);
+}
+
+.applicantMeta {
+  min-width: 0;
+  flex: 1;
+}
+
+.applicantTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.applicantName {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.applicantDate {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.applicantRole {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.applicantNote {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #374151;
+}
+
+.applicantContacts {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.applicantContact {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.applicantContact:hover {
+  text-decoration: underline;
+}
+
+.applicantWrite {
+  flex: 0 0 auto;
+  align-self: center;
+  text-decoration: none;
+  border-radius: 10px;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--onPrimary);
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.applicantWrite:hover {
+  background: var(--primaryHover);
+}
+
+/* Кнопки действий в строке отклика */
+.applicantActions {
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.applicantResumeBtn {
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid var(--primaryBorder);
+  background: var(--primarySoft);
+  color: var(--accent);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.applicantResumeBtn:hover {
+  background: var(--primarySoftStrong);
+  border-color: var(--primary);
+}
+
+.applicantStatus {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  color: var(--accent);
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.applicantStatus:focus {
+  outline: none;
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* ── Резюме кандидата (модалка) ───────────────── */
+.resumeHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.resumeExpList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resumeExpItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumeExpRole {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.resumeExpCompany {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.toast {
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  max-width: min(420px, calc(100vw - 36px));
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #111827;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.3);
+}
+
+/* Page layout (imported from page module too - duplicate minimal) */
+.pageMain {
+  padding: var(--content-padding);
+  padding-top: var(--content-padding-top);
+}
+
+.pageTitle {
+  margin: 10px 0 4px;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.pageSub {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.pageLayout {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.resultsHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.resultsCount {
+  font-size: var(--text-base);
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.resultsList {
+  display: grid;
+  gap: 12px;
+}
+
+.empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+/* ── Левая колонка ────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.center {
+  min-width: 0;
+}
+
+/* Блок «Вакансии по подпискам» */
+.subHint {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.subItemBtn {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.showAllBtn {
+  margin-top: 10px;
+  width: 100%;
+  border: 1px solid var(--primaryBorder);
+  background: var(--primarySoft);
+  color: var(--accent);
+  border-radius: 10px;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.showAllBtn:hover {
+  background: var(--primarySoftStrong);
+  border-color: var(--primary);
+}
+
+/* ── Строка поиска ────────────────────────────── */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px 10px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  margin-bottom: 18px;
+}
+
+.searchIcon {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  padding-left: 4px;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-base);
+  padding: 8px 4px;
+}
+
+.searchInput::placeholder {
+  color: var(--muted);
+}
+
+.filterBtn {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  color: #374151;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.filterBtn:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.filterBtnActive {
+  background: var(--primarySoft);
+  border-color: var(--primarySoftMd);
+  color: var(--accent);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* ── Drawer фильтров (выезжает справа) ────────── */
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawerPanel {
+  width: min(400px, 100%);
+  height: 100%;
+  background: var(--card);
+  box-shadow: -24px 0 60px rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  animation: drawerIn 0.22s ease;
+}
+
+@keyframes drawerIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.drawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.drawerTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.drawerHeadActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drawerReset {
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.drawerReset:hover {
+  background: var(--primarySoftBg);
+}
+
+.drawerClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: #6b7280;
+}
+
+.drawerClose:hover {
+  border-color: #d1d5db;
+}
+
+.drawerBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+
+.filtersForm {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+/* ── Модалка-список (Показать все по подпискам) ── */
+.listModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1095;
+  background: rgba(15, 23, 42, 0.5);
+  display: grid;
+  place-items: center;
+  padding: 22px;
+}
+
+.listModal {
+  width: min(720px, 100%);
+  max-height: min(85vh, 800px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.listModalHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.listModalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.listModalCount {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-right: auto;
+}
+
+.listModalBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 980px) {
+  .pageLayout {
+    grid-template-columns: 1fr;
+  }
+
+  /* На мобилке сайдбар скрываем: рекомендации идут каруселями в списке,
+     футер — в бургере. */
+  .sidebar {
+    display: none;
+  }
+
+  .filters {
+    position: static;
+    max-height: none;
+  }
+
+  .modalActions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   РЕДИЗАЙН (режим соискателя) — карточка, кольцо, модалки, виджеты
+   ============================================================ */
+
+/* ── Аватар компании (градиентный квадрат) ─────────────────── */
+.coAva {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, #ff7f50 100%);
+  overflow: hidden;
+}
+
+.coAva img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Кольцо совпадения (conic) ─────────────────────────────── */
+.ring {
+  --p: 0%;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--primary) var(--p), var(--primarySoftBg) 0);
+}
+
+.ringInner {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--card);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  line-height: 1;
+}
+
+.ringPct {
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.ringLab {
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
+/* ── Карточка вакансии (редизайн) ──────────────────────────── */
+.vacCard {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+
+.vacCard:hover {
+  border-color: var(--primaryBorder);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+}
+
+.vacCardApplied {
+  background: linear-gradient(180deg, #fbfffd 0%, #f4fbf7 100%);
+  border-color: #bce4ce;
+}
+
+.vacAva {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  font-size: 17px;
+}
+
+.vacBody {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.vacTopLine {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vacTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+}
+
+.vacCardCompany {
+  margin-top: 3px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Мета вакансии текстом через точку («Удалёнка · Полная · 2–6 лет») — под компанией. */
+.vacCardMeta {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.vacCompanyLink {
+  font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.vacCompanyLink:hover {
+  color: var(--primary);
+}
+
+.vacRight {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.appliedBadgeGreen {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #0e7c4f;
+  background: #d5f3e3;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.viewedBadge {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  background: #eef0f4;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.urgentBadge {
+  font-size: 11px;
+  font-weight: 900;
+  color: #9a3a1a;
+  background: #fde2d2;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.matchPill {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--primarySoft);
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.matchPill b {
+  color: var(--primary);
+  font-weight: 900;
+}
+
+.vacSalary {
+  font-weight: 900;
+  font-size: var(--text-base);
+  color: var(--accent);
+}
+
+.vacMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.metaTag {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+.vacSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--primarySoft);
+  color: var(--accent);
+}
+
+.skillMatch {
+  background: var(--primary);
+  color: var(--onPrimary);
+}
+
+.skillMatch::before {
+  content: '✓';
+  margin-right: 4px;
+  font-weight: 900;
+}
+
+.skillMore {
+  background: transparent;
+  color: var(--muted);
+}
+
+.vacFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.vacFootDot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.vacFootMatch {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* ── Top match (большая карточка) ──────────────────────────── */
+.topMatch {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 22px;
+  border: 1px solid #f3d8c4;
+  border-radius: 18px;
+  background:
+    radial-gradient(60% 120% at 88% 0%, rgba(255, 127, 80, 0.22) 0%, transparent 55%),
+    linear-gradient(180deg, var(--card), #fffaf6);
+  overflow: hidden;
+}
+
+.tmEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+}
+
+.pulseDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: tmPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes tmPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 127, 80, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 127, 80, 0);
+  }
+}
+
+.tmTitle {
+  margin: 8px 0 6px;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.tmCompany {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.tmAvaSm {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.tmSalary {
+  margin: 8px 0;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.tmMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tmSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tmWhy {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.tmWhy b {
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.tmRight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.tmActions {
+  display: grid;
+  gap: 8px;
+  width: 180px;
+}
+
+/* ── Базовый каркас сидер-модалок ──────────────────────────── */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1120;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.sheet {
+  width: min(580px, 100%);
+  max-height: 92vh;
+  background: var(--card);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sheetSm {
+  width: min(440px, 100%);
+}
+.sheetMd {
+  width: min(680px, 100%);
+}
+.sheetLg {
+  width: min(880px, 100%);
+}
+.sheetXl {
+  width: min(1100px, 100%);
+}
+
+.mHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.mTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.mSub {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.mClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.mClose:hover {
+  background: var(--primarySoft);
+  color: var(--accent);
+}
+
+.mBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px;
+}
+
+.mFoot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.mFootLeft {
+  margin-right: auto;
+}
+
+/* ── Full-screen лист на мобилке (для «Мои отклики» и т.п.) ──── */
+@media (max-width: 980px) {
+  .scrimFull {
+    padding: 0;
+  }
+  .sheetFull {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .sheetFull .mHead {
+    padding-top: calc(18px + env(safe-area-inset-top));
+  }
+  .sheetFull .mBody {
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Поля форм в модалках ──────────────────────────────────── */
+.fieldBlock {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.fieldBlock:last-child {
+  margin-bottom: 0;
+}
+
+.fieldHint {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: -2px;
+}
+
+.textarea {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  font: inherit;
+  font-size: var(--text-sm);
+  background: var(--field-bg);
+  width: 100%;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--primaryBorder);
+}
+
+.chipOn {
+  background: var(--primarySoft);
+  border-color: var(--primarySoftMd);
+  color: var(--accent);
+}
+
+/* ── ApplyModal ────────────────────────────────────────────── */
+.applyCtx {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--primarySoftBg);
+  border: 1px solid var(--primarySoftMd);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.applyCtxAva {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.applyCtxName {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.applyCtxCo {
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.applyResume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.applyResumeAva {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 13px;
+}
+
+.applyResumeName {
+  font-size: 13.5px;
+  font-weight: 900;
+}
+
+.applyResumeMeta {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.applyChange {
+  margin-left: auto;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  border-radius: 9px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.applyChange:hover {
+  border-color: var(--primaryBorder);
+}
+
+.attachBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.attachBtn:hover {
+  border-color: var(--primaryBorder);
+}
+
+/* ── ApplySuccessModal ─────────────────────────────────────── */
+.successBody {
+  text-align: center;
+  padding: 28px 22px 18px;
+}
+
+.successIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #4ade80, #16a34a);
+}
+
+.successTitle {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.successSub {
+  margin: 8px auto 16px;
+  max-width: 420px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.successSub b {
+  font-weight: 900;
+}
+
+.successCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: left;
+}
+
+/* ── Мои отклики (список в модалке) ────────────────────────── */
+.appList {
+  display: grid;
+  /* без явной колонки неявная auto-колонка растягивается по nowrap-названию → гор. скролл */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.appRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  /* строка — кнопка: явно выравниваем текст влево (иначе center по умолчанию → название «по центру») */
+  text-align: left;
+}
+
+.appRowAva {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  font-size: 14px;
+}
+
+.appRowMeta {
+  min-width: 0;
+  flex: 1;
+}
+
+.appRowTitle {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appRowCo {
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appBadge {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 5px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.appBadgeSent {
+  color: var(--accent);
+  background: var(--primarySoft);
+}
+
+.appBadgeRejected {
+  color: #b42318;
+  background: #fee4e2;
+}
+
+.appBadgeClosed {
+  color: var(--muted);
+  background: #eef0f4;
+}
+
+/* ── CompanyPeekModal ──────────────────────────────────────── */
+.cpCover {
+  position: relative;
+  /* Соотношение 4:1 — точь-в-точь как баннер в профиле компании (без обрезки контента). */
+  aspect-ratio: 4 / 1;
+  /* Обложка лежит первым элементом внутри скроллируемого .cpBody и выходит
+     на всю ширину за его горизонтальные паддинги (22px) — чтобы аватар можно
+     было поднять поверх неё (margin-top у .cpAva) без обрезки overflow’ом. */
+  margin: 0 -22px;
+  background:
+    radial-gradient(80% 160% at 80% 0%, rgba(255, 127, 80, 0.4) 0%, transparent 60%),
+    linear-gradient(135deg, #111827, #334155);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Реальный баннер из профиля компании. */
+.cpCoverPic {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cpCoverClose {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+.cpBody {
+  padding: 0 22px 22px;
+  overflow-y: auto;
+}
+
+.cpAva {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  border: 3px solid var(--card);
+  margin-top: -32px;
+  font-size: 24px;
+  position: relative;
+}
+
+.cpName {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.cpRole {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.cpStats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.cpStat {
+  text-align: center;
+  padding: 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.cpStatN {
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.cpStatL {
+  margin-top: 3px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.cpAbout {
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.cpActions {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.cpVacList {
+  display: grid;
+  gap: 8px;
+}
+
+.cpVacListTitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.cpVacItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.cpVacItem:hover {
+  border-color: var(--primaryBorder);
+  background: var(--primarySoftBg);
+}
+
+.cpVacItemTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.cpVacItemSalary {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+/* ── Список подписок (модалка) ─────────────────────────────── */
+.subSearch {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.subSearchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.subSearchInput {
+  height: 44px;
+  padding: 0 12px 0 38px;
+}
+
+.subRowList {
+  display: grid;
+  gap: 8px;
+}
+
+.subRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.subRow:hover {
+  border-color: var(--primaryBorder);
+  background: var(--primarySoftBg);
+}
+
+.subRowAva {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+.subRowMeta {
+  min-width: 0;
+  flex: 1;
+}
+
+.subRowName {
+  font-size: 14.5px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.subRowSub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.newBadge {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  font-weight: 900;
+  color: var(--onPrimary);
+  background: var(--primary);
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.newBadgeMuted {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.modalEmpty {
+  text-align: center;
+  padding: 28px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* ── ContactEmployer / Контакты ────────────────────────────── */
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.contactChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+  text-decoration: none;
+  background: var(--field-bg);
+}
+
+.contactChip:hover {
+  border-color: var(--primaryBorder);
+  background: var(--primarySoftBg);
+}
+
+.noteText {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ── VacancyModal (детали, табы) ───────────────────────────── */
+.vdSheet {
+  width: min(880px, 100%);
+}
+
+/* На телефонах модалка вакансии — на весь экран */
+@media (max-width: 980px) {
+  .vdScrim {
+    padding: 0;
+  }
+  .vdSheet {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+  /* Табы — иконками (текст скрыт), равной ширины, чтобы влезали в экран */
+  .vdTabs {
+    padding: 0 8px;
+    overflow-x: visible;
+  }
+  .vdTab {
+    flex: 1;
+    margin-right: 0;
+    padding: 12px 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* выше специфичность, чем у базовых .vdTabIco/.vdTabText (они идут ниже в файле) */
+  .vdTab .vdTabIco {
+    display: inline-flex;
+  }
+  .vdTab .vdTabText {
+    display: none;
+  }
+}
+
+.vdHead {
+  position: relative;
+  padding: 22px 22px 18px;
+  background:
+    radial-gradient(70% 140% at 90% 0%, rgba(255, 127, 80, 0.16), transparent 55%),
+    linear-gradient(180deg, #fff5ef, var(--card));
+  flex-shrink: 0;
+}
+
+.vdClose {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+}
+
+.vdTopLine {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.vdAva {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  font-size: 22px;
+}
+
+.vdTitleArea {
+  min-width: 0;
+}
+
+.vdTitle {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.vdCompany {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+  display: inline-block;
+}
+
+.vdCompany:hover {
+  color: var(--primary);
+}
+
+/* Мета вакансии текстом через точку — под компанией (вместо бейджей). */
+.vdMetaText {
+  margin-top: 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.vdSalary {
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.vdMetaRow {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vdTabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.vdTab {
+  border: none;
+  background: none;
+  padding: 12px 6px;
+  margin-right: 14px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.vdTabOn {
+  color: var(--accent);
+  border-bottom-color: var(--primary);
+}
+
+/* По умолчанию (десктоп) — текстовые табы; иконка скрыта */
+.vdTabIco {
+  display: none;
+}
+.vdTabText {
+  display: inline;
+}
+
+.vdSection {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.vdSection:last-child {
+  border-bottom: 0;
+}
+
+.vdSectionTitle {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.vdText {
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.vdList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.vdList li {
+  position: relative;
+  padding-left: 18px;
+  font-size: var(--text-base);
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.vdList li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.vdSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vdMatchBreakdown {
+  display: grid;
+  gap: 12px;
+}
+
+.vdMatchRow {
+  display: grid;
+  grid-template-columns: 110px 1fr 44px;
+  align-items: center;
+  gap: 12px;
+}
+
+.vdMatchLabel {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-2);
+}
+
+.vdBar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--primarySoftBg);
+  overflow: hidden;
+}
+
+.vdBar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.vdMatchValue {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--accent);
+  text-align: right;
+}
+
+/* ── Виджет «Компании в подписках» (левый сайдбар) ─────────── */
+.subwHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.subwLink {
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 8px;
+}
+
+.subwLink:hover {
+  background: var(--primarySoftBg);
+}
+
+.subwList {
+  display: grid;
+  /* без явной колонки неявная auto-колонка растягивается по контенту строки
+     (длинный nowrap-подзаголовок), строка шире карточки → текст не обрезается ellipsis */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.subwItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: none;
+  background: none;
+  border-radius: 11px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.subwItem:hover {
+  background: var(--hover);
+}
+
+.subwAva {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.subwMeta {
+  min-width: 0;
+  flex: 1;
+}
+
+.subwName {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subwSub {
+  margin-top: 1px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── FiltersModal (2-колоночная форма) ─────────────────────── */
+.fmGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.fmSpan2 {
+  grid-column: 1 / -1;
+}
+
+.fmAlert {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--primarySoftBg);
+  border: 1px solid var(--primarySoftMd);
+  border-radius: 12px;
+}
+
+.fmAlertText {
+  flex: 1;
+  min-width: 0;
+}
+
+.fmAlertTitle {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.fmAlertSub {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.fmToggle {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: var(--primary);
+  cursor: pointer;
+  position: relative;
+}
+
+.fmToggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+@media (max-width: 640px) {
+  .fmGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 880px) {
+  .topMatch {
+    grid-template-columns: 1fr;
+  }
+  .tmActions {
+    width: 100%;
+  }
+  .vdTopLine {
+    grid-template-columns: auto 1fr;
+  }
+  .vdRightMatch {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}

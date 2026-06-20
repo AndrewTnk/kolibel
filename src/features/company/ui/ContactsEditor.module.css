@@ -1,0 +1,66 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 130px 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.remove {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.remove:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.addRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.addBtn {
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.addBtn:hover {
+  background: var(--primarySoft);
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr 1fr auto;
+  }
+  .row select {
+    grid-column: 1 / -1;
+  }
+}

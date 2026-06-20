@@ -1,0 +1,181 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 16px;
+}
+
+.panel {
+  width: min(380px, 100%);
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.close {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+.close:hover {
+  background: var(--bg);
+  color: var(--accent);
+}
+
+/* Аккаунты в ряд: аватар → имя → почта, центрировано, без рамок/заливок */
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 120px;
+  padding: 10px 6px;
+  border: 0;
+  background: none;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* Крестик удаления — правый верхний угол карточки */
+.forget {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 11px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.forget:hover {
+  background: rgba(185, 28, 28, 0.12);
+  color: #b91c1c;
+}
+
+.item:disabled {
+  cursor: default;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(51, 65, 85, 0.92) 55%, var(--primary) 100%);
+  transition: box-shadow 0.12s ease;
+}
+
+.square {
+  border-radius: 16px;
+}
+
+.name {
+  max-width: 110px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.12s ease;
+}
+
+.email {
+  max-width: 110px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Наведение — имя коралловое */
+.item:not(:disabled):hover .name {
+  color: var(--primary);
+}
+
+.item:not(:disabled):hover .avatar {
+  box-shadow: 0 0 0 3px var(--primarySoftStrong);
+}
+
+/* Активный аккаунт — только коралловое имя (без кольца на аватаре) */
+.itemActive .name {
+  color: var(--primary);
+}
+
+.empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.error {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b91c1c;
+  text-align: center;
+}
+
+/* «Добавить аккаунт» — строка-ссылка, коралловая, без рамок/заливки */
+.addLink {
+  align-self: center;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 10px;
+}
+
+.addLink:hover {
+  text-decoration: underline;
+}

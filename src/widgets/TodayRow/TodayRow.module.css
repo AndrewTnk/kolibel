@@ -1,0 +1,244 @@
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  text-align: right;
+}
+
+.today {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 180px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: #dcdfe5;
+}
+
+.card:active {
+  transform: translateY(1px);
+}
+
+/* Декоративные «блобы» + тёплые фоны под каждый тип карточки */
+.match {
+  background: linear-gradient(180deg, #fff 0%, #fffaf6 100%);
+}
+.match::before {
+  content: '';
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(rgba(255, 127, 80, 0.18), transparent 70%);
+  pointer-events: none;
+}
+
+.person::before {
+  content: '';
+  position: absolute;
+  right: -40px;
+  bottom: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(rgba(241, 221, 207, 0.6), transparent 70%);
+  pointer-events: none;
+}
+
+.insight {
+  background: linear-gradient(180deg, #fff8f3 0%, #fdece2 100%);
+}
+
+.kind {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+}
+
+.badge {
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--primarySoft, rgba(255, 127, 80, 0.1));
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.metaLine {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.why {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.foot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.cta:hover {
+  color: var(--primaryHover, #e86a3d);
+}
+
+.ctaDone {
+  color: #16a34a;
+}
+
+.ctaDone:hover {
+  color: #16a34a;
+}
+
+/* Card 1: индикатор «подходит» (match-скора на бэке нет) */
+.fitPill {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--primary) 100%, var(--primarySoftBg, rgba(255, 127, 80, 0.08)) 0);
+}
+.fitPill > span {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+/* Card 2: аватар(ы) */
+.avaWrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ava {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  object-fit: cover;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  color: #fff;
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+  border: 2px solid #fff;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+}
+
+/* Card 3: декоративный bar-chart */
+.insightChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 44px;
+}
+
+.insightChart i {
+  display: block;
+  width: 6px;
+  border-radius: 3px;
+  background: var(--primary);
+  opacity: 0.85;
+}
+
+@media (max-width: 980px) {
+  .today {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 880px) {
+  .meta {
+    display: none;
+  }
+}

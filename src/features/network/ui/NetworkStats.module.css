@@ -1,0 +1,65 @@
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 18px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+
+/* Ряд статистики — число над подписью; по центру прямой вертикальный разделитель */
+.stats {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+}
+
+.stats::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--border);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.12s ease;
+}
+
+.stat:hover {
+  background: var(--primarySoftBg);
+}
+
+.count {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}

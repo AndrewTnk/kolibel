@@ -1,0 +1,135 @@
+/* Список компаний с разделителями (LinkedIn-стиль) */
+.feed {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.feed > .item + .item {
+  border-top: 1px solid var(--border);
+}
+
+.item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 2px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.item:hover .name {
+  color: var(--primary);
+}
+
+.logo {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%);
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
+}
+
+.content {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.field {
+  margin-top: 1px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.location {
+  margin-top: 1px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.followers {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.noteDot {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--primarySoftMd), var(--primarySoftStrong));
+}
+
+.followBtn {
+  align-self: flex-start;
+  margin-top: 10px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 10px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.followBtn:hover {
+  background: var(--primarySoft);
+}
+
+.followBtnDone {
+  background: var(--primarySoft);
+  border-color: var(--primarySoftMd);
+  color: var(--accent);
+}
+
+.followBtnDone:hover {
+  background: var(--primarySoftStrong);
+}

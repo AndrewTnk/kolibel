@@ -1,0 +1,480 @@
+/* ── Карточка компании ────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 18px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.photoWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(51, 65, 85, 0.92) 55%, var(--primary) 100%);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+}
+
+.onlineDot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--card);
+}
+
+.online {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.offline {
+  background: var(--muted);
+}
+
+.identity {
+  min-width: 0;
+  flex: 1;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.name {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.logoChip {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.industry {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.location {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Строка локации + действия (редактировать + меню) на одном уровне */
+.locationRow {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bannerActions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editLink {
+  flex: 0 0 auto;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 6px 10px;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+
+.editLink:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.moreWrap {
+  position: relative;
+}
+
+.moreBtn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+
+.moreBtn:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.moreMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 190px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+  padding: 6px;
+}
+
+.moreItem {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.moreItem:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+/* ── Центральный контент ──────────────────────── */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 18px;
+}
+
+.blockTitle {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.overviewTitle {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.about {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* Список «label сверху, значение снизу» в стиле LinkedIn */
+.overview {
+  margin: 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.overviewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.overviewLabel {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.overviewValue {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.overviewSub {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* ── Баннер-шапка ─────────────────────────────── */
+.banner {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  /* overflow не скрываем — иначе выпадающее меню действий обрезается. */
+}
+
+.bannerImage {
+  /* Совпадает с пропорцией кадрирования (ImageCropper wide → 1280×480). */
+  aspect-ratio: 8 / 3;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--primarySoft);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.bannerBody {
+  padding: 0 22px 16px;
+}
+
+.bannerLogo {
+  width: 84px;
+  height: 84px;
+  margin-top: -44px;
+  border-radius: 16px;
+  border: 4px solid var(--card);
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(51, 65, 85, 0.95) 55%, var(--primary) 100%);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+.bannerLogoImg {
+  width: 84px;
+  height: 84px;
+  margin-top: -44px;
+  border-radius: 16px;
+  border: 4px solid var(--card);
+  background: #fff;
+  object-fit: contain;
+  padding: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+.bannerBody .name {
+  margin: 12px 0 0;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Вкладки (как в LinkedIn) ─────────────────── */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.tab {
+  border: 0;
+  background: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.tab:hover {
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--text);
+}
+
+.tabActive {
+  color: var(--accent);
+  background: var(--primarySoft);
+  font-weight: 800;
+}
+
+.showAll {
+  margin-top: 14px;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+}
+
+.showAll:hover {
+  color: var(--primaryHover);
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+/* Заголовок секции на «Главной» */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+/* Свайп вакансий */
+.swipe {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.swipe::-webkit-scrollbar {
+  display: none;
+}
+
+.swipeCard {
+  flex: 0 0 250px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--bg);
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.swipeCard:hover {
+  background: var(--card);
+  border-color: var(--primary);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.swipeTitle {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+/* Кликабельная карточка вакансии в списке */
+.vacItem {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--bg);
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.vacItem:hover {
+  background: var(--card);
+  border-color: var(--primary);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ── Вакансии компании ────────────────────────── */
+.vacList {
+  display: grid;
+  gap: 12px;
+}
+
+.vacInner {
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
+}
+
+/* ── Люди (карточки как на странице «Сеть») ───── */
+.peopleGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}

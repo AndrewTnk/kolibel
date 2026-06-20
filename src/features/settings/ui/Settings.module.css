@@ -1,0 +1,429 @@
+/* ── Заголовок раздела ────────────────────────── */
+.sectionHead {
+  margin-bottom: 18px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.sectionDesc {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ── Строка настройки (лейбл слева, контрол справа) ── */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowMeta {
+  min-width: 0;
+}
+
+.rowLabel {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.rowSub {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.rowValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.select {
+  height: 40px;
+  min-width: 160px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 14px;
+  background: var(--field-bg);
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* ── Кнопки ───────────────────────────────────── */
+.btnGhost,
+.btnPrimary,
+.btnDanger {
+  flex: 0 0 auto;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.btnGhost {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.btnGhost:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.btnPrimary {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--onPrimary);
+}
+
+.btnPrimary:hover {
+  background: var(--primaryHover);
+  border-color: var(--primaryHover);
+}
+
+.btnDanger {
+  border: 1px solid rgba(185, 28, 28, 0.3);
+  background: rgba(185, 28, 28, 0.06);
+  color: #b91c1c;
+}
+
+.btnDanger:hover {
+  background: rgba(185, 28, 28, 0.12);
+}
+
+/* ── Тумблер ──────────────────────────────────── */
+.toggle {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.toggleOn {
+  background: var(--primary);
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--field-bg);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.toggleOn .toggleKnob {
+  transform: translateX(18px);
+}
+
+/* ── Устройства ───────────────────────────────── */
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.deviceItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.deviceItem:last-child {
+  border-bottom: 0;
+}
+
+.deviceName {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.deviceMeta {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.badgeCurrent {
+  font-size: 11px;
+  font-weight: 800;
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* ── Аналитика: карточки ──────────────────────── */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.statCard {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--bg);
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.statLabel {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.statDelta {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #15803d;
+}
+
+/* ── Подписки: планы ──────────────────────────── */
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.planCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--card);
+}
+
+.planCardCurrent {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primarySoftBg);
+}
+
+.planName {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.planPrice {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.planPeriod {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.planFeatures {
+  margin: 4px 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.planBtn {
+  margin-top: auto;
+}
+
+/* ── Транзакции ───────────────────────────────── */
+.txItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.txItem:last-child {
+  border-bottom: 0;
+}
+
+.txTitle {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.txDate {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.txAmount {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.txAmountPlus {
+  color: #15803d;
+}
+
+/* ── Реклама ──────────────────────────────────── */
+.adPromo {
+  border: 1px solid var(--primarySoftMd);
+  background: var(--primarySoftBg);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.adPromoTitle {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.adPromoText {
+  margin: 6px 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.adPromoBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ── Поиск (чёрный список) ────────────────────── */
+.search {
+  width: 100%;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 14px;
+  background: var(--field-bg);
+  margin-bottom: 12px;
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.blockItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.blockItem:last-child {
+  border-bottom: 0;
+}
+
+.blockAvatar {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(51, 65, 85, 0.9) 55%, var(--primary) 100%);
+}
+
+.blockMeta {
+  min-width: 0;
+  flex: 1;
+}
+
+.blockName {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.blockSub {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.blockType {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--primarySoft);
+  border: 1px solid var(--primarySoftMd);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.empty {
+  padding: 28px 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Заглушка «в разработке» */
+.hint {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}

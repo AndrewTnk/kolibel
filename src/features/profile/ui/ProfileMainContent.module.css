@@ -1,0 +1,171 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* ── Единый блок резюме ───────────────────────── */
+.resumeBlock {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Внутренняя секция блока (без собственной рамки) */
+.section {
+  min-width: 0;
+}
+
+/* Слева «О себе» + «Где работал», справа «Навыки» во всю высоту */
+.topGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* Левая колонка: «О себе» над «Где работал» */
+.topLeft {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Навыки тянутся на высоту левой колонки; отделены линией слева */
+.skillsSection {
+  align-self: stretch;
+  padding-left: 20px;
+  border-left: 1px solid var(--border);
+}
+
+.cardTitle {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+/* ── О себе ───────────────────────────────────── */
+.aboutText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* ── Навыки ───────────────────────────────────── */
+.skillList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--primarySoft);
+  border: 1px solid var(--primarySoftMd);
+}
+
+/* ── Где работал ──────────────────────────────── */
+.expList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expItem {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.expDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex: 0 0 auto;
+}
+
+.expCompany {
+  font-weight: 800;
+}
+
+.expSep {
+  color: var(--border);
+  font-weight: 400;
+}
+
+.expRole {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.expPeriod {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* ── Кнопка открытия полного резюме (внизу блока) ── */
+.resumeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: center;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--primaryBorder);
+  background: var(--primarySoft);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.resumeBtn:hover {
+  background: var(--primarySoftStrong);
+  border-color: var(--primary);
+}
+
+.arrow {
+  font-size: 15px;
+  transition: transform 0.12s ease;
+}
+
+.resumeBtn:hover .arrow {
+  transform: translateX(3px);
+}
+
+@media (max-width: 720px) {
+  .topGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .skillsSection {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+  }
+}

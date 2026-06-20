@@ -1,0 +1,1161 @@
+.page {
+  min-height: 100vh;
+}
+
+.main {
+  padding: var(--content-padding);
+  padding-top: var(--content-padding-top);
+  background: var(--bg);
+}
+
+.inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+/* ── Шапка страницы ── */
+.pageTop {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pageTitle {
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.pageSub {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.publishBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  color: var(--onPrimary);
+  font-weight: 800;
+  font-size: 14.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+
+.publishBtn:hover {
+  background: var(--primaryHover);
+}
+
+/* ── Раскладка ── */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.sidebar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-content: start;
+}
+
+/* ── Тулбар статусов ── */
+.listToolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.lbl {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.statusPill {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-2);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+
+.statusIco {
+  display: grid;
+  place-items: center;
+  line-height: 0;
+}
+
+.statusPill:hover {
+  border-color: #d1d5db;
+}
+
+.statusOn {
+  background: var(--primary);
+  color: var(--onPrimary);
+  border-color: var(--primary);
+}
+
+.folderPill {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Master/detail workspace ── */
+.workspace {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.vacList {
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: width 0.44s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.workspaceSel .vacList {
+  width: 336px;
+}
+
+.detailPane {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(16px);
+  pointer-events: none;
+  max-height: 0;
+  transition: opacity 0.4s ease 0.12s, transform 0.4s ease 0.12s;
+}
+
+.workspaceSel .detailPane {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  max-height: none;
+}
+
+/* ── Карточка вакансии ── */
+.myVac {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s, transform 0.06s, padding 0.3s;
+}
+
+.myVac:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: #dcdfe5;
+}
+
+.myVac:active {
+  transform: translateY(1px);
+}
+
+.myVacSel {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg);
+}
+
+.draft {
+  background: repeating-linear-gradient(135deg, var(--card), var(--card) 12px, var(--field-bg) 12px, var(--field-bg) 24px);
+}
+
+.myVacTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.myVacTitleWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.myVacTitle {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.2;
+  transition: font-size 0.3s;
+}
+
+.myVacMeta {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.vFolderTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.vFolderTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--text-2);
+}
+
+.vFolderDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 3px;
+}
+
+.vStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.vStatusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.st_active {
+  background: #d5f3e3;
+  color: #0e7c4f;
+}
+.st_active .vStatusDot {
+  background: #16a34a;
+}
+.st_paused {
+  background: #fde9cf;
+  color: #92510a;
+}
+.st_paused .vStatusDot {
+  background: #d97706;
+}
+.st_draft {
+  background: #eef0f4;
+  color: #525a66;
+}
+.st_draft .vStatusDot {
+  background: #9ca3af;
+}
+.st_closed {
+  background: #f1f1f2;
+  color: #7a7d83;
+}
+.st_closed .vStatusDot {
+  background: #b0b3b8;
+}
+
+/* rail (свёрнутый список) */
+.railCounts {
+  display: none;
+  gap: 8px;
+  margin-top: 9px;
+  align-items: center;
+}
+
+.rc {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.rc b {
+  color: var(--primary);
+}
+
+.workspaceSel .railCounts {
+  display: flex;
+}
+
+/* метрики */
+.vMetrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.vMetric {
+  padding: 8px 12px;
+  border-radius: 11px;
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+}
+
+.vMetricN {
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.vMetricNew {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.vMetricL {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.vMetricHot {
+  background: var(--primarySoftBg);
+  border-color: var(--primarySoftMd);
+}
+
+/* этапы на карточке */
+.vStages {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.vStageChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-2);
+}
+
+.sd {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.sd_new {
+  background: var(--primary);
+}
+.sd_contacted {
+  background: #d97706;
+}
+.sd_interview {
+  background: #3b82f6;
+}
+.sd_offer {
+  background: #16a34a;
+}
+
+.vStageChip b {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+/* футер карточки */
+.vFoot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.vFootInfo {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.vActions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.vAct {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.vAct:hover {
+  border-color: #d1d5db;
+  color: var(--primary);
+  background: var(--primarySoftBg);
+}
+
+/* свёрнутый rail прячет «толстое» содержимое */
+.workspaceSel .vMetrics,
+.workspaceSel .vStages,
+.workspaceSel .vFoot,
+.workspaceSel .myVacMeta,
+.workspaceSel .vFolderTags {
+  display: none;
+}
+
+.workspaceSel .myVac {
+  padding: 13px 14px;
+}
+
+.workspaceSel .myVacTitle {
+  font-size: 14.5px;
+}
+
+/* ── Панель откликов ── */
+.dpHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.dpBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 13px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-2);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.dpBack:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.dpTitleWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.dpTitle {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.dpSub {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.dpEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 13px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-2);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dpEdit:hover {
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.stageTabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 14px 0 6px;
+}
+
+.stageTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-2);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.stageTab:hover {
+  border-color: #d1d5db;
+}
+
+.stageTabOn {
+  background: var(--primarySoft);
+  border-color: var(--primary);
+  color: var(--accent);
+}
+
+.cnt {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--field-bg);
+  color: var(--muted);
+}
+
+.stageTabOn .cnt {
+  background: var(--primary);
+  color: var(--onPrimary);
+}
+
+.appList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* ── Строка отклика ── */
+.appRow {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.appRow:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: #dcdfe5;
+}
+
+.appRejected {
+  opacity: 0.62;
+}
+
+.appAva {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: 15px;
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+  overflow: hidden;
+}
+
+.appAva img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.appInfo {
+  min-width: 0;
+}
+
+.appName {
+  font-weight: 900;
+  font-size: 15.5px;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+
+.appRole {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.appMetaLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  flex-wrap: wrap;
+}
+
+.appTime {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.appDot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+/* этап-пилюля + меню смены этапа */
+.stageWrap {
+  position: relative;
+}
+
+.appStagePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.appStageDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.pill_new {
+  background: rgba(255, 127, 80, 0.12);
+  color: #9a3a1a;
+}
+.pill_contacted {
+  background: #fdebd2;
+  color: #92510a;
+}
+.pill_interview {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.pill_offer {
+  background: #d5f3e3;
+  color: #0e7c4f;
+}
+.pill_rejected {
+  background: #f1f1f2;
+  color: #7a7d83;
+}
+
+.dot_new {
+  background: var(--primary);
+}
+.dot_contacted {
+  background: #d97706;
+}
+.dot_interview {
+  background: #3b82f6;
+}
+.dot_offer {
+  background: #16a34a;
+}
+.dot_rejected {
+  background: #9ca3af;
+}
+
+.stageMenu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+}
+
+.stageMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stageMenuItem:hover {
+  background: var(--hover);
+}
+
+.stageMenuOn {
+  background: var(--primarySoft);
+  color: var(--accent);
+}
+
+.appRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.appMatch {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.appMatch b {
+  color: var(--primary);
+}
+
+.appQuick {
+  display: flex;
+  gap: 6px;
+}
+
+.aqBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.aqBtn:hover {
+  border-color: #d1d5db;
+  color: var(--primary);
+  background: var(--primarySoftBg);
+}
+
+.aqDanger:hover {
+  color: #dc2626;
+  border-color: #f0c6c2;
+  background: #fdf0ef;
+}
+
+/* Избранный кандидат — золотая залитая звезда. */
+.aqStarOn {
+  color: #f59e0b;
+  border-color: #f6cf86;
+  background: #fff8ec;
+}
+.aqStarOn svg {
+  fill: #f59e0b;
+}
+.aqStarOn:hover {
+  color: #d98908;
+  border-color: #f0bf6a;
+  background: #fff3dc;
+}
+
+/* раскрытие «О себе» + письмо */
+.appBody {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  display: grid;
+  gap: 14px;
+}
+
+.appBlkT {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.appBlkTx {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.appCover {
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: var(--primarySoftBg);
+  border: 1px solid var(--primarySoftMd);
+}
+
+.appMore {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.appMore:hover {
+  color: var(--primaryHover);
+}
+
+.appMore svg {
+  transition: transform 0.18s;
+}
+
+.appMoreOpen svg {
+  transform: rotate(180deg);
+}
+
+/* ── Сайдбар: папки ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px;
+}
+
+.cardTitle {
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.folderList {
+  display: grid;
+  gap: 4px;
+}
+
+.folderItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 11px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.folderItem:hover {
+  background: var(--hover);
+}
+
+.folderOn {
+  background: var(--primarySoft);
+}
+
+.fIco {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.fName {
+  flex: 1;
+  min-width: 0;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folderOn .fName {
+  color: var(--accent);
+}
+
+.fCount {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.folderOn .fCount {
+  color: var(--primary);
+}
+
+.addFolderBtn {
+  margin-top: 8px;
+  width: 100%;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px dashed var(--primary);
+  background: transparent;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.addFolderBtn:hover {
+  background: var(--primarySoft);
+}
+
+/* ── Общее ── */
+.empty {
+  padding: 40px 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: var(--shadow-lg);
+}
+
+.toastIco {
+  color: #fdba74;
+  display: inline-flex;
+}
+
+/* ── Адаптив ── */
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .workspace {
+    flex-direction: column;
+  }
+  .workspaceSel .vacList {
+    width: 100%;
+  }
+
+  /* Шапка (заголовок + подзаголовок + кнопка) скрыта — публикация ушла в иконку хедера */
+  .pageTop {
+    display: none;
+  }
+
+  /* Статус-фильтры — 5 иконок в одну линию */
+  .listToolbar {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .lbl {
+    display: none;
+  }
+  .statusText {
+    display: none;
+  }
+  .statusPill {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    height: 40px;
+  }
+
+  /* Шапка панели откликов: название + счётчик уезжают под кнопку «Все вакансии» */
+  .dpHead {
+    flex-wrap: wrap;
+  }
+  .dpEdit {
+    margin-left: auto;
+  }
+  .dpTitleWrap {
+    order: 3;
+    flex: 0 0 100%;
+  }
+
+  /* Карточка кандидата: кнопки уезжают под всю информацию (перед «О себе»),
+     чтобы текст не схлопывался */
+  .appRow {
+    grid-template-columns: 50px minmax(0, 1fr);
+  }
+  .appRight {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 2px;
+  }
+}
+
+/* ── Полноэкранная модалка «Папки» (мобилка) ── */
+.fmOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+}
+
+.fmPanel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fmHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.fmTitle {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.fmClose {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--field-bg);
+  border-radius: 11px;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.fmBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}

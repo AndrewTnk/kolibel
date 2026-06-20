@@ -1,0 +1,285 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.main {
+  padding: var(--content-padding);
+  padding-top: var(--content-padding-top);
+}
+
+.layout {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.sidebarLeft,
+.sidebarRight {
+  display: grid;
+  /* без явной колонки неявная auto-колонка растягивается по контенту
+     (nowrap-текст в карточках) и сайдбар вылезает за свою колонку — заезжает на центр */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+}
+
+.center {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+}
+
+/* ── Строка поиска ─────────────────────────────────────────── */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bigSearch {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 54px;
+  padding: 0 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+}
+
+.bigSearch:focus-within {
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.bigSearchIcon {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.bigSearchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-base);
+  color: var(--text);
+}
+
+.bigSearchInput::placeholder {
+  color: #c2c8d2;
+}
+
+.clearBtn {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.clearBtn:hover {
+  color: var(--accent);
+  background: var(--hover);
+}
+
+.filtersBtn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 54px;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.filtersBtn:hover {
+  border-color: var(--primaryBorder);
+}
+
+.filtersCount {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--onPrimary);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* ── Шапка выдачи ──────────────────────────────────────────── */
+.resultsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.resultsCount {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.resultsCount b {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.sortTabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.sortTab {
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sortTabOn {
+  background: var(--primarySoft);
+  color: var(--accent);
+}
+
+/* ── Список + load more ────────────────────────────────────── */
+.list {
+  display: grid;
+  gap: 14px;
+}
+
+.loadMore {
+  margin-top: 2px;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.loadMore:hover {
+  border-color: var(--primaryBorder);
+  color: var(--accent);
+}
+
+.empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.6;
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.emptyReset {
+  display: inline-block;
+  margin-top: 8px;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ── Адаптив ───────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+  .sidebarRight {
+    display: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebarLeft {
+    display: none;
+  }
+  /* Фильтры — в одну строку с поиском, иконкой без текста/рамки */
+  .filtersBtnText {
+    display: none;
+  }
+  .filtersBtn {
+    width: 54px;
+    padding: 0;
+    gap: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    color: var(--muted);
+    justify-content: center;
+    position: relative;
+  }
+  .filtersBtn:hover {
+    border: none;
+    color: var(--primary);
+  }
+  /* счётчик активных фильтров — бейджем на углу иконки */
+  .filtersCount {
+    position: absolute;
+    top: 6px;
+    right: 4px;
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 880px) {
+  .resultsHead {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sortTabs {
+    overflow-x: auto;
+  }
+}

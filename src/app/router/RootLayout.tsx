@@ -4,6 +4,7 @@ import { ChatOverlay } from '../../features/chat/ui/ChatOverlay'
 import { VacancyModal } from '../../features/vacancies/ui/VacancyModal'
 import { VacancyModals } from '../../features/vacancies/ui/VacancyModals'
 import { ContactToast } from '../../features/vacancies/ui/ContactToast'
+import { PullToRefresh } from '../../shared/ui/PullToRefresh/PullToRefresh'
 import { ProfileAnalyticsModal } from '../../widgets/ProfileAnalyticsModal/ProfileAnalyticsModal'
 import { CompanyAnalyticsModal } from '../../features/company/ui/CompanyAnalyticsModal/CompanyAnalyticsModal'
 import { profileActions } from '../../features/profile/model/profileSlice'
@@ -20,6 +21,7 @@ export function RootLayout() {
   return (
     <>
       <Outlet />
+      <PullToRefresh />
       <ChatOverlay />
       <VacancyModal />
       <VacancyModals />

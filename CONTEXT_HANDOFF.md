@@ -16,6 +16,13 @@
 - **Бэкенд:** Supabase (Postgres + Auth + авто-API + RLS). Серверного кода почти нет — схема и политики в SQL, из фронта дёргается JS-клиент.
 - **Цель этапа:** довести pet-проект до MVP, переведя фичи с моков на Supabase. Владелец — фронтендер, бэкенд-опыта мало → объясняем по необходимости, движемся по проверяемым кускам.
 
+### Git / деплой
+- **Репозиторий:** `https://github.com/AndrewTnk/kolibel` (ветка `main`).
+- **Хостинг:** Vercel (бесплатный план). Каждый `git push` в `main` автоматически запускает билд и деплой (~30 сек). Конфиг — `vercel.json` (SPA rewrite на `index.html`).
+- **Env-переменные на Vercel:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (заданы в дашборде Vercel → Settings → Environment Variables).
+- **`.gitignore`:** `.claude/` (дизайн-хендоффы, настройки Claude Code), `.env.local`, `node_modules`, `dist`.
+- **После значимых правок — коммитить и пушить** (`git add <files> && git commit -m "..." && git push`), чтобы Vercel подхватил.
+
 ### Команды / нюансы разработки
 - `npm run dev` (Vite, обычно :5173; если занят — :5174).
 - `npx tsc -b` — держим типы чистыми после каждого изменения.

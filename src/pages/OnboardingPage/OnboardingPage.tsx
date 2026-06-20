@@ -8,6 +8,7 @@ import type { CompanyProfile } from '../../features/company/model/companyData'
 import { SkillsEditor } from '../../features/profile/ui/SkillsEditor'
 import { ExperienceEditor } from '../../features/profile/ui/ExperienceEditor'
 import { ContactsEditor } from '../../features/company/ui/ContactsEditor'
+import { LocationField } from '../../shared/ui/LocationField/LocationField'
 import f from '../../features/profile/ui/ProfileFields.module.css'
 import styles from './OnboardingPage.module.css'
 
@@ -56,15 +57,15 @@ function UserOnboarding() {
             placeholder="Например, Frontend-разработчик"
           />
         </div>
-        <div className={f.row}>
-          <div className={f.field}>
-            <span className={f.label}>Город</span>
-            <input className={f.input} value={form.location} onChange={(e) => set('location', e.target.value)} />
-          </div>
-          <div className={f.field}>
-            <span className={f.label}>Страна</span>
-            <input className={f.input} value={form.country ?? ''} onChange={(e) => set('country', e.target.value)} />
-          </div>
+        <div className={f.field}>
+          <span className={f.label}>Город · Страна</span>
+          <LocationField
+            city={form.location}
+            country={form.country ?? ''}
+            onChange={(location, country) => setForm((p) => ({ ...p, location, country }))}
+            inputClassName={f.input}
+            placeholder="Начните вводить город"
+          />
         </div>
         <div className={f.field}>
           <span className={f.label}>О себе</span>
@@ -137,15 +138,15 @@ function CompanyOnboarding() {
             placeholder="Например, Разработка ПО"
           />
         </div>
-        <div className={f.row}>
-          <div className={f.field}>
-            <span className={f.label}>Город</span>
-            <input className={f.input} value={form.location} onChange={(e) => set('location', e.target.value)} />
-          </div>
-          <div className={f.field}>
-            <span className={f.label}>Страна</span>
-            <input className={f.input} value={form.country ?? ''} onChange={(e) => set('country', e.target.value)} />
-          </div>
+        <div className={f.field}>
+          <span className={f.label}>Город · Страна</span>
+          <LocationField
+            city={form.location}
+            country={form.country ?? ''}
+            onChange={(location, country) => setForm((p) => ({ ...p, location, country }))}
+            inputClassName={f.input}
+            placeholder="Начните вводить город"
+          />
         </div>
         <div className={f.field}>
           <span className={f.label}>О компании</span>

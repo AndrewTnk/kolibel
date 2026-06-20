@@ -6,6 +6,7 @@
   padding: var(--content-padding);
   padding-top: var(--content-padding-top);
   background: var(--bg);
+  overflow-x: hidden;
 }
 
 .inner {

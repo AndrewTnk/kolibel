@@ -6,6 +6,8 @@ export type NotificationKind =
   | 'system'
   | 'like'
   | 'comment'
+  | 'comment_like'
+  | 'reply'
 
 export type AppNotification = {
   id: string

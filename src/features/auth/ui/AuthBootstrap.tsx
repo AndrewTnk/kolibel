@@ -4,7 +4,7 @@ import { supabase } from '../../../shared/lib/supabase'
 import { bootstrapAuth } from '../model/authThunks.ts'
 import { authActions } from '../model/authSlice'
 import { mapSession } from '../lib/session'
-import { setAccountAvatar, upsertAccount } from '../lib/accountsStore'
+import { setAccountIdentity, upsertAccount } from '../lib/accountsStore'
 import { loadProfile } from '../../profile/model/profileThunks'
 
 const CAPTURE_EVENTS = ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED', 'USER_UPDATED']
@@ -12,7 +12,12 @@ const CAPTURE_EVENTS = ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED', 'USER
 export function AuthBootstrap() {
   const dispatch = useAppDispatch()
   const userId = useAppSelector((s) => s.auth.user?.id)
-  const avatar = useAppSelector((s) => s.profile.resume.avatar)
+  const accountType = useAppSelector((s) => s.account.type)
+  const resumeName = useAppSelector((s) => s.profile.resume.fullName)
+  const resumeAvatar = useAppSelector((s) => s.profile.resume.avatar)
+  const companyName = useAppSelector((s) => s.company.profile.name)
+  const companyLogo = useAppSelector((s) => s.company.profile.logo)
+  const companyAvatar = useAppSelector((s) => s.company.profile.avatar)
 
   useEffect(() => {
     // Стартовое восстановление сессии (ставит флаг bootstrapped)
@@ -51,10 +56,25 @@ export function AuthBootstrap() {
     return () => subscription.unsubscribe()
   }, [dispatch])
 
-  // Когда подгрузился профиль — сохраняем аватар активного аккаунта в реестр
+  // Когда подгрузился профиль — сохраняем актуальные имя+фото активного аккаунта
+  // в реестр (для компании — из companies.name/logo, для юзера — из резюме),
+  // чтобы в меню переключения не-текущий аккаунт показывался правильно.
   useEffect(() => {
-    if (userId) setAccountAvatar(userId, avatar)
-  }, [userId, avatar])
+    if (!userId) return
+    const isCompany = accountType === 'company'
+    setAccountIdentity(userId, {
+      name: isCompany ? companyName : resumeName,
+      avatar: isCompany ? companyLogo || companyAvatar : resumeAvatar,
+    })
+  }, [
+    userId,
+    accountType,
+    resumeName,
+    resumeAvatar,
+    companyName,
+    companyLogo,
+    companyAvatar,
+  ])
 
   return null
 }

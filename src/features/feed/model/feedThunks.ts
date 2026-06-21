@@ -18,6 +18,8 @@ type CommentRow = {
   author_kind: string | null
   content: string
   created_at: string
+  parent_id?: string | null
+  post_comment_likes?: LikeRow[]
 }
 type PostRow = {
   id: string
@@ -32,7 +34,8 @@ type PostRow = {
   post_comments: CommentRow[]
 }
 
-function mapComment(c: CommentRow): FeedComment {
+function mapComment(c: CommentRow, myId: string | null = null): FeedComment {
+  const likes = c.post_comment_likes ?? []
   return {
     id: c.id,
     authorId: c.author_id ?? undefined,
@@ -41,6 +44,9 @@ function mapComment(c: CommentRow): FeedComment {
     authorKind: (c.author_kind as AuthorKind) ?? undefined,
     text: c.content,
     createdAt: new Date(c.created_at).getTime(),
+    parentId: c.parent_id ?? undefined,
+    likesCount: likes.length,
+    likedByMe: !!myId && likes.some((l) => l.user_id === myId),
   }
 }
 
@@ -57,15 +63,15 @@ function mapPost(row: PostRow, myId: string | null): FeedPost {
     likesCount: row.post_likes?.length ?? 0,
     likedByMe: !!myId && (row.post_likes ?? []).some((l) => l.user_id === myId),
     likerIds: (row.post_likes ?? []).map((l) => l.user_id),
-    comments: (row.post_comments ?? [])
-      .map(mapComment)
-      .sort((a, b) => a.createdAt - b.createdAt),
+    // Храним плоским списком; дерево (корни/ответы) и порядок строит UI.
+    comments: (row.post_comments ?? []).map((c) => mapComment(c, myId)),
   }
 }
 
 const SELECT =
-  'id, author_id, author_name, author_meta, author_avatar, author_kind, content, created_at, post_likes(user_id), post_comments(id, author_id, author_name, author_avatar, author_kind, content, created_at)'
-const COMMENT_SELECT = 'id, author_id, author_name, author_avatar, author_kind, content, created_at'
+  'id, author_id, author_name, author_meta, author_avatar, author_kind, content, created_at, post_likes(user_id), post_comments(id, author_id, author_name, author_avatar, author_kind, content, created_at, parent_id, post_comment_likes(user_id))'
+const COMMENT_SELECT =
+  'id, author_id, author_name, author_avatar, author_kind, content, created_at, parent_id, post_comment_likes(user_id)'
 // Запасной select без денормализованных колонок аватара/типа автора —
 // на случай, если миграция 0016 ещё не применена (лента продолжит работать).
 const SELECT_LEGACY =
@@ -283,7 +289,7 @@ export const toggleLike = createAsyncThunk<void, string>(
   },
 )
 
-/** Добавление комментария. */
+/** Добавление комментария (или ответа на комментарий — через parentId). */
 export const addComment = createAsyncThunk<
   { postId: string; comment: FeedComment } | null,
   {
@@ -292,8 +298,10 @@ export const addComment = createAsyncThunk<
     authorAvatar?: string
     authorKind?: AuthorKind
     text: string
+    /** id корневого комментария, если это ответ (один уровень вложенности). */
+    parentId?: string
   }
->('feed/addComment', async ({ postId, authorName, authorAvatar, authorKind, text }) => {
+>('feed/addComment', async ({ postId, authorName, authorAvatar, authorKind, text, parentId }) => {
   const t = text.trim()
   if (!t) return null
   const uid = await currentUserId()
@@ -301,12 +309,17 @@ export const addComment = createAsyncThunk<
   const base = { post_id: postId, author_id: uid, author_name: authorName, content: t }
   const primary = await supabase
     .from('post_comments')
-    .insert({ ...base, author_avatar: authorAvatar ?? null, author_kind: authorKind ?? null })
+    .insert({
+      ...base,
+      author_avatar: authorAvatar ?? null,
+      author_kind: authorKind ?? null,
+      parent_id: parentId ?? null,
+    })
     .select(COMMENT_SELECT)
     .single()
   let row: unknown = primary.data
   if (primary.error) {
-    // Миграция 0016 не применена — вставляем без денормализованных колонок.
+    // Миграция 0016/0029 не применена — вставляем без денормализованных колонок и parent_id.
     const legacy = await supabase
       .from('post_comments')
       .insert(base)
@@ -315,5 +328,52 @@ export const addComment = createAsyncThunk<
     if (legacy.error) throw new Error(legacy.error.message)
     row = legacy.data
   }
-  return { postId, comment: mapComment(row as CommentRow) }
+  return { postId, comment: mapComment(row as CommentRow, uid) }
+})
+
+/** Лайк/снятие лайка комментария (оптимистично, с откатом при ошибке). */
+export const toggleCommentLike = createAsyncThunk<
+  void,
+  { postId: string; commentId: string }
+>('feed/toggleCommentLike', async ({ postId, commentId }, { getState, dispatch }) => {
+  const state = getState() as RootState
+  const post = state.feed.posts.find((p) => p.id === postId)
+  const comment = post?.comments.find((c) => c.id === commentId)
+  if (!comment) return
+  const uid = await currentUserId()
+  if (!uid) throw new Error('Нет активной сессии')
+
+  const willLike = !comment.likedByMe
+  dispatch(feedActions.applyCommentLike({ postId, commentId, liked: willLike }))
+  try {
+    if (willLike) {
+      const { error } = await supabase
+        .from('post_comment_likes')
+        .insert({ comment_id: commentId, user_id: uid })
+      if (error) throw error
+    } else {
+      const { error } = await supabase
+        .from('post_comment_likes')
+        .delete()
+        .eq('comment_id', commentId)
+        .eq('user_id', uid)
+      if (error) throw error
+    }
+  } catch (e) {
+    dispatch(feedActions.applyCommentLike({ postId, commentId, liked: !willLike })) // откат
+    throw e
+  }
+})
+
+/** Удаление своего комментария (RLS post_comments_delete_own). Каскад уносит ответы. */
+export const deleteComment = createAsyncThunk<
+  void,
+  { postId: string; commentId: string }
+>('feed/deleteComment', async ({ postId, commentId }, { dispatch }) => {
+  dispatch(feedActions.removeComment({ postId, commentId }))
+  const { error } = await supabase.from('post_comments').delete().eq('id', commentId)
+  if (error) {
+    await dispatch(loadFeed()) // откат — вернуть актуальную ленту
+    throw new Error(error.message)
+  }
 })

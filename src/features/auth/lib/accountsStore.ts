@@ -50,13 +50,33 @@ export function upsertAccount(acc: Omit<SavedAccount, 'savedAt'>) {
   write(list)
 }
 
-/** Обновить аватар сохранённого аккаунта (когда подгрузился профиль). */
-export function setAccountAvatar(id: string, avatar?: string) {
-  if (!avatar) return
+/**
+ * Обновить имя/аватар сохранённого аккаунта (когда подгрузился профиль).
+ * Имя для компании живёт в `companies.name`, а не в `user_metadata`, поэтому
+ * актуальные имя+фото берём из загруженного профиля — иначе в меню переключения
+ * не-текущий аккаунт-компания показывался как «email» + заглушка.
+ */
+export function setAccountIdentity(
+  id: string,
+  patch: { name?: string; avatar?: string },
+) {
   const list = read()
   const i = list.findIndex((a) => a.id === id)
-  if (i >= 0 && list[i].avatar !== avatar) {
-    list[i] = { ...list[i], avatar }
+  if (i < 0) return
+  const cur = list[i]
+  const next = { ...cur }
+  let changed = false
+  const name = patch.name?.trim()
+  if (name && name !== cur.name) {
+    next.name = name
+    changed = true
+  }
+  if (patch.avatar && patch.avatar !== cur.avatar) {
+    next.avatar = patch.avatar
+    changed = true
+  }
+  if (changed) {
+    list[i] = next
     write(list)
   }
 }

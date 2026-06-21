@@ -19,6 +19,12 @@ export type FeedComment = {
   authorCompanyLogo?: string
   text: string
   createdAt: number
+  /** id корневого комментария, если это ответ (один уровень вложенности). */
+  parentId?: string
+  /** Число лайков комментария. */
+  likesCount: number
+  /** Лайкнул ли текущий пользователь. */
+  likedByMe: boolean
 }
 
 export type FeedPost = {

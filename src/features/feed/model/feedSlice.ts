@@ -37,6 +37,26 @@ const slice = createSlice({
     removePost(state, action: PayloadAction<string>) {
       state.posts = state.posts.filter((p) => p.id !== action.payload)
     },
+    /** Оптимистичный лайк комментария (используется thunk-ом toggleCommentLike). */
+    applyCommentLike(
+      state,
+      action: PayloadAction<{ postId: string; commentId: string; liked: boolean }>,
+    ) {
+      const p = state.posts.find((x) => x.id === action.payload.postId)
+      const c = p?.comments.find((x) => x.id === action.payload.commentId)
+      if (!c) return
+      if (c.likedByMe === action.payload.liked) return
+      c.likedByMe = action.payload.liked
+      c.likesCount += action.payload.liked ? 1 : -1
+      if (c.likesCount < 0) c.likesCount = 0
+    },
+    /** Удалить комментарий (и его ответы) из поста — оптимистично при удалении. */
+    removeComment(state, action: PayloadAction<{ postId: string; commentId: string }>) {
+      const p = state.posts.find((x) => x.id === action.payload.postId)
+      if (!p) return
+      const { commentId } = action.payload
+      p.comments = p.comments.filter((c) => c.id !== commentId && c.parentId !== commentId)
+    },
   },
   extraReducers: (b) => {
     b.addCase(loadFeed.pending, (s) => {

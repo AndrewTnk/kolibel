@@ -33,7 +33,7 @@ type Props = {
   onBack?: () => void
 }
 
-export function Hero({ open, showToast, resume: propResume, readOnly = false, actions, viewedId, onBack }: Props) {
+export function Hero({ open, showToast, resume: propResume, readOnly = false, actions, onBack }: Props) {
   const navigate = useNavigate()
   const storeResume = useAppSelector((st) => st.profile.resume)
   const resume = propResume ?? storeResume
@@ -55,8 +55,6 @@ export function Hero({ open, showToast, resume: propResume, readOnly = false, ac
       document.removeEventListener('keydown', onKey)
     }
   }, [])
-
-  const publicUrl = `kolibel.ru/u/${viewedId ?? myId ?? ''}`
 
   const moreItems = [
     { id: 'guest', t: 'Открыть как гость', ico: <Ic.eye />, run: () => myId && navigate(`/u/${myId}?guest=1`) },
@@ -144,14 +142,6 @@ export function Hero({ open, showToast, resume: propResume, readOnly = false, ac
                   {resume.country ? `, ${resume.country}` : ''}
                 </span>
               ) : null}
-              {resume.workFormat ? (
-                <span className={s.heroMetaItem}>
-                  <Ic.briefcase /> {resume.workFormat}
-                </span>
-              ) : null}
-              <span className={s.heroMetaItem}>
-                <Ic.globe /> {publicUrl}
-              </span>
             </div>
           </div>
         </div>

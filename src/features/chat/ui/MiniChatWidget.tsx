@@ -1,18 +1,23 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { markConversationRead, sendMessage } from '../model/chatThunks'
 import { chatUiActions } from '../model/chatUiSlice'
 import { dayKey, formatDaySeparator, formatMessageTime, formatChatTime, lastMessagePreview } from '../lib/format'
+import { useChatAttach } from '../lib/useChatAttach'
 import { ChatAvatar } from './ChatAvatar'
+import { ChatAttachView } from './ChatAttachView'
 import { ChatIco } from './chatIcons'
 import styles from './Chat.module.css'
+
+const EMOJI_SET = ['😀', '😂', '😍', '😎', '🤔', '🙏', '👍', '👏', '🔥', '✨', '💯', '🎉', '❤️', '💪', '✅', '🚀', '📌', '💬', '🤝', '😅', '😉', '😇', '🥳', '🤩']
 
 export function MiniChatWidget() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const isMobile = useIsMobile()
   const open = useAppSelector((s) => s.chatUi.miniOpen)
   const view = useAppSelector((s) => s.chatUi.miniView)
@@ -21,6 +26,8 @@ export function MiniChatWidget() {
 
   const [query, setQuery] = useState('')
   const [draft, setDraft] = useState('')
+  const [attachOpen, setAttachOpen] = useState(false)
+  const [emojiOpen, setEmojiOpen] = useState(false)
   const canvasRef = useRef<HTMLDivElement | null>(null)
 
   const active = conversations.find((c) => c.id === activeId) ?? null
@@ -52,8 +59,35 @@ export function MiniChatWidget() {
     }
   }, [view, activeId, active?.messages.length])
 
-  // Ранний выход — строго после всех хуков.
-  if (isMobile) return null
+  // Закрытие поповеров вложений/эмодзи по клику-вне и Esc.
+  useEffect(() => {
+    function onDocClick() {
+      setAttachOpen(false)
+      setEmojiOpen(false)
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setAttachOpen(false)
+        setEmojiOpen(false)
+      }
+    }
+    window.addEventListener('click', onDocClick)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('click', onDocClick)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [])
+
+  // Вложения (фото/видео/документ в Storage + вакансия) — общий с большим чатом хук.
+  const att = useChatAttach((text, attach) => {
+    if (!active) return
+    void dispatch(sendMessage({ conversationId: active.id, text, attach }))
+    setAttachOpen(false)
+  })
+
+  // Ранний выход — строго после всех хуков. На самой странице чата мини-чат не нужен.
+  if (isMobile || pathname.startsWith('/chat')) return null
 
   function openConv(id: string) {
     dispatch(chatUiActions.openConversationInMini(id))
@@ -65,6 +99,12 @@ export function MiniChatWidget() {
     void dispatch(sendMessage({ conversationId: active.id, text: t }))
     setDraft('')
   }
+  // Юзер: фото и документ. Компания: + вакансия (своя). Гео/контакт убраны.
+  const ATTACH_ITEMS: { icon: keyof typeof ChatIco; label: string; run: () => void }[] = [
+    { icon: 'photo', label: 'Фото или видео', run: () => { att.pickPhoto(); setAttachOpen(false) } },
+    { icon: 'doc', label: 'Документ', run: () => { att.pickDoc(); setAttachOpen(false) } },
+    ...(att.isCompany ? [{ icon: 'briefcase' as const, label: 'Вакансия', run: () => att.setAttachMode('vacancy') }] : []),
+  ]
   function expandToPage(id?: string) {
     dispatch(chatUiActions.closeMini())
     navigate(id ? `/chat?c=${id}` : '/chat')
@@ -148,9 +188,21 @@ export function MiniChatWidget() {
                 >
                   ←
                 </button>
-                <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} />
+                {active.otherId ? (
+                  <Link to={`/u/${active.otherId}`} className={styles.threadAvatarLink} aria-label={active.title}>
+                    <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} />
+                  </Link>
+                ) : (
+                  <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} />
+                )}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className={styles.miniThreadName}>{active.title}</div>
+                  {active.otherId ? (
+                    <Link to={`/u/${active.otherId}`} className={[styles.miniThreadName, styles.threadTitleLink].join(' ')}>
+                      {active.title}
+                    </Link>
+                  ) : (
+                    <div className={styles.miniThreadName}>{active.title}</div>
+                  )}
                   {active.subtitle ? <div className={styles.miniThreadStatus}>{active.subtitle}</div> : null}
                 </div>
                 <button
@@ -194,6 +246,7 @@ export function MiniChatWidget() {
                       >
                         <div className={styles.bubbleWrap}>
                           <div className={styles.bubble}>
+                            {m.attach ? <ChatAttachView attach={m.attach} /> : null}
                             {m.text ? <span className={styles.txt}>{m.text}</span> : null}
                             <span className={styles.meta}>
                               {formatMessageTime(m.createdAt)}
@@ -215,7 +268,21 @@ export function MiniChatWidget() {
                 })}
               </div>
               <div className={styles.composer} style={{ padding: '8px 10px' }}>
-                <div className={styles.composerInner}>
+                <div className={styles.composerInner} onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className={styles.composerBtn}
+                    title="Прикрепить"
+                    aria-label="Прикрепить"
+                    onClick={() => {
+                      setAttachOpen((v) => !v)
+                      setEmojiOpen(false)
+                      att.setAttachMode('main')
+                    }}
+                  >
+                    <ChatIco.attach />
+                  </button>
+                  <input ref={att.fileRef} type="file" hidden onChange={att.onFileChange} />
                   <input
                     className={styles.composerTextarea}
                     style={{ minHeight: 24 }}
@@ -229,6 +296,72 @@ export function MiniChatWidget() {
                     }}
                     placeholder="Сообщение…"
                   />
+                  <button
+                    type="button"
+                    className={styles.composerBtn}
+                    title="Эмодзи"
+                    aria-label="Эмодзи"
+                    onClick={() => {
+                      setEmojiOpen((v) => !v)
+                      setAttachOpen(false)
+                    }}
+                  >
+                    <ChatIco.smile />
+                  </button>
+
+                  {attachOpen ? (
+                    <div className={styles.attachPop} onClick={(e) => e.stopPropagation()}>
+                      {att.attachMode === 'vacancy' ? (
+                        <>
+                          <button type="button" className={styles.attachBack} onClick={() => att.setAttachMode('main')}>
+                            ‹ Вакансия
+                          </button>
+                          {att.vacancies.length ? (
+                            att.vacancies.map((v) => (
+                              <button
+                                type="button"
+                                key={v.id}
+                                className={styles.attachItem}
+                                onClick={() => {
+                                  att.sendVacancy(v)
+                                  setAttachOpen(false)
+                                }}
+                              >
+                                {v.title}
+                              </button>
+                            ))
+                          ) : (
+                            <div className={styles.attachEmpty}>Нет вакансий</div>
+                          )}
+                        </>
+                      ) : (
+                        ATTACH_ITEMS.map((it) => {
+                          const Icon = ChatIco[it.icon]
+                          return (
+                            <button type="button" key={it.label} className={styles.attachItem} onClick={it.run}>
+                              <span className={styles.ic}>
+                                <Icon />
+                              </span>
+                              {it.label}
+                            </button>
+                          )
+                        })
+                      )}
+                    </div>
+                  ) : null}
+
+                  {emojiOpen ? (
+                    <div className={styles.emojiPop} onClick={(e) => e.stopPropagation()}>
+                      <div className={styles.emojiPopTitle}>Часто используемые</div>
+                      <div className={styles.emojiGrid}>
+                        {EMOJI_SET.map((em) => (
+                          <button type="button" key={em} onClick={() => setDraft((t) => t + em)}>
+                            {em}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
                 <button type="button" className={styles.sendBtn} onClick={send} aria-label="Отправить" disabled={!draft.trim()}>
                   <ChatIco.send />

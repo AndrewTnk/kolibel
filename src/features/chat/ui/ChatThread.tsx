@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import type { ChatAttach, ChatConversation, ChatMessage } from '../model/types'
 import { dayKey, formatDaySeparator, formatMessageTime } from '../lib/format'
+import { useChatAttach } from '../lib/useChatAttach'
 import { ChatAvatar } from './ChatAvatar'
+import { ChatAttachView } from './ChatAttachView'
 import { ChatIco } from './chatIcons'
 import { CompanyBadge } from '../../../shared/ui/CompanyBadge/CompanyBadge'
 import styles from './Chat.module.css'
@@ -102,18 +104,18 @@ export function ChatThread({
     setEmojiOpen(false)
   }
 
-  function sendAttach(label: string, attach: ChatAttach) {
-    onSend(label, { attach, replyTo: replyTo ? replySnapshot(replyTo) : null })
+  // Вложения (загрузка фото/видео/документа в Storage + прикрепление вакансии) — общий хук.
+  const att = useChatAttach((text, attach) => {
+    onSend(text, { attach, replyTo: replyTo ? replySnapshot(replyTo) : null })
     setReplyTo(null)
     setAttachOpen(false)
-  }
+  })
 
-  const ATTACH_ITEMS: { icon: keyof typeof ChatIco; label: string; send: () => void }[] = [
-    { icon: 'photo', label: 'Фото или видео', send: () => sendAttach('📷 Фото', { title: 'Изображение', subtitle: 'фото', kind: 'photo' }) },
-    { icon: 'doc', label: 'Документ', send: () => sendAttach('📎 Документ', { title: 'Документ', subtitle: 'файл', kind: 'file' }) },
-    { icon: 'loc', label: 'Геопозиция', send: () => sendAttach('📍 Геопозиция', { title: 'Местоположение', subtitle: 'геометка', kind: 'loc' }) },
-    { icon: 'contact', label: 'Контакт', send: () => sendAttach('👤 Контакт', { title: 'Контакт', subtitle: 'визитка', kind: 'contact' }) },
-    { icon: 'briefcase', label: 'Вакансия', send: () => sendAttach('💼 Вакансия', { title: 'Вакансия', subtitle: 'прикреплена', kind: 'vacancy' }) },
+  // Юзер: фото и документ. Компания: + вакансия (своя). Гео/контакт убраны.
+  const ATTACH_ITEMS: { icon: keyof typeof ChatIco; label: string; run: () => void }[] = [
+    { icon: 'photo', label: 'Фото или видео', run: () => { att.pickPhoto(); setAttachOpen(false) } },
+    { icon: 'doc', label: 'Документ', run: () => { att.pickDoc(); setAttachOpen(false) } },
+    ...(att.isCompany ? [{ icon: 'briefcase' as const, label: 'Вакансия', run: () => att.setAttachMode('vacancy') }] : []),
   ]
 
   const messages = conversation.messages
@@ -259,12 +261,7 @@ export function ChatThread({
                         <div className={styles.replyChipTx}>{m.replyTo.text}</div>
                       </div>
                     ) : null}
-                    {m.attach ? (
-                      <div className={styles.attachCard}>
-                        <div className={styles.atTi}>{m.attach.title}</div>
-                        {m.attach.subtitle ? <div className={styles.atMe}>{m.attach.subtitle}</div> : null}
-                      </div>
-                    ) : null}
+                    {m.attach ? <ChatAttachView attach={m.attach} /> : null}
                     {m.text ? <span className={styles.txt}>{m.text}</span> : null}
                     <span className={styles.meta}>
                       {formatMessageTime(m.createdAt)}
@@ -325,10 +322,11 @@ export function ChatThread({
             type="button"
             className={styles.composerBtn}
             title="Прикрепить"
-            onClick={() => { setAttachOpen((v) => !v); setEmojiOpen(false) }}
+            onClick={() => { setAttachOpen((v) => !v); setEmojiOpen(false); att.setAttachMode('main') }}
           >
             <ChatIco.attach />
           </button>
+          <input ref={att.fileRef} type="file" hidden onChange={att.onFileChange} />
           <textarea
             ref={textareaRef}
             className={styles.composerTextarea}
@@ -354,17 +352,42 @@ export function ChatThread({
 
           {attachOpen ? (
             <div className={styles.attachPop} onClick={(e) => e.stopPropagation()}>
-              {ATTACH_ITEMS.map((it) => {
-                const Icon = ChatIco[it.icon]
-                return (
-                  <button type="button" key={it.label} className={styles.attachItem} onClick={it.send}>
-                    <span className={styles.ic}>
-                      <Icon />
-                    </span>
-                    {it.label}
+              {att.attachMode === 'vacancy' ? (
+                <>
+                  <button type="button" className={styles.attachBack} onClick={() => att.setAttachMode('main')}>
+                    ‹ Вакансия
                   </button>
-                )
-              })}
+                  {att.vacancies.length ? (
+                    att.vacancies.map((v) => (
+                      <button
+                        type="button"
+                        key={v.id}
+                        className={styles.attachItem}
+                        onClick={() => {
+                          att.sendVacancy(v)
+                          setAttachOpen(false)
+                        }}
+                      >
+                        {v.title}
+                      </button>
+                    ))
+                  ) : (
+                    <div className={styles.attachEmpty}>Нет вакансий</div>
+                  )}
+                </>
+              ) : (
+                ATTACH_ITEMS.map((it) => {
+                  const Icon = ChatIco[it.icon]
+                  return (
+                    <button type="button" key={it.label} className={styles.attachItem} onClick={it.run}>
+                      <span className={styles.ic}>
+                        <Icon />
+                      </span>
+                      {it.label}
+                    </button>
+                  )
+                })
+              )}
             </div>
           ) : null}
 

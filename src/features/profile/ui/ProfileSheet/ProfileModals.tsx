@@ -113,7 +113,12 @@ function useSaveResume(showToast: (s: string) => void, onClose: () => void) {
       showToast('Не удалось сохранить')
     }
   }
-  return { resume, save, busy }
+  // Сохранение без закрытия модалки (для списков, где добавление/удаление сразу персистится).
+  async function persist(patch: Partial<Resume>) {
+    const res = await dispatch(saveProfile({ ...resume, ...patch }))
+    if (!saveProfile.fulfilled.match(res)) showToast('Не удалось сохранить')
+  }
+  return { resume, save, persist, busy }
 }
 
 // ── 1. Заголовок ────────────────────────────────────────────
@@ -477,118 +482,148 @@ function SkillsModal({ onClose, showToast }: ModalProps) {
 }
 
 // ── 11. Языки ───────────────────────────────────────────────
-const LEVELS = ['Родной', 'C2 — Proficient', 'C1 — Advanced', 'B2 — Upper-Intermediate', 'B1 — Intermediate', 'A2 — Elementary', 'A1 — Beginner']
+const LEVELS = ['Родной', 'C2', 'C1', 'B2', 'B1', 'A2', 'A1']
+const LANGUAGES = [
+  'Английский', 'Русский', 'Немецкий', 'Французский', 'Испанский', 'Итальянский', 'Португальский',
+  'Китайский', 'Японский', 'Корейский', 'Арабский', 'Турецкий', 'Хинди', 'Польский', 'Украинский',
+  'Белорусский', 'Казахский', 'Узбекский', 'Азербайджанский', 'Армянский', 'Грузинский', 'Киргизский',
+  'Таджикский', 'Туркменский', 'Нидерландский', 'Шведский', 'Норвежский', 'Датский', 'Финский',
+  'Чешский', 'Словацкий', 'Венгерский', 'Румынский', 'Болгарский', 'Сербский', 'Хорватский', 'Греческий',
+  'Иврит', 'Персидский', 'Вьетнамский', 'Тайский', 'Индонезийский', 'Малайский', 'Монгольский', 'Латышский',
+  'Литовский', 'Эстонский',
+]
 
 function LanguagesModal({ onClose, showToast }: ModalProps) {
-  const { resume, save, busy } = useSaveResume(showToast, onClose)
+  const { resume, persist } = useSaveResume(showToast, onClose)
   const [list, setList] = useState<LanguageItem[]>(resume.languages)
-  const [name, setName] = useState('')
-  const [level, setLevel] = useState('B2 — Upper-Intermediate')
+  const [name, setName] = useState('Английский')
+  const [level, setLevel] = useState('B2')
   function add() {
-    if (!name.trim()) return
-    setList([...list, { name: name.trim(), level }])
-    setName('')
+    if (!name.trim() || list.some((l) => l.name === name)) return
+    const next = [...list, { name, level }]
+    setList(next)
+    void persist({ languages: next })
+  }
+  function remove(i: number) {
+    const next = list.filter((_, j) => j !== i)
+    setList(next)
+    void persist({ languages: next })
   }
   return (
-    <Modal
-      title="Языки"
-      onClose={onClose}
-      footer={
-        <>
-          <button className={m.btnGhost} onClick={onClose} type="button">
-            Отмена
-          </button>
-          <button className={m.btnPrimary} onClick={() => save({ languages: list }, 'Языки обновлены')} type="button" disabled={busy}>
-            Сохранить
-          </button>
-        </>
-      }
-    >
+    <Modal title="Языки" onClose={onClose}>
       <div className={m.rowList}>
         {list.map((l, i) => (
           <div key={i} className={m.rowItem}>
             <span className={m.rowItemName}>{l.name}</span>
             <span className={m.rowItemSub}>{l.level}</span>
-            <button className={m.rowDel} type="button" onClick={() => setList(list.filter((_, j) => j !== i))} aria-label="Удалить">
+            <button className={m.rowDel} type="button" onClick={() => remove(i)} aria-label="Удалить">
               <Ic.trash />
             </button>
           </div>
         ))}
       </div>
       <Field label="Добавить язык">
-        <div className={m.fGrid2}>
-          <input className={m.input} placeholder="Например, Французский" value={name} onChange={(e) => setName(e.target.value)} />
-          <select className={m.select} value={level} onChange={(e) => setLevel(e.target.value)}>
+        <div className={m.addRow}>
+          <select className={[m.select, m.addVal].join(' ')} value={name} onChange={(e) => setName(e.target.value)}>
+            {LANGUAGES.map((l) => (
+              <option key={l}>{l}</option>
+            ))}
+          </select>
+          <select className={[m.select, m.addType].join(' ')} value={level} onChange={(e) => setLevel(e.target.value)}>
             {LEVELS.map((l) => (
               <option key={l}>{l}</option>
             ))}
           </select>
+          <button className={m.addBtn} type="button" onClick={add}>
+            <Ic.plus /> Добавить
+          </button>
         </div>
       </Field>
-      <button className={m.btnTonal} style={{ marginTop: 4 }} type="button" onClick={add}>
-        <Ic.plus /> Добавить
-      </button>
     </Modal>
   )
 }
 
 // ── 12. Контакты ────────────────────────────────────────────
-function deriveHref(value: string): string {
+const CONTACT_TYPES = ['Telegram', 'Email', 'VK', 'MAX', 'Телефон', 'Сайт']
+
+/** Ссылка по типу контакта и введённому значению. */
+function deriveHref(label: string, value: string): string {
   const v = value.trim()
   if (!v) return ''
   if (/^https?:\/\//i.test(v)) return v
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return `mailto:${v}`
-  if (/^@/.test(v)) return `https://t.me/${v.replace(/^@/, '')}`
-  if (v.includes('.') && !v.includes(' ')) return `https://${v}`
-  return v
+  const handle = v.replace(/^@/, '')
+  switch (label) {
+    case 'Email':
+      return `mailto:${v}`
+    case 'Телефон':
+      return `tel:${v.replace(/[^\d+]/g, '')}`
+    case 'Telegram':
+      return `https://t.me/${handle}`
+    case 'VK':
+      return v.includes('vk.com') ? `https://${v.replace(/^https?:\/\//, '')}` : `https://vk.com/${handle}`
+    case 'MAX':
+      return v.includes('.') ? `https://${v.replace(/^https?:\/\//, '')}` : v
+    case 'Сайт':
+      return v.includes('.') ? `https://${v.replace(/^https?:\/\//, '')}` : v
+    default:
+      return v
+  }
 }
 
 function ContactsModal({ onClose, showToast }: ModalProps) {
-  const { resume, save, busy } = useSaveResume(showToast, onClose)
+  const { resume, persist } = useSaveResume(showToast, onClose)
   const [list, setList] = useState<ContactLink[]>(resume.contacts)
-  const [label, setLabel] = useState('Email')
+  const [label, setLabel] = useState('Telegram')
   const [value, setValue] = useState('')
   function add() {
     if (!value.trim()) return
-    setList([...list, { label, value: value.trim(), href: deriveHref(value.trim()) }])
+    const next = [...list, { label, value: value.trim(), href: deriveHref(label, value.trim()) }]
+    setList(next)
     setValue('')
+    void persist({ contacts: next })
+  }
+  function remove(i: number) {
+    const next = list.filter((_, j) => j !== i)
+    setList(next)
+    void persist({ contacts: next })
   }
   return (
-    <Modal
-      title="Контакты и ссылки"
-      sub="Всё, по чему с тобой можно связаться"
-      onClose={onClose}
-      footer={
-        <>
-          <button className={m.btnGhost} onClick={onClose} type="button">
-            Отмена
-          </button>
-          <button className={m.btnPrimary} onClick={() => save({ contacts: list }, 'Контакты сохранены')} type="button" disabled={busy}>
-            Сохранить
-          </button>
-        </>
-      }
-    >
+    <Modal title="Контакты и ссылки" sub="Всё, по чему с тобой можно связаться" onClose={onClose}>
       <div className={m.rowList}>
         {list.map((c, i) => (
           <div key={i} className={m.rowItem}>
             <span className={m.rowItemLab}>{c.label}</span>
             <span className={m.rowItemVal}>{c.value}</span>
-            <button className={m.rowDel} type="button" onClick={() => setList(list.filter((_, j) => j !== i))} aria-label="Удалить">
+            <button className={m.rowDel} type="button" onClick={() => remove(i)} aria-label="Удалить">
               <Ic.trash />
             </button>
           </div>
         ))}
       </div>
       <Field label="Добавить контакт">
-        <div className={m.fGrid2}>
-          <input className={m.input} placeholder="Тип (Email, Telegram…)" value={label} onChange={(e) => setLabel(e.target.value)} />
-          <input className={m.input} placeholder="Значение или ссылка" value={value} onChange={(e) => setValue(e.target.value)} />
+        <div className={m.addRow}>
+          <select className={[m.select, m.addType].join(' ')} value={label} onChange={(e) => setLabel(e.target.value)}>
+            {CONTACT_TYPES.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+          <input
+            className={[m.input, m.addVal].join(' ')}
+            placeholder="Значение или ссылка"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                add()
+              }
+            }}
+          />
+          <button className={m.addBtn} type="button" onClick={add} disabled={!value.trim()}>
+            <Ic.plus /> Добавить
+          </button>
         </div>
       </Field>
-      <button className={m.btnTonal} style={{ marginTop: 4 }} type="button" onClick={add}>
-        <Ic.plus /> Добавить
-      </button>
     </Modal>
   )
 }
@@ -959,8 +994,8 @@ function ChipsEditor({ value, onChange, placeholder }: { value: string[]; onChan
       {value.map((s) => (
         <span key={s} className={m.chipPill}>
           {s}
-          <button className="x" type="button" onClick={() => onChange(value.filter((y) => y !== s))} aria-label={`Удалить ${s}`}>
-            ×
+          <button className={m.chipX} type="button" onClick={() => onChange(value.filter((y) => y !== s))} aria-label={`Удалить ${s}`}>
+            <Ic.close size={13} />
           </button>
         </span>
       ))}

@@ -1,8 +1,16 @@
-/** Вложение к сообщению (метаданные; реальная загрузка файлов — позже). */
+/** Вложение к сообщению. Файлы (фото/видео/документ) льются в Storage, в jsonb — публичный URL. */
 export type ChatAttach = {
   title: string
   subtitle?: string
-  kind?: 'photo' | 'file' | 'loc' | 'contact' | 'vacancy' | 'voice'
+  kind?: 'photo' | 'video' | 'file' | 'loc' | 'contact' | 'vacancy' | 'voice'
+  /** Публичный URL загруженного файла (фото/видео/документ). */
+  url?: string
+  /** MIME-тип файла. */
+  mime?: string
+  /** Вакансия (kind === 'vacancy'). */
+  vacancyId?: string
+  salary?: string
+  city?: string
 }
 
 /** Реакция на сообщение (агрегат по эмодзи). */

@@ -545,12 +545,17 @@
 
 /* Вложение-карточка / reply-чип в пузыре */
 .attachCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 4px 0 2px;
   padding: 10px;
   border-left: 3px solid var(--primary);
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(127, 127, 127, 0.12);
   border-radius: 8px;
   font-size: 13px;
+  text-decoration: none;
+  color: inherit;
 }
 .atTi {
   font-weight: 900;
@@ -562,6 +567,107 @@
   font-size: 12px;
   font-weight: 700;
   margin-top: 1px;
+}
+
+/* Документ-вложение */
+.atFileIco {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--primarySoft);
+  color: var(--accent);
+}
+.atFileMeta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Фото / видео вложение */
+.atMediaWrap {
+  display: block;
+  margin: 4px 0 2px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.atImage {
+  display: block;
+  max-width: 240px;
+  max-height: 260px;
+  border-radius: 12px;
+}
+.atVideo {
+  display: block;
+  max-width: 260px;
+  max-height: 280px;
+  border-radius: 12px;
+  margin: 4px 0 2px;
+}
+
+/* Вакансия-вложение */
+.atVacancy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin: 4px 0 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--primaryBorder, rgba(255, 127, 80, 0.35));
+  border-radius: 12px;
+  background: var(--primarySoftBg);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.atVacancy:hover {
+  border-color: var(--primary);
+}
+.atVacancyLabel {
+  font-size: 10.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.atVacancyTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+.atVacancyMeta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* «Назад» и пусто в меню-булавке (выбор вакансии) */
+.attachBack {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  margin-bottom: 2px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.attachBack:hover {
+  color: var(--text);
+}
+.attachEmpty {
+  padding: 12px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
 }
 .replyChip {
   margin-bottom: 5px;

@@ -5,6 +5,7 @@ import { authActions } from "../model/authSlice";
 import { signIn, signUp } from "../model/authThunks.ts";
 import { Button } from "../../../shared/ui/Button/Button";
 import { Input } from "../../../shared/ui/Input/Input";
+import { sanitizePersonName, sanitizeCompanyName } from "../../../shared/lib/nameValidation";
 import styles from "./AuthPage.module.css";
 
 type Mode = "login" | "register";
@@ -203,7 +204,13 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
             <Input
               label={accountKind === "company" ? "Название компании" : "Имя"}
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              onChange={(e) =>
+                setFullName(
+                  accountKind === "company"
+                    ? sanitizeCompanyName(e.target.value)
+                    : sanitizePersonName(e.target.value),
+                )
+              }
               autoComplete={accountKind === "company" ? "organization" : "name"}
               placeholder={accountKind === "company" ? "Компания" : "Имя"}
             />

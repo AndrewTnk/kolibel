@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../app/store/hooks'
 import { signUp } from '../model/authThunks'
+import { sanitizePersonName, sanitizeCompanyName } from '../../../shared/lib/nameValidation'
 import styles from './NewAccountModal.module.css'
 
 type Kind = 'user' | 'company'
@@ -80,7 +81,9 @@ export function NewAccountModal({ onClose }: { onClose: () => void }) {
             <input
               className={styles.input}
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) =>
+                setName(kind === 'company' ? sanitizeCompanyName(e.target.value) : sanitizePersonName(e.target.value))
+              }
               placeholder={kind === 'user' ? 'Иван Лебедев' : 'Lebedev Studio'}
             />
           </div>

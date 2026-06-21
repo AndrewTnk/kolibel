@@ -9,6 +9,7 @@ import { SkillsEditor } from '../../features/profile/ui/SkillsEditor'
 import { ExperienceEditor } from '../../features/profile/ui/ExperienceEditor'
 import { ContactsEditor } from '../../features/company/ui/ContactsEditor'
 import { LocationField } from '../../shared/ui/LocationField/LocationField'
+import { sanitizePersonName, sanitizeCompanyName } from '../../shared/lib/nameValidation'
 import f from '../../features/profile/ui/ProfileFields.module.css'
 import styles from './OnboardingPage.module.css'
 
@@ -44,7 +45,7 @@ function UserOnboarding() {
           <input
             className={f.input}
             value={form.fullName}
-            onChange={(e) => set('fullName', e.target.value)}
+            onChange={(e) => set('fullName', sanitizePersonName(e.target.value))}
             placeholder="Иван Иванов"
           />
         </div>
@@ -125,7 +126,7 @@ function CompanyOnboarding() {
           <input
             className={f.input}
             value={form.name}
-            onChange={(e) => set('name', e.target.value)}
+            onChange={(e) => set('name', sanitizeCompanyName(e.target.value))}
             placeholder="Например, Kolibel"
           />
         </div>

@@ -21,15 +21,12 @@ const REC_EVERY = 5
 export function FeedList({
   intersperse = false,
   authorId,
-  hideOwn = false,
   ranked = false,
   recSlots,
 }: {
   intersperse?: boolean
   /** Показать только посты этого автора (режим профиля). */
   authorId?: string
-  /** Скрыть собственные посты текущего пользователя (режим общей ленты). */
-  hideOwn?: boolean
   /** Ранжировать единым score + разнообразие (общая лента на главной). */
   ranked?: boolean
   /** Чем чередовать ленту на мобилке (по умолчанию — пользовательские рекомендации).
@@ -38,6 +35,7 @@ export function FeedList({
 }) {
   const dispatch = useAppDispatch()
   const allPosts = useAppSelector((s) => s.feed.posts)
+  const justPostedIds = useAppSelector((s) => s.feed.justPostedIds)
   const myId = useAppSelector((s) => s.auth.user?.id)
   const loaded = useAppSelector((s) => s.feed.loaded)
   const isMobile = useIsMobile()
@@ -66,16 +64,19 @@ export function FeedList({
   }, [accountType, companyIndustry, companyDirections, mySkills, myJobTitle])
 
   const posts = useMemo(() => {
-    // Профиль — только посты автора; общая лента — без собственных постов.
-    const filtered = allPosts.filter((p) => {
-      if (authorId) return p.authorId === authorId
-      if (hideOwn && myId) return p.authorId !== myId
-      return true
-    })
-    if (!ranked) return filtered
+    // Профиль — только посты автора; общая лента — все посты (включая свои).
+    const filtered = authorId ? allPosts.filter((p) => p.authorId === authorId) : allPosts
     const ctx: RankContext = { myId, followingIds: new Set(followingIds), myInterests }
-    return rankFeed(filtered, ctx)
-  }, [allPosts, authorId, hideOwn, myId, ranked, followingIds, myInterests])
+    const ordered = ranked ? rankFeed(filtered, ctx) : filtered
+    // В общей ленте закрепляем свои только что опубликованные посты вверху —
+    // чтобы автор сразу увидел свой пост (до перезагрузки ленты, затем — в общем алгоритме).
+    if (authorId || !justPostedIds.length) return ordered
+    const pinnedRank = new Map(justPostedIds.map((id, i) => [id, i]))
+    const pinned = ordered.filter((p) => pinnedRank.has(p.id)).sort((a, b) => pinnedRank.get(a.id)! - pinnedRank.get(b.id)!)
+    if (!pinned.length) return ordered
+    const rest = ordered.filter((p) => !pinnedRank.has(p.id))
+    return [...pinned, ...rest]
+  }, [allPosts, authorId, myId, ranked, followingIds, myInterests, justPostedIds])
 
   if (!loaded) {
     return <FeedSkeleton />

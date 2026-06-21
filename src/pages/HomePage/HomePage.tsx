@@ -40,7 +40,6 @@ export function HomePage() {
               {/* У компании в ленту вставляем только рекомендованных кандидатов (не юзер-рекомендации). */}
               <FeedList
                 intersperse
-                hideOwn
                 ranked
                 recSlots={isCompany ? [<RecommendedCandidates key="cand" horizontal />] : undefined}
               />

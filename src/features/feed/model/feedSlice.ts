@@ -4,6 +4,9 @@ import { addComment, createPost, loadFeed } from './feedThunks'
 
 type FeedState = {
   posts: FeedPost[]
+  /** Id своих только что опубликованных постов — закрепляются вверху общей ленты
+   *  до следующей загрузки ленты (затем ранжируются на общих основаниях). */
+  justPostedIds: string[]
   loaded: boolean
   status: 'idle' | 'loading'
   error: string | null
@@ -11,6 +14,7 @@ type FeedState = {
 
 const initialState: FeedState = {
   posts: [],
+  justPostedIds: [],
   loaded: false,
   status: 'idle',
   error: null,
@@ -43,6 +47,8 @@ const slice = createSlice({
       s.status = 'idle'
       s.loaded = true
       s.posts = a.payload
+      // Лента перезагружена — свои свежие посты больше не закрепляем, идут в общий алгоритм.
+      s.justPostedIds = []
     })
     b.addCase(loadFeed.rejected, (s, a) => {
       s.status = 'idle'
@@ -51,7 +57,10 @@ const slice = createSlice({
     })
 
     b.addCase(createPost.fulfilled, (s, a) => {
-      if (a.payload) s.posts.unshift(a.payload)
+      if (!a.payload) return
+      s.posts.unshift(a.payload)
+      // Закрепляем свой новый пост вверху общей ленты (новейший — первым).
+      s.justPostedIds.unshift(a.payload.id)
     })
 
     b.addCase(addComment.fulfilled, (s, a) => {

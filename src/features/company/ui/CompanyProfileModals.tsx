@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { RecModal } from '../../../shared/ui/Recommendations/RecModal'
 import { ImageUploadField } from '../../../shared/ui/ImageUploadField/ImageUploadField'
+import { LocationField } from '../../../shared/ui/LocationField/LocationField'
+import { sanitizeCompanyName } from '../../../shared/lib/nameValidation'
 import { saveCompany } from '../model/companyThunks'
 import type {
   CompanyContact,
@@ -48,13 +50,14 @@ export function EditHeaderModal({ onClose }: { onClose: () => void }) {
   const [website, setWebsite] = useState(company.website)
   const [size, setSize] = useState(company.size)
   const [location, setLocation] = useState(company.location)
+  const [country, setCountry] = useState(company.country ?? '')
 
   return (
     <RecModal title="Профиль компании" onClose={onClose} maxWidth={620}>
       <div className={styles.sub}>Основная информация в шапке</div>
       <label className={styles.field}>
         <span className={styles.label}>Название</span>
-        <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} />
+        <input className={styles.input} value={name} onChange={(e) => setName(sanitizeCompanyName(e.target.value))} />
       </label>
       <div className={styles.grid2}>
         <label className={styles.field}>
@@ -70,15 +73,24 @@ export function EditHeaderModal({ onClose }: { onClose: () => void }) {
           <input className={styles.input} value={size} onChange={(e) => setSize(e.target.value)} placeholder="240 человек" />
         </label>
         <label className={styles.field}>
-          <span className={styles.label}>Города / офисы</span>
-          <input className={styles.input} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Москва · Тбилиси" />
+          <span className={styles.label}>Город · Страна</span>
+          <LocationField
+            city={location}
+            country={country}
+            onChange={(c, ctry) => {
+              setLocation(c)
+              setCountry(ctry)
+            }}
+            inputClassName={styles.input}
+            placeholder="Начните вводить город"
+          />
         </label>
       </div>
       <Foot
         onClose={onClose}
         saving={saving}
         disabled={!name.trim()}
-        onSave={() => save({ name: name.trim(), industry, website, size, location }, onClose)}
+        onSave={() => save({ name: name.trim(), industry, website, size, location, country }, onClose)}
       />
     </RecModal>
   )

@@ -13,6 +13,8 @@ import type {
 import { useProfilePulse, buildSparkline, formatDelta } from '../../lib/useProfilePulse'
 import { findCompanyLogoByName } from '../../../company/lib/findCompanyLogo'
 import { ImageUploadField } from '../../../../shared/ui/ImageUploadField/ImageUploadField'
+import { LocationField } from '../../../../shared/ui/LocationField/LocationField'
+import { sanitizePersonName } from '../../../../shared/lib/nameValidation'
 import { Ic } from './icons'
 import type { SectionId } from './ResumeView'
 import m from './ProfileModals.module.css'
@@ -160,7 +162,7 @@ function EditHeaderModal({ onClose, showToast }: ModalProps) {
       }
     >
       <Field label="Имя и фамилия">
-        <input className={m.input} value={name} onChange={(e) => setName(e.target.value)} />
+        <input className={m.input} value={name} onChange={(e) => setName(sanitizePersonName(e.target.value))} />
       </Field>
       <div className={m.fGrid2}>
         <Field label="Должность">
@@ -180,14 +182,18 @@ function EditHeaderModal({ onClose, showToast }: ModalProps) {
           />
         </Field>
       </div>
-      <div className={m.fGrid2}>
-        <Field label="Город">
-          <input className={m.input} value={location} onChange={(e) => setLocation(e.target.value)} />
-        </Field>
-        <Field label="Страна">
-          <input className={m.input} value={country} onChange={(e) => setCountry(e.target.value)} />
-        </Field>
-      </div>
+      <Field label="Город · Страна">
+        <LocationField
+          city={location}
+          country={country}
+          onChange={(c, ctry) => {
+            setLocation(c)
+            setCountry(ctry)
+          }}
+          inputClassName={m.input}
+          placeholder="Начните вводить город"
+        />
+      </Field>
     </Modal>
   )
 }

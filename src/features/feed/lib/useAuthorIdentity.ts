@@ -19,5 +19,7 @@ export function useAuthorIdentity(): AuthorIdentity {
   if (isCompany) {
     return { id: user?.id, name: company.name, avatar: company.avatar || company.logo, kind: 'company' }
   }
-  return { id: user?.id, name: getDisplayName(user), avatar: resume.avatar, kind: 'user' }
+  // Имя берём из актуального профиля (резюме), а не из user_metadata —
+  // оно проставляется при регистрации и не меняется при правке имени в редакторе.
+  return { id: user?.id, name: resume.fullName?.trim() || getDisplayName(user), avatar: resume.avatar, kind: 'user' }
 }

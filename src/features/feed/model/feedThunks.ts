@@ -131,17 +131,18 @@ async function enrichAuthors(posts: FeedPost[]) {
   const [profs, comps] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, avatar_url, account_type, job_title, headline, job_status, skills')
+      .select('id, full_name, avatar_url, account_type, job_title, headline, job_status, skills')
       .in('id', idList),
-    supabase.from('companies').select('id, avatar_url, logo_url, industry').in('id', idList),
+    supabase.from('companies').select('id, name, avatar_url, logo_url, industry').in('id', idList),
   ])
 
   const map = new Map<
     string,
-    { avatar?: string; kind: AuthorKind; subtitle?: string; interests?: string[]; companyLogo?: string }
+    { name?: string; avatar?: string; kind: AuthorKind; subtitle?: string; interests?: string[]; companyLogo?: string }
   >()
   for (const p of (profs.data ?? []) as {
     id: string
+    full_name: string | null
     avatar_url: string | null
     account_type: string | null
     job_title: string | null
@@ -156,6 +157,7 @@ async function enrichAuthors(posts: FeedPost[]) {
     // Интересы человека: навыки + должность (как токены для совпадения по сфере).
     const interests = [...(p.skills ?? []), role].filter(Boolean)
     map.set(p.id, {
+      name: p.full_name?.trim() || undefined,
       avatar: p.avatar_url ?? undefined,
       kind: p.account_type === 'company' ? 'company' : 'user',
       subtitle,
@@ -165,12 +167,14 @@ async function enrichAuthors(posts: FeedPost[]) {
   }
   for (const c of (comps.data ?? []) as {
     id: string
+    name: string | null
     avatar_url: string | null
     logo_url: string | null
     industry: string | null
   }[]) {
     const cur = map.get(c.id)
     map.set(c.id, {
+      name: c.name?.trim() || cur?.name,
       avatar: c.avatar_url ?? c.logo_url ?? cur?.avatar,
       kind: 'company',
       subtitle: c.industry || 'Компания',
@@ -182,6 +186,7 @@ async function enrichAuthors(posts: FeedPost[]) {
   for (const p of posts) {
     const a = map.get(p.authorId)
     if (a) {
+      p.authorName = a.name ?? p.authorName
       p.authorAvatar = a.avatar ?? p.authorAvatar
       p.authorKind = a.kind
       p.authorSubtitle = a.subtitle ?? p.authorSubtitle
@@ -192,6 +197,7 @@ async function enrichAuthors(posts: FeedPost[]) {
       if (!c.authorId) continue
       const ca = map.get(c.authorId)
       if (ca) {
+        c.authorName = ca.name ?? c.authorName
         c.authorAvatar = ca.avatar ?? c.authorAvatar
         c.authorKind = ca.kind
         c.authorSubtitle = ca.subtitle ?? c.authorSubtitle

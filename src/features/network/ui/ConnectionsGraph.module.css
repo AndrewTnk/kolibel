@@ -186,3 +186,20 @@
 .dotSecond {
   background: #c7ccd6;
 }
+
+/* ── Тёмная тема ──────────────────────────────────────────────
+   Бокс графа (главная, у юзера и компании) и развёрнутая модалка — светлые
+   тёплые градиенты не адаптировались. Тёмная база (var(--card)) + коралловый засвет,
+   как у графа на странице «Сеть». */
+:global([data-theme='dark']) .box {
+  background:
+    radial-gradient(80% 120% at 85% 8%, rgba(255, 127, 80, 0.18) 0%, rgba(255, 127, 80, 0) 55%),
+    var(--card);
+  border-color: var(--border);
+}
+:global([data-theme='dark']) .modalBody {
+  background:
+    radial-gradient(70% 90% at 20% 20%, rgba(255, 127, 80, 0.1) 0%, rgba(255, 127, 80, 0) 55%),
+    radial-gradient(70% 90% at 80% 80%, rgba(255, 127, 80, 0.06) 0%, rgba(255, 127, 80, 0) 60%),
+    var(--card);
+}

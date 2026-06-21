@@ -231,6 +231,36 @@
   opacity: 0.85;
 }
 
+/* ── Тёмная тема ──────────────────────────────────────────────
+   Карточки 1 (.match) и 3 (.insight) — светлые градиенты не адаптировались.
+   Делаем их как карточку 2 (фон var(--card)), а декоративный «засвет» — коралловым. */
+:global([data-theme='dark']) .match,
+:global([data-theme='dark']) .insight {
+  background: var(--card);
+}
+
+:global([data-theme='dark']) .match::before {
+  background: radial-gradient(rgba(255, 127, 80, 0.38), transparent 70%);
+}
+
+/* Карточке 3 в тёмной теме добавляем коралловый блоб (в светлой теме его нет). */
+:global([data-theme='dark']) .insight::before {
+  content: '';
+  position: absolute;
+  right: -40px;
+  bottom: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(rgba(255, 127, 80, 0.32), transparent 70%);
+  pointer-events: none;
+}
+
+/* Белый центр fit-пилюли на карточке 1 → под цвет карточки (иначе белый круг на тёмном). */
+:global([data-theme='dark']) .fitPill > span {
+  background: var(--card);
+}
+
 @media (max-width: 980px) {
   .today {
     grid-template-columns: 1fr;

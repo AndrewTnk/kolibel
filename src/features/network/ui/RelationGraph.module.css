@@ -239,3 +239,13 @@
   border-color: var(--primary);
   color: var(--accent);
 }
+
+/* ── Тёмная тема ──────────────────────────────────────────────
+   Оверлеи графа (фильтры/легенда/шестерёнка) были на полупрозрачном белом —
+   на тёмном графе светились. Делаем их под цвет карточки. */
+:global([data-theme='dark']) .filters,
+:global([data-theme='dark']) .legend,
+:global([data-theme='dark']) .gear {
+  background: var(--card);
+  border-color: var(--border);
+}

@@ -23,13 +23,17 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.92);
+  /* серый бейдж + белые надпись и иконка */
+  background: rgba(55, 65, 81, 0.85);
   backdrop-filter: blur(4px);
   font-size: 10.5px;
   font-weight: 800;
-  color: var(--accent);
+  color: #fff;
   padding: 3px 8px;
   border-radius: 999px;
+}
+.kindChip svg {
+  color: #fff;
 }
 
 /* ── Карточка как у пользователя: баннер + лого + имя/сфера/город ── */
@@ -285,13 +289,16 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(55, 65, 81, 0.85);
   font-size: 10.5px;
   font-weight: 800;
-  color: var(--accent);
+  color: #fff;
   padding: 3px 8px;
   border-radius: 999px;
   border: 1px solid var(--border);
+}
+.kindChipStatic svg {
+  color: #fff;
 }
 
 /* Круглое фото компании (заглушка-инициал) */
@@ -437,4 +444,20 @@ a.cardDetailed:hover {
 .actionBtnPrimary:hover {
   background: var(--primaryHover);
   border-color: var(--primaryHover);
+}
+
+/* ── Тёмная тема ──────────────────────────────────────────────
+   Баннер-заглушка (нет фото): светлая тема — пастель по id, тёмная — фирменный
+   тёмный градиент (как у заглушки фото). Бейдж общих связей — ярче на тёмном. */
+:global([data-theme='dark']) .cBanner {
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+}
+/* Лого-заглушка компании (нет фото) — тёмный градиент + белые инициалы. */
+:global([data-theme='dark']) .cAva {
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+  color: #fff;
+}
+:global([data-theme='dark']) .reasonMutual {
+  background: rgba(22, 163, 74, 0.16);
+  color: var(--green);
 }

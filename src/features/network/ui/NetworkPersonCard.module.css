@@ -45,13 +45,17 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.92);
+  /* серый бейдж + белые надпись и иконка */
+  background: rgba(55, 65, 81, 0.85);
   backdrop-filter: blur(4px);
   font-size: 10.5px;
   font-weight: 800;
-  color: var(--accent);
+  color: #fff;
   padding: 3px 8px;
   border-radius: 999px;
+}
+.kindChip svg {
+  color: #fff;
 }
 
 .pTag {
@@ -477,4 +481,16 @@ a.cardDetailed:hover {
 .actionBtnPrimary:hover {
   background: var(--primaryHover);
   border-color: var(--primaryHover);
+}
+
+/* ── Тёмная тема ──────────────────────────────────────────────
+   Баннер-заглушка (нет фото): в светлой теме — пастель по id (как было),
+   в тёмной — фирменный тёмный градиент (как у заглушки фото профиля). */
+:global([data-theme='dark']) .pBanner {
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+}
+/* Бейдж общих связей: тусклый тёмно-зелёный текст → яркий зелёный на тёмном фоне. */
+:global([data-theme='dark']) .pReasonMutual {
+  background: rgba(22, 163, 74, 0.16);
+  color: var(--green);
 }

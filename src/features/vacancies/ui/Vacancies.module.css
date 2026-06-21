@@ -53,7 +53,8 @@
 .fieldLabel {
   font-size: 12px;
   font-weight: 800;
-  color: #374151;
+  /* заметный лейбл (а плейсхолдер — приглушённый): иерархия + работает в обеих темах */
+  color: var(--text);
 }
 
 .control {
@@ -73,9 +74,9 @@
   box-shadow: 0 0 0 3px var(--ring);
 }
 
-/* Бледные плейсхолдеры — как в редакторе профиля */
+/* Приглушённые плейсхолдеры — чтобы не выделялись сильнее лейблов (тема-зависимо) */
 .control::placeholder {
-  color: #c2c8d2;
+  color: var(--muted);
   font-weight: 400;
   opacity: 1;
 }
@@ -95,17 +96,22 @@
   font-size: 11px;
   font-weight: 800;
   cursor: pointer;
-  color: #374151;
+  color: var(--text-2);
 }
 
 .skillChip:hover {
-  border-color: #d1d5db;
+  border-color: var(--primaryBorder);
 }
 
+/* Выбранный навык — сплошной коралл, чтобы заметно выделялся среди серых. */
 .skillChipActive {
-  background: var(--primarySoft);
-  border-color: var(--primarySoftMd);
-  color: var(--accent);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--onPrimary);
+}
+
+.skillChipActive:hover {
+  border-color: var(--primary);
 }
 
 /* Cards */
@@ -975,6 +981,12 @@
   border-color: #bce4ce;
 }
 
+/* Тёмная тема: зелёный «applied»-тинт поверх тёмной карточки (а не светлый фон). */
+:global([data-theme='dark']) .vacCardApplied {
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.18) 0%, rgba(22, 163, 74, 0.1) 100%), var(--card);
+  border-color: rgba(22, 163, 74, 0.5);
+}
+
 .vacAva {
   width: 46px;
   height: 46px;
@@ -1623,7 +1635,9 @@
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  /* строка — кнопка: явно выравниваем текст влево (иначе center по умолчанию → название «по центру») */
+  /* строка — кнопка: фон задаём явно (у <button> иначе системный ButtonFace —
+     белый в тёмной теме); и выравниваем текст влево (иначе center по умолчанию). */
+  background: var(--card);
   text-align: left;
 }
 
@@ -1873,6 +1887,8 @@
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 12px;
+  /* у <button> без фона — системный ButtonFace (белый в тёмной теме) */
+  background: var(--card);
   cursor: pointer;
   font: inherit;
   text-align: left;

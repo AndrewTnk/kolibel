@@ -1,4 +1,11 @@
-export type NotificationKind = 'application' | 'message' | 'follow' | 'vacancy' | 'system'
+export type NotificationKind =
+  | 'application'
+  | 'message'
+  | 'follow'
+  | 'vacancy'
+  | 'system'
+  | 'like'
+  | 'comment'
 
 export type AppNotification = {
   id: string
@@ -9,4 +16,10 @@ export type AppNotification = {
   read: boolean
   /** Куда вести по клику (напр. /u/:id, /chat, /my-vacancies) */
   link?: string
+  /** Кто инициировал — для аватара/ссылки на профиль */
+  actorId?: string
+  /** Аватар актора (дотягивается из profiles/companies по actorId) */
+  avatar?: string
+  /** Тип актора (форма аватара: круг — человек, квадрат — компания) */
+  actorKind?: 'person' | 'company'
 }

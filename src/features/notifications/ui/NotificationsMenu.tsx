@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import {
   markAllNotificationsRead,
   markNotificationRead,
+  clearAllNotifications,
 } from '../model/notificationsThunks'
 import type { AppNotification } from '../model/types'
 import { formatChatTime } from '../../chat/lib/format'
@@ -49,6 +50,10 @@ export function NotificationsMenu() {
     void dispatch(markAllNotificationsRead())
   }
 
+  function clearAll() {
+    void dispatch(clearAllNotifications())
+  }
+
   function onItemClick(n: AppNotification) {
     if (!n.read) void dispatch(markNotificationRead(n.id))
     if (n.link) {
@@ -90,11 +95,18 @@ export function NotificationsMenu() {
         <div className={styles.menu} role="menu" aria-label="Список уведомлений">
           <div className={styles.menuHead}>
             <span className={styles.menuTitle}>Уведомления</span>
-            {unread > 0 ? (
-              <button type="button" className={styles.markAll} onClick={markAllRead}>
-                Прочитать всё
-              </button>
-            ) : null}
+            <div className={styles.menuActions}>
+              {unread > 0 ? (
+                <button type="button" className={styles.markAll} onClick={markAllRead}>
+                  Прочитать всё
+                </button>
+              ) : null}
+              {items.length ? (
+                <button type="button" className={styles.clearAll} onClick={clearAll}>
+                  Очистить
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div className={styles.list}>
@@ -108,12 +120,19 @@ export function NotificationsMenu() {
                   onClick={() => onItemClick(n)}
                 >
                   <span
-                    className={[styles.itemAv, n.kind === 'vacancy' ? styles.itemAvSquare : '']
+                    className={[
+                      styles.itemAv,
+                      n.actorKind === 'company' || n.kind === 'vacancy' ? styles.itemAvSquare : '',
+                    ]
                       .filter(Boolean)
                       .join(' ')}
                     aria-hidden
                   >
-                    {notifInitials(n.title)}
+                    {n.avatar ? (
+                      <img className={styles.itemAvImg} src={n.avatar} alt="" />
+                    ) : (
+                      notifInitials(n.title)
+                    )}
                   </span>
                   <span className={styles.itemBody}>
                     <span className={styles.itemText}>

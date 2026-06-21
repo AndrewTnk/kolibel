@@ -2,7 +2,12 @@ import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { supabase } from '../../../shared/lib/supabase'
 import { notificationsActions } from '../model/notificationsSlice'
-import { loadNotifications, rowToNotification, type NotificationRow } from '../model/notificationsThunks'
+import {
+  loadNotifications,
+  rowToNotification,
+  enrichNotificationAvatars,
+  type NotificationRow,
+} from '../model/notificationsThunks'
 
 /**
  * Невидимый компонент: при входе грузит уведомления и подписывается на новые
@@ -23,7 +28,12 @@ export function NotificationsRealtime() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
         (payload) => {
-          dispatch(notificationsActions.prepend(rowToNotification(payload.new as NotificationRow)))
+          const notif = rowToNotification(payload.new as NotificationRow)
+          // Дотягиваем аватар актора, затем добавляем в список и показываем пуш-тост.
+          void enrichNotificationAvatars([notif]).then(() => {
+            dispatch(notificationsActions.prepend(notif))
+            dispatch(notificationsActions.pushToast(notif))
+          })
         },
       )
       .subscribe()

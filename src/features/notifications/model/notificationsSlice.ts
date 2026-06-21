@@ -5,11 +5,14 @@ import { loadNotifications } from './notificationsThunks'
 type NotificationsState = {
   items: AppNotification[]
   status: 'idle' | 'loading' | 'ready' | 'error'
+  /** Текущий пуш-тост (новое уведомление, показать поверх интерфейса). */
+  toast: AppNotification | null
 }
 
 const initialState: NotificationsState = {
   items: [],
   status: 'idle',
+  toast: null,
 }
 
 const slice = createSlice({
@@ -29,6 +32,16 @@ const slice = createSlice({
       state.items.forEach((n) => {
         n.read = true
       })
+    },
+    clear(state) {
+      state.items = []
+    },
+    /** Показать пуш-тост о новом уведомлении. */
+    pushToast(state, action: PayloadAction<AppNotification>) {
+      state.toast = action.payload
+    },
+    dismissToast(state) {
+      state.toast = null
     },
   },
   extraReducers: (builder) => {

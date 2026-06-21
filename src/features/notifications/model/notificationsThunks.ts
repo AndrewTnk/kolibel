@@ -16,6 +16,7 @@ export type NotificationRow = {
   link: string | null
   read: boolean
   created_at: string
+  actor_id: string | null
 }
 
 export function rowToNotification(row: NotificationRow): AppNotification {
@@ -27,10 +28,40 @@ export function rowToNotification(row: NotificationRow): AppNotification {
     link: row.link ?? undefined,
     read: row.read,
     createdAt: new Date(row.created_at).getTime(),
+    actorId: row.actor_id ?? undefined,
   }
 }
 
-const SELECT = 'id, kind, title, body, link, read, created_at'
+const SELECT = 'id, kind, title, body, link, read, created_at, actor_id'
+
+/**
+ * Дотягивает аватар и тип актора (из profiles/companies) по actorId — настоящие
+ * фото в уведомлениях. Мутирует переданные объекты и возвращает их же.
+ */
+export async function enrichNotificationAvatars(items: AppNotification[]): Promise<AppNotification[]> {
+  const ids = [...new Set(items.map((n) => n.actorId).filter((x): x is string => !!x))]
+  if (!ids.length) return items
+  const [profs, comps] = await Promise.all([
+    supabase.from('profiles').select('id, avatar_url, account_type').in('id', ids),
+    supabase.from('companies').select('id, avatar_url, logo_url').in('id', ids),
+  ])
+  const map = new Map<string, { avatar?: string; actorKind: 'person' | 'company' }>()
+  for (const p of (profs.data ?? []) as { id: string; avatar_url: string | null; account_type: string | null }[]) {
+    map.set(p.id, { avatar: p.avatar_url ?? undefined, actorKind: p.account_type === 'company' ? 'company' : 'person' })
+  }
+  for (const c of (comps.data ?? []) as { id: string; avatar_url: string | null; logo_url: string | null }[]) {
+    const cur = map.get(c.id)
+    map.set(c.id, { avatar: c.logo_url ?? c.avatar_url ?? cur?.avatar, actorKind: 'company' })
+  }
+  for (const n of items) {
+    const a = n.actorId ? map.get(n.actorId) : undefined
+    if (a) {
+      n.avatar = a.avatar
+      n.actorKind = a.actorKind
+    }
+  }
+  return items
+}
 
 /** Загрузка уведомлений текущего пользователя. */
 export const loadNotifications = createAsyncThunk<AppNotification[], void>(
@@ -44,7 +75,20 @@ export const loadNotifications = createAsyncThunk<AppNotification[], void>(
       .order('created_at', { ascending: false })
       .limit(50)
     if (error) throw new Error(error.message)
-    return (data as NotificationRow[]).map(rowToNotification)
+    const items = (data as NotificationRow[]).map(rowToNotification)
+    return enrichNotificationAvatars(items)
+  },
+)
+
+/** Удалить все уведомления текущего пользователя (оптимистично). */
+export const clearAllNotifications = createAsyncThunk<void, void>(
+  'notifications/clearAll',
+  async (_, { dispatch }) => {
+    const me = await currentUserId()
+    if (!me) return
+    dispatch(notificationsActions.clear())
+    const { error } = await supabase.from('notifications').delete().eq('user_id', me)
+    if (error) throw new Error(error.message)
   },
 )
 

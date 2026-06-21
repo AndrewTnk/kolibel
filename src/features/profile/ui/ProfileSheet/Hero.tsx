@@ -4,6 +4,7 @@ import { useAppSelector } from '../../../../app/store/hooks'
 import type { JobStatus, Resume } from '../../model/types'
 import type { ProfileModalState } from './ProfileModals'
 import { CompanyBadge } from '../../../../shared/ui/CompanyBadge/CompanyBadge'
+import { OnlineDot } from '../../../presence/ui/OnlineDot'
 import { Ic } from './icons'
 import s from './ProfileSheet.module.css'
 
@@ -33,7 +34,7 @@ type Props = {
   onBack?: () => void
 }
 
-export function Hero({ open, showToast, resume: propResume, readOnly = false, actions, onBack }: Props) {
+export function Hero({ open, showToast, resume: propResume, readOnly = false, actions, viewedId, onBack }: Props) {
   const navigate = useNavigate()
   const storeResume = useAppSelector((st) => st.profile.resume)
   const resume = propResume ?? storeResume
@@ -110,7 +111,7 @@ export function Hero({ open, showToast, resume: propResume, readOnly = false, ac
             <div className={[s.avatar, s.grad].join(' ')}>
               {resume.avatar ? <img src={resume.avatar} alt={resume.fullName} /> : resume.avatarInitials}
             </div>
-            {resume.isOnline ? <span className={s.onlineDot} /> : null}
+            <OnlineDot id={viewedId ?? myId} size={15} />
           </div>
 
           <div className={s.heroIdent}>

@@ -13,6 +13,12 @@
 .avatarSquare {
   border-radius: 28%;
 }
+/* Обёртка аватара с индикатором присутствия (OnlineDot позиционируется по ней) */
+.avatarWrap {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+}
 
 /* ════════ Список бесед ════════ */
 .listCol {

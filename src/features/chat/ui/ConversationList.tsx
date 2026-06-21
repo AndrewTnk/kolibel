@@ -122,7 +122,7 @@ export function ConversationList({
                   }
                 }}
               >
-                <ChatAvatar name={c.title} avatar={c.avatar} size={46} square={c.type === 'company'} />
+                <ChatAvatar name={c.title} avatar={c.avatar} size={46} square={c.type === 'company'} id={c.otherId} />
                 <div className={styles.lMeta}>
                   <div className={styles.lTop}>
                     <div className={styles.lName}>

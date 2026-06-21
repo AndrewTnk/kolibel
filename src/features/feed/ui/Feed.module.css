@@ -1090,6 +1090,32 @@
   display: block;
 }
 
+/* Видео в ленте играет инлайн; иконка-«развернуть» поверх открывает лайтбокс */
+.videoWrap {
+  position: relative;
+}
+
+.expandBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.12s ease;
+}
+
+.expandBtn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
 /* Ряд действий поста: три равные кнопки с верхним разделителем (как в макете). */
 .actions {
   display: flex;

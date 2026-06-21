@@ -1,3 +1,4 @@
+import { OnlineDot } from '../../presence/ui/OnlineDot'
 import styles from './Chat.module.css'
 
 /** Единый «фирменный» градиент заглушки аватара (как в рекомендациях/ленте/сети). */
@@ -18,19 +19,21 @@ export function ChatAvatar({
   avatar,
   size = 48,
   square = false,
+  id,
 }: {
   name: string
   avatar?: string
   size?: number
   /** Скруглённый квадрат (для компаний) вместо круга */
   square?: boolean
+  /** id собеседника — для индикатора присутствия (только у людей). */
+  id?: string
 }) {
   const cls = [styles.avatar, square ? styles.avatarSquare : ''].join(' ')
   const style = { width: size, height: size }
-  if (avatar) {
-    return <img className={cls} style={style} src={avatar} alt="" />
-  }
-  return (
+  const inner = avatar ? (
+    <img className={cls} style={style} src={avatar} alt="" />
+  ) : (
     <span
       className={cls}
       style={{ ...style, background: AVA_GRADIENT, fontSize: Math.round(size * 0.38) }}
@@ -39,4 +42,14 @@ export function ChatAvatar({
       {initialsOf(name)}
     </span>
   )
+  // Индикатор онлайна — только у людей (не компаний).
+  if (id && !square) {
+    return (
+      <span className={styles.avatarWrap} style={style}>
+        {inner}
+        <OnlineDot id={id} size={Math.max(7, Math.round(size * 0.21))} />
+      </span>
+    )
+  }
+  return inner
 }

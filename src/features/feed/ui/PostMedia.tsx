@@ -13,6 +13,14 @@ function VideoOverlay() {
   )
 }
 
+function ExpandIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+    </svg>
+  )
+}
+
 /**
  * Сетка-коллаж медиа поста (гармоничная раскладка, как в VK):
  * 1 — во всю ширину; 2 — рядом; 3 — большое слева + два стопкой справа; 4+ — 2×2 с «+N».
@@ -28,24 +36,34 @@ export function PostMedia({
   const n = media.length
   if (n === 0) return null
 
-  // Одно медиа — как раньше: целиком, без обрезки (contain).
+  // Одно медиа — целиком, без обрезки (contain).
   if (n === 1) {
     const m = media[0]
+    // Видео играем сразу в ленте (controls), а иконка-«развернуть» открывает увеличенный просмотр.
+    if (m.kind === 'video') {
+      return (
+        <div className={[styles.media, styles.videoWrap].join(' ')}>
+          <video className={styles.video} src={m.url} controls playsInline preload="metadata" />
+          <button
+            type="button"
+            className={styles.expandBtn}
+            onClick={() => onOpen(0)}
+            aria-label="Развернуть видео"
+            title="Развернуть"
+          >
+            <ExpandIcon />
+          </button>
+        </div>
+      )
+    }
     return (
       <button
         type="button"
         className={[styles.media, styles.mediaBtn].join(' ')}
         onClick={() => onOpen(0)}
-        aria-label={m.kind === 'image' ? 'Открыть фото' : 'Открыть видео'}
+        aria-label="Открыть фото"
       >
-        {m.kind === 'image' ? (
-          <img className={styles.image} src={m.url} alt={m.alt ?? ''} loading="lazy" />
-        ) : (
-          <>
-            <video className={styles.video} src={m.url} playsInline muted />
-            <VideoOverlay />
-          </>
-        )}
+        <img className={styles.image} src={m.url} alt={m.alt ?? ''} loading="lazy" />
       </button>
     )
   }

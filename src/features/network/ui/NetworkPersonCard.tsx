@@ -47,10 +47,6 @@ export function NetworkPersonCard({
                 {person.avatarInitials}
               </div>
             )}
-            <span
-              className={[styles.onlineDot, person.isOnline ? styles.online : styles.offline].join(' ')}
-              aria-hidden
-            />
           </div>
 
           <div className={styles.detMeta}>
@@ -105,7 +101,7 @@ export function NetworkPersonCard({
       {person.tag ? <span className={styles.pTag}>{person.tag}</span> : null}
 
       <div className={styles.pBody}>
-        <div className={[styles.pAva, person.isOnline ? styles.pOnline : ''].join(' ')}>
+        <div className={styles.pAva}>
           {person.avatar ? (
             <img className={styles.pAvaImg} src={person.avatar} alt={person.fullName} />
           ) : (

@@ -96,7 +96,7 @@ export function NewChatModal({
                   className={styles.contactRow}
                   onClick={() => onPick(c.id)}
                 >
-                  <ChatAvatar name={c.name} avatar={c.avatar} square={c.kind === 'company'} size={44} />
+                  <ChatAvatar name={c.name} avatar={c.avatar} square={c.kind === 'company'} size={44} id={c.id} />
                   <div className={styles.cMeta}>
                     <div className={styles.cName}>{c.name}</div>
                     {c.role ? <div className={styles.cRole}>{c.role}</div> : null}

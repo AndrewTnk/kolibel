@@ -56,6 +56,12 @@ export function TodayRow() {
 
   // Топ-вакансия (нет match-скора на бэке → берём первую из списка).
   const vacancy = vacancies[0]
+  // Открыть карточку вакансии (модалка) + засчитать просмотр. Клик по всей карточке и по CTA.
+  const openVacancy = () => {
+    if (!vacancy) return
+    dispatch(vacanciesActions.openVacancy(vacancy.id))
+    void dispatch(incrementVacancyView(vacancy.id))
+  }
   // Человек со связями (первый рекомендованный).
   const person = people[0]
   const isFollowing = person ? followingIds.includes(person.id) : false
@@ -99,7 +105,15 @@ export function TodayRow() {
             )
           ) : null}
           {!loading && vacancy && showCard('vacancy') ? (
-            <article className={[styles.card, styles.match].join(' ')}>
+            <article
+              className={[styles.card, styles.match].join(' ')}
+              role="button"
+              tabIndex={0}
+              onClick={openVacancy}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') openVacancy()
+              }}
+            >
               <div className={styles.kind}>
                 Совпадение по вакансии <span className={styles.badge}>новое</span>
               </div>
@@ -123,9 +137,9 @@ export function TodayRow() {
                 <button
                   type="button"
                   className={styles.cta}
-                  onClick={() => {
-                    dispatch(vacanciesActions.openVacancy(vacancy.id))
-                    void dispatch(incrementVacancyView(vacancy.id))
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openVacancy()
                   }}
                 >
                   Откликнуться <ArrowIcon />

@@ -154,7 +154,7 @@ export function MiniChatWidget() {
                       const isMe = last?.sender === 'me'
                       return (
                         <button type="button" key={c.id} className={styles.listRow} onClick={() => openConv(c.id)}>
-                          <ChatAvatar name={c.title} avatar={c.avatar} size={42} square={c.type === 'company'} />
+                          <ChatAvatar name={c.title} avatar={c.avatar} size={42} square={c.type === 'company'} id={c.otherId} />
                           <div className={styles.lMeta}>
                             <div className={styles.lTop}>
                               <div className={styles.lName}>{c.title}</div>
@@ -190,10 +190,10 @@ export function MiniChatWidget() {
                 </button>
                 {active.otherId ? (
                   <Link to={`/u/${active.otherId}`} className={styles.threadAvatarLink} aria-label={active.title}>
-                    <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} />
+                    <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} id={active.otherId} />
                   </Link>
                 ) : (
-                  <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} />
+                  <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} id={active.otherId} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {active.otherId ? (

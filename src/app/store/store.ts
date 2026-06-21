@@ -12,6 +12,7 @@ import { accountReducer } from '../../features/account/model/accountSlice'
 import { networkReducer } from '../../features/network/model/networkSlice'
 import { notificationsReducer } from '../../features/notifications/model/notificationsSlice'
 import { analyticsReducer } from '../../features/analytics/model/analyticsSlice'
+import { presenceReducer } from '../../features/presence/model/presenceSlice'
 
 const combinedReducer = combineReducers({
   auth: authReducer,
@@ -26,6 +27,7 @@ const combinedReducer = combineReducers({
   network: networkReducer,
   notifications: notificationsReducer,
   analytics: analyticsReducer,
+  presence: presenceReducer,
 })
 
 export type RootState = ReturnType<typeof combinedReducer>
@@ -39,7 +41,8 @@ const rootReducer = (
   action: Parameters<typeof combinedReducer>[1],
 ): RootState => {
   if (action.type === resetStores.type && state) {
-    return combinedReducer({ auth: state.auth } as RootState, action)
+    // Сохраняем auth и presence (присутствие — глобальное, не зависит от аккаунта).
+    return combinedReducer({ auth: state.auth, presence: state.presence } as RootState, action)
   }
   return combinedReducer(state, action)
 }

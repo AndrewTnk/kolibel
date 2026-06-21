@@ -135,6 +135,7 @@ export function ChatThread({
               avatar={conversation.avatar}
               size={42}
               square={conversation.type === 'company'}
+              id={conversation.otherId}
             />
           </Link>
         ) : (
@@ -143,6 +144,7 @@ export function ChatThread({
             avatar={conversation.avatar}
             size={42}
             square={conversation.type === 'company'}
+            id={conversation.otherId}
           />
         )}
         <div className={styles.threadMeta}>

@@ -42,9 +42,10 @@ function escapeLike(q: string): string {
 }
 
 const LIMIT = 6
+const SUGGEST_LIMIT = 3 // пустой запрос (подсказки при фокусе) — по 3 человека и компании
 
 /**
- * Поиск людей и компаний по имени/названию. Пустой запрос → подсказки (первые N).
+ * Поиск людей и компаний по имени/названию. Пустой запрос → подсказки (по 3).
  * Текущий пользователь исключается из выдачи.
  */
 export async function searchEntities(query: string): Promise<SearchResults> {
@@ -52,6 +53,7 @@ export async function searchEntities(query: string): Promise<SearchResults> {
   const me = sess.session?.user?.id ?? '00000000-0000-0000-0000-000000000000'
   const q = query.trim()
   const pattern = `%${escapeLike(q)}%`
+  const lim = q ? LIMIT : SUGGEST_LIMIT
 
   // Люди
   let peopleQ = supabase
@@ -60,7 +62,7 @@ export async function searchEntities(query: string): Promise<SearchResults> {
     .eq('account_type', 'user')
     .neq('id', me)
     .order('full_name', { ascending: true })
-    .limit(LIMIT)
+    .limit(lim)
   if (q) peopleQ = peopleQ.ilike('full_name', pattern)
 
   // Компании
@@ -69,7 +71,7 @@ export async function searchEntities(query: string): Promise<SearchResults> {
     .select('id, name, industry, location, logo_url')
     .neq('id', me)
     .order('name', { ascending: true })
-    .limit(LIMIT)
+    .limit(lim)
   if (q) compQ = compQ.ilike('name', pattern)
 
   const [peopleRes, compRes] = await Promise.all([peopleQ, compQ])

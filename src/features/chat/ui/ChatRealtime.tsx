@@ -48,6 +48,34 @@ export function ChatRealtime() {
       )
       .on(
         'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'messages' },
+        (payload) => {
+          // Собеседник отредактировал сообщение → обновляем текст в realtime.
+          const row = payload.new as { id?: string; conversation_id?: string; body?: string }
+          if (!row?.id || !row.conversation_id) return
+          dispatch(
+            chatActions.updateMessageText({
+              conversationId: row.conversation_id,
+              messageId: row.id,
+              text: row.body ?? '',
+            }),
+          )
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'messages' },
+        (payload) => {
+          // Собеседник удалил сообщение → убираем из стора в realtime.
+          const old = payload.old as { id?: string; conversation_id?: string }
+          if (!old?.id) return
+          dispatch(
+            chatActions.removeMessage({ conversationId: old.conversation_id, messageId: old.id }),
+          )
+        },
+      )
+      .on(
+        'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'conversation_participants' },
         (payload) => {
           // Собеседник обновил last_read_at → прочитал мои сообщения. Ставим галочки

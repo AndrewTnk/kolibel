@@ -251,10 +251,15 @@ function Hero({
                   </button>
                   <div className={styles.moreSep} />
                   <button type="button" className={styles.moreItem} onClick={more(onSettings)}>
-                    <span className={styles.moreIco}><Ic.settings /></span>Настройки компании
+                    <span className={styles.moreIco}><Ic.settings /></span>
+                    <span>Настройки<br />приватности</span>
                   </button>
-                  <button type="button" className={styles.moreItem} onClick={more(() => onToast('Порядок разделов — скоро'))}>
-                    <span className={styles.moreIco}><Ic.layout /></span>Порядок разделов
+                  <button
+                    type="button"
+                    className={[styles.moreItem, styles.moreDanger].join(' ')}
+                    onClick={more(() => onToast('Спасибо! Передадим команде.'))}
+                  >
+                    <span className={styles.moreIco}><Ic.flag /></span>Сообщить об ошибке
                   </button>
                 </div>
               ) : null}

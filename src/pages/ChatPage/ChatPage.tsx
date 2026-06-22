@@ -3,13 +3,13 @@ import { useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../../shared/ui/AppHeader/AppHeader.tsx'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
 import {
-  deleteConversation,
+  deleteMessage,
+  editMessage,
   loadConversations,
   markConversationRead,
   sendMessage,
   setConversationFlag,
   startConversation,
-  toggleReaction,
 } from '../../features/chat/model/chatThunks'
 import { chatUiActions } from '../../features/chat/model/chatUiSlice'
 import { ConversationList } from '../../features/chat/ui/ConversationList'
@@ -117,19 +117,15 @@ export function ChatPage() {
             }),
           )
         }
-        onToggleReaction={(messageId, emoji) =>
-          void dispatch(toggleReaction({ conversationId: conv.id, messageId, emoji }))
-        }
         onTogglePin={() =>
           void dispatch(setConversationFlag({ conversationId: conv.id, pinned: !conv.pinned }))
         }
-        onToggleMute={() =>
-          void dispatch(setConversationFlag({ conversationId: conv.id, muted: !conv.muted }))
+        onDeleteMessage={(messageId) =>
+          void dispatch(deleteMessage({ conversationId: conv.id, messageId }))
         }
-        onDelete={() => {
-          setActiveId(null)
-          void dispatch(deleteConversation(conv.id))
-        }}
+        onEditMessage={(messageId, text) =>
+          void dispatch(editMessage({ conversationId: conv.id, messageId, text }))
+        }
       />
     )
   }

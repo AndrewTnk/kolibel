@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import type { RealtimeChannel } from '@supabase/supabase-js'
@@ -19,25 +19,29 @@ type Props = {
   conversation: ChatConversation
   onSend: (text: string, extras?: SendExtras) => void
   onBack?: () => void
-  onToggleReaction?: (messageId: string, emoji: string) => void
-  onDelete?: () => void
   onTogglePin?: () => void
-  onToggleMute?: () => void
+  /** Удалить сообщение (вызывается по истечении отсчёта-отмены). */
+  onDeleteMessage?: (messageId: string) => void
+  /** Сохранить отредактированный текст сообщения. */
+  onEditMessage?: (messageId: string, text: string) => void
+  /** Доп. кнопки справа в шапке (мини-чат: развернуть/свернуть). */
+  headerExtra?: ReactNode
 }
 
 const EMOJI_SET = ['😀', '😂', '😍', '😎', '🤔', '🙏', '👍', '👏', '🔥', '✨', '💯', '🎉', '❤️', '💪', '✅', '🚀', '📌', '💬', '🤝', '😅', '😉', '😇', '🥳', '🤩']
-const REACTION_SET = ['👍', '❤️', '🔥', '🎉', '👏', '😂', '🤔']
 
-type Ctx = { msg: ChatMessage; x: number; y: number; reactionsOnly: boolean }
+type Ctx = { msg: ChatMessage; x: number; y: number }
+
+const DELETE_DELAY = 5000 // мс до удаления сообщения (можно отменить)
 
 export function ChatThread({
   conversation,
   onSend,
   onBack,
-  onToggleReaction,
-  onDelete,
   onTogglePin,
-  onToggleMute,
+  onDeleteMessage,
+  onEditMessage,
+  headerExtra,
 }: Props) {
   const myId = useAppSelector((s) => s.auth.user?.id)
   const canvasRef = useRef<HTMLDivElement | null>(null)
@@ -52,14 +56,44 @@ export function ChatThread({
   const [attachOpen, setAttachOpen] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [headMenu, setHeadMenu] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
   const [ctx, setCtx] = useState<Ctx | null>(null)
+  // Редактируемое сообщение (текст грузится в композер).
+  const [editing, setEditing] = useState<ChatMessage | null>(null)
+  // Отложенное удаление сообщений: id → дедлайн (ms). До дедлайна показываем отсчёт+отмену.
+  const [delDeadlines, setDelDeadlines] = useState<Record<string, number>>({})
+  const [, forceTick] = useState(0)
 
-  // Автоскролл вниз — через scrollTop, не scrollIntoView (не ломает страничный скролл).
+  // Состояние скролла канвы (для умного автоскролла без «скачков»).
+  const atBottomRef = useRef(true)
+  const distBottomRef = useRef(0)
+  const prevConvRef = useRef(conversation.id)
+  const prevLenRef = useRef(conversation.messages.length)
+
+  function onCanvasScroll() {
+    const el = canvasRef.current
+    if (!el) return
+    distBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight
+    atBottomRef.current = distBottomRef.current < 80
+  }
+
+  // Умный автоскролл: к низу только при смене беседы и при новом сообщении, когда мы
+  // уже внизу. При удалении/редактировании/отсчёте — СОХРАНЯЕМ видимую область (тот же
+  // отступ от низа), чтобы чат не «прыгал» при схлопывании сообщений.
   useLayoutEffect(() => {
     const el = canvasRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [conversation.id, conversation.messages.length])
+    if (!el) return
+    const convChanged = prevConvRef.current !== conversation.id
+    const added = conversation.messages.length > prevLenRef.current
+    if (convChanged) atBottomRef.current = true
+    if (convChanged || (added && atBottomRef.current)) {
+      el.scrollTop = el.scrollHeight
+    } else {
+      el.scrollTop = el.scrollHeight - el.clientHeight - distBottomRef.current
+    }
+    prevConvRef.current = conversation.id
+    prevLenRef.current = conversation.messages.length
+    distBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight
+  }, [conversation.id, conversation.messages.length, delDeadlines])
 
   // Авто-рост textarea
   useEffect(() => {
@@ -116,7 +150,6 @@ export function ChatThread({
         setHeadMenu(false)
         setCtx(null)
         setReplyTo(null)
-        setConfirmDelete(false)
       }
     }
     window.addEventListener('click', onDocClick)
@@ -126,6 +159,53 @@ export function ChatThread({
       window.removeEventListener('keydown', onKey)
     }
   }, [])
+
+  // Тикаем, пока есть сообщения с отложенным удалением: обновляем отсчёт и по
+  // дедлайну реально удаляем (через onDeleteMessage → thunk).
+  useEffect(() => {
+    if (!Object.keys(delDeadlines).length) return
+    const t = window.setInterval(() => {
+      const now = Date.now()
+      const expired = Object.entries(delDeadlines).filter(([, d]) => d <= now).map(([id]) => id)
+      if (expired.length) {
+        expired.forEach((id) => onDeleteMessage?.(id))
+        setDelDeadlines((prev) => {
+          const next = { ...prev }
+          expired.forEach((id) => delete next[id])
+          return next
+        })
+      } else {
+        forceTick((x) => x + 1) // перерисовать цифры отсчёта
+      }
+    }, 250)
+    return () => window.clearInterval(t)
+  }, [delDeadlines, onDeleteMessage])
+
+  function startDeleteMessage(id: string) {
+    setCtx(null)
+    setDelDeadlines((prev) => ({ ...prev, [id]: Date.now() + DELETE_DELAY }))
+  }
+
+  function cancelDeleteMessage(id: string) {
+    setDelDeadlines((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
+
+  function startEdit(m: ChatMessage) {
+    setCtx(null)
+    setReplyTo(null)
+    setEditing(m)
+    setText(m.text)
+    setTimeout(() => textareaRef.current?.focus(), 0)
+  }
+
+  function cancelEdit() {
+    setEditing(null)
+    setText('')
+  }
 
   function replySnapshot(m: ChatMessage): ChatMessage['replyTo'] {
     return {
@@ -138,6 +218,12 @@ export function ChatThread({
   function send() {
     const t = text.trim()
     if (!t) return
+    if (editing) {
+      onEditMessage?.(editing.id, t)
+      setEditing(null)
+      setText('')
+      return
+    }
     onSend(t, { replyTo: replyTo ? replySnapshot(replyTo) : null })
     setText('')
     setReplyTo(null)
@@ -206,26 +292,29 @@ export function ChatThread({
           ) : null}
         </div>
         <div className={styles.threadHeadBtns}>
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              className={styles.tBtn}
-              title="Ещё"
-              aria-label="Ещё"
-              onClick={(e) => {
-                e.stopPropagation()
-                setHeadMenu((v) => !v)
-              }}
-            >
-              <ChatIco.more />
-            </button>
-            {headMenu ? (
-              <div
-                className={styles.ctxMenu}
-                style={{ position: 'absolute', top: 42, right: 0 }}
-                onClick={(e) => e.stopPropagation()}
+          {headerExtra}
+          {/* Меню «⋯» (только Закрепить) — показываем лишь если есть onTogglePin.
+              Мини-чат его не передаёт → кнопки «⋯» там нет. */}
+          {onTogglePin ? (
+            <div style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className={styles.tBtn}
+                title="Ещё"
+                aria-label="Ещё"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setHeadMenu((v) => !v)
+                }}
               >
-                {onTogglePin ? (
+                <ChatIco.more />
+              </button>
+              {headMenu ? (
+                <div
+                  className={styles.ctxMenu}
+                  style={{ position: 'absolute', top: 42, right: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <button
                     type="button"
                     className={styles.ctxRow}
@@ -236,46 +325,48 @@ export function ChatThread({
                   >
                     <ChatIco.pin /> {conversation.pinned ? 'Открепить' : 'Закрепить'}
                   </button>
-                ) : null}
-                {onToggleMute ? (
-                  <button
-                    type="button"
-                    className={styles.ctxRow}
-                    onClick={() => {
-                      onToggleMute()
-                      setHeadMenu(false)
-                    }}
-                  >
-                    <ChatIco.mute /> {conversation.muted ? 'Включить уведомления' : 'Без звука'}
-                  </button>
-                ) : null}
-                {onDelete ? (
-                  <>
-                    <div className={styles.ctxDiv} />
-                    <button
-                      type="button"
-                      className={[styles.ctxRow, styles.ctxRowDanger].join(' ')}
-                      onClick={() => {
-                        setConfirmDelete(true)
-                        setHeadMenu(false)
-                      }}
-                    >
-                      <ChatIco.trash /> Удалить чат
-                    </button>
-                  </>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
 
-      <div className={styles.canvas} ref={canvasRef}>
+      <div className={styles.canvas} ref={canvasRef} onScroll={onCanvasScroll}>
         {messages.map((m, i) => {
           const prev = messages[i - 1]
           const next = messages[i + 1]
           const showDay = !prev || dayKey(prev.createdAt) !== dayKey(m.createdAt)
           const tailHide = !!next && next.sender === m.sender && next.createdAt - m.createdAt < 5 * 60 * 1000
+
+          // Сообщение с отложенным удалением — вместо пузыря показываем отсчёт + отмену.
+          if (delDeadlines[m.id] !== undefined) {
+            const left = Math.max(0, Math.ceil((delDeadlines[m.id] - Date.now()) / 1000))
+            return (
+              <div key={m.id}>
+                {showDay ? (
+                  <div className={styles.daySep}>
+                    <span className={styles.daySepPill}>{formatDaySeparator(m.createdAt)}</span>
+                  </div>
+                ) : null}
+                <div className={[styles.msgRow, m.sender === 'me' ? styles.msgMe : styles.msgThem].join(' ')}>
+                  <div className={styles.bubbleWrap}>
+                    <div className={[styles.bubble, styles.msgDeleting].join(' ')}>
+                      <span className={styles.delMsgText}>Удаление через {left} с</span>
+                      <button
+                        type="button"
+                        className={styles.delMsgCancel}
+                        onClick={() => cancelDeleteMessage(m.id)}
+                      >
+                        Отменить
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+
           return (
             <div key={m.id}>
               {showDay ? (
@@ -287,16 +378,13 @@ export function ChatThread({
                 className={[styles.msgRow, m.sender === 'me' ? styles.msgMe : styles.msgThem, tailHide ? styles.tailHide : ''].join(' ')}
                 onContextMenu={(e) => {
                   e.preventDefault()
-                  setCtx({ msg: m, x: e.clientX, y: e.clientY, reactionsOnly: false })
+                  setCtx({ msg: m, x: e.clientX, y: e.clientY })
                 }}
               >
                 {m.sender === 'me' ? (
                   <div className={styles.msgQuick}>
                     <button type="button" title="Ответить" onClick={(e) => { e.stopPropagation(); setReplyTo(m) }}>
                       <ChatIco.reply />
-                    </button>
-                    <button type="button" title="Реакция" onClick={(e) => { e.stopPropagation(); setCtx({ msg: m, x: e.clientX, y: e.clientY, reactionsOnly: true }) }}>
-                      <ChatIco.smile width={14} height={14} />
                     </button>
                   </div>
                 ) : null}
@@ -319,28 +407,11 @@ export function ChatThread({
                       ) : null}
                     </span>
                   </div>
-                  {m.reactions && m.reactions.length ? (
-                    <div className={styles.reactions}>
-                      {m.reactions.map((r) => (
-                        <button
-                          type="button"
-                          key={r.em}
-                          className={[styles.rx, r.mine ? styles.rxMine : ''].join(' ')}
-                          onClick={(e) => { e.stopPropagation(); onToggleReaction?.(m.id, r.em) }}
-                        >
-                          {r.em} {r.count}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
                 </div>
                 {m.sender === 'them' ? (
                   <div className={styles.msgQuick}>
                     <button type="button" title="Ответить" onClick={(e) => { e.stopPropagation(); setReplyTo(m) }}>
                       <ChatIco.reply />
-                    </button>
-                    <button type="button" title="Реакция" onClick={(e) => { e.stopPropagation(); setCtx({ msg: m, x: e.clientX, y: e.clientY, reactionsOnly: true }) }}>
-                      <ChatIco.smile width={14} height={14} />
                     </button>
                   </div>
                 ) : null}
@@ -350,7 +421,20 @@ export function ChatThread({
         })}
       </div>
 
-      {replyTo ? (
+      {editing ? (
+        <div className={styles.replyBar}>
+          <div className={styles.replyAccent} />
+          <div className={styles.replyBody}>
+            <div className={styles.replyAu}>
+              <ChatIco.edit /> Редактирование
+            </div>
+            <div className={styles.replyTx}>{editing.text}</div>
+          </div>
+          <button type="button" className={styles.composerBtn} onClick={cancelEdit} aria-label="Отменить редактирование">
+            <ChatIco.close />
+          </button>
+        </div>
+      ) : replyTo ? (
         <div className={styles.replyBar}>
           <div className={styles.replyAccent} />
           <div className={styles.replyBody}>
@@ -475,43 +559,44 @@ export function ChatThread({
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className={styles.ctxReactions}>
-                {REACTION_SET.map((em) => (
-                  <button
-                    type="button"
-                    key={em}
-                    className={styles.em}
-                    onClick={() => {
-                      onToggleReaction?.(ctx.msg.id, em)
-                      setCtx(null)
-                    }}
-                  >
-                    {em}
-                  </button>
-                ))}
-              </div>
-              {!ctx.reactionsOnly ? (
+              <button
+                type="button"
+                className={styles.ctxRow}
+                onClick={() => {
+                  setReplyTo(ctx.msg)
+                  setCtx(null)
+                }}
+              >
+                <ChatIco.reply /> Ответить
+              </button>
+              <button
+                type="button"
+                className={styles.ctxRow}
+                onClick={() => {
+                  void navigator.clipboard?.writeText(ctx.msg.text)
+                  setCtx(null)
+                }}
+              >
+                <ChatIco.copy /> Копировать
+              </button>
+              {ctx.msg.sender === 'me' && ctx.msg.text ? (
+                <button
+                  type="button"
+                  className={styles.ctxRow}
+                  onClick={() => startEdit(ctx.msg)}
+                >
+                  <ChatIco.edit /> Изменить
+                </button>
+              ) : null}
+              {ctx.msg.sender === 'me' ? (
                 <>
                   <div className={styles.ctxDiv} />
                   <button
                     type="button"
-                    className={styles.ctxRow}
-                    onClick={() => {
-                      setReplyTo(ctx.msg)
-                      setCtx(null)
-                    }}
+                    className={[styles.ctxRow, styles.ctxRowDanger].join(' ')}
+                    onClick={() => startDeleteMessage(ctx.msg.id)}
                   >
-                    <ChatIco.reply /> Ответить
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.ctxRow}
-                    onClick={() => {
-                      void navigator.clipboard?.writeText(ctx.msg.text)
-                      setCtx(null)
-                    }}
-                  >
-                    <ChatIco.copy /> Копировать
+                    <ChatIco.trash /> Удалить
                   </button>
                 </>
               ) : null}
@@ -520,43 +605,6 @@ export function ChatThread({
           )
         : null}
 
-      {confirmDelete && onDelete
-        ? createPortal(
-            <div className={styles.confirmOverlay} onClick={() => setConfirmDelete(false)}>
-              <div
-                className={styles.confirmBox}
-                role="dialog"
-                aria-modal="true"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className={styles.confirmTitle}>Удалить чат?</div>
-                <div className={styles.confirmText}>
-                  Переписка с «{conversation.title}» будет удалена без возможности восстановления.
-                </div>
-                <div className={styles.confirmActions}>
-                  <button
-                    type="button"
-                    className={styles.confirmCancel}
-                    onClick={() => setConfirmDelete(false)}
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.confirmDelete}
-                    onClick={() => {
-                      setConfirmDelete(false)
-                      onDelete()
-                    }}
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
     </div>
   )
 }

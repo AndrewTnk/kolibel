@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { deletePost } from '../model/feedThunks'
 import type { FeedPost } from '../model/types'
@@ -24,11 +24,26 @@ export function formatPostTime(ts: number) {
   return `${date}, ${time}`
 }
 
+const DELETE_DELAY = 5 // секунд до удаления (можно отменить)
+
 export function PostCard({ post }: { post: FeedPost }) {
   const dispatch = useAppDispatch()
   const myId = useAppSelector((s) => s.auth.user?.id)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [lightbox, setLightbox] = useState<number | null>(null)
+  // Отложенное удаление с отменой: пост сменяется отсчётом, удаление — через DELETE_DELAY с.
+  const [pending, setPending] = useState(false)
+  const [seconds, setSeconds] = useState(DELETE_DELAY)
+
+  useEffect(() => {
+    if (!pending) return
+    if (seconds <= 0) {
+      void dispatch(deletePost(post.id))
+      return
+    }
+    const t = window.setTimeout(() => setSeconds((s) => s - 1), 1000)
+    return () => window.clearTimeout(t)
+  }, [pending, seconds, dispatch, post.id])
 
   const isOwn = !!myId && myId === post.authorId
   const menuItems: MoreMenuItem[] = isOwn
@@ -36,13 +51,42 @@ export function PostCard({ post }: { post: FeedPost }) {
         {
           label: 'Удалить пост',
           onClick: () => {
-            if (window.confirm('Удалить пост? Это действие нельзя отменить.')) {
-              void dispatch(deletePost(post.id))
-            }
+            setSeconds(DELETE_DELAY)
+            setPending(true)
           },
         },
       ]
     : [{ label: 'Пожаловаться' }]
+
+  if (pending) {
+    const ringC = 2 * Math.PI * 20
+    return (
+      <article className={[styles.post, styles.postDeleting].join(' ')}>
+        <div className={styles.delPending}>
+          <div className={styles.delRing}>
+            <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden>
+              <circle className={styles.delRingTrack} cx="24" cy="24" r="20" />
+              <circle
+                className={styles.delRingProg}
+                cx="24"
+                cy="24"
+                r="20"
+                style={{ strokeDasharray: ringC, ['--ringC' as string]: `${ringC}` }}
+              />
+            </svg>
+            <span className={styles.delRingNum}>{seconds}</span>
+          </div>
+          <div className={styles.delText}>
+            <div className={styles.delTitle}>Пост удаляется</div>
+            <div className={styles.delSub}>Удаление через {seconds} с — можно отменить</div>
+          </div>
+          <button type="button" className={styles.delCancel} onClick={() => setPending(false)}>
+            Отменить
+          </button>
+        </div>
+      </article>
+    )
+  }
 
   // Все медиа поста (фото/видео) — рендерятся одним коллажем.
   const media = post.content.filter(

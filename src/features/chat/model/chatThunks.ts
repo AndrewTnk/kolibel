@@ -124,6 +124,46 @@ export const sendMessage = createAsyncThunk<
   return { conversationId, message }
 })
 
+/** Удалить своё сообщение (оптимистично + RLS messages_delete_own из 0031). */
+export const deleteMessage = createAsyncThunk<
+  void,
+  { conversationId: string; messageId: string }
+>('chat/deleteMessage', async ({ conversationId, messageId }, { dispatch }) => {
+  const myId = await currentUserId()
+  if (!myId) throw new Error('Нет активной сессии')
+  dispatch(chatActions.removeMessage({ conversationId, messageId }))
+  const { error } = await supabase
+    .from('messages')
+    .delete()
+    .eq('id', messageId)
+    .eq('sender_id', myId)
+  if (error) {
+    await dispatch(loadConversations()) // откат к актуальному состоянию
+    throw new Error(error.message)
+  }
+})
+
+/** Изменить текст своего сообщения (оптимистично + RLS messages_update_own из 0031). */
+export const editMessage = createAsyncThunk<
+  void,
+  { conversationId: string; messageId: string; text: string }
+>('chat/editMessage', async ({ conversationId, messageId, text }, { dispatch }) => {
+  const myId = await currentUserId()
+  if (!myId) throw new Error('Нет активной сессии')
+  const t = text.trim()
+  if (!t) return
+  dispatch(chatActions.updateMessageText({ conversationId, messageId, text: t }))
+  const { error } = await supabase
+    .from('messages')
+    .update({ body: t })
+    .eq('id', messageId)
+    .eq('sender_id', myId)
+  if (error) {
+    await dispatch(loadConversations())
+    throw new Error(error.message)
+  }
+})
+
 /** Найти или создать 1:1 беседу с пользователем; вернуть id и перезагрузить список. */
 export const startConversation = createAsyncThunk<string | null, string>(
   'chat/start',
@@ -132,22 +172,6 @@ export const startConversation = createAsyncThunk<string | null, string>(
     if (error) throw new Error(error.message)
     const conversationId = data as string
     await dispatch(loadConversations())
-    return conversationId
-  },
-)
-
-/** Удалить беседу (через RPC, security definer — каскад снесёт участников и сообщения). */
-export const deleteConversation = createAsyncThunk<string, string>(
-  'chat/delete',
-  async (conversationId, { dispatch }) => {
-    dispatch(chatActions.removeConversation(conversationId))
-    const { error } = await supabase.rpc('delete_conversation', {
-      p_conversation_id: conversationId,
-    })
-    if (error) {
-      await dispatch(loadConversations())
-      throw new Error(error.message)
-    }
     return conversationId
   },
 )
@@ -168,48 +192,6 @@ export const markConversationRead = createAsyncThunk<string, string>(
     return conversationId
   },
 )
-
-/** Поставить/снять реакцию на сообщении. */
-export const toggleReaction = createAsyncThunk<
-  void,
-  { conversationId: string; messageId: string; emoji: string }
->('chat/toggleReaction', async ({ conversationId, messageId, emoji }, { dispatch }) => {
-  const myId = await currentUserId()
-  if (!myId) throw new Error('Нет активной сессии')
-
-  // Оптимистично переключаем в сторе.
-  dispatch(chatActions.toggleReactionLocal({ conversationId, messageId, emoji }))
-
-  // Берём актуальный массив реакций из БД (учитываем чужие), пересчитываем и пишем.
-  const cur = await supabase.from('messages').select('reactions').eq('id', messageId).single()
-  if (cur.error) {
-    await dispatch(loadConversations()) // откат к актуальному состоянию
-    throw new Error(cur.error.message)
-  }
-  type Raw = { em: string; users: string[] }
-  let raw = ((cur.data?.reactions as Raw[] | null) ?? []).map((r) => ({
-    em: r.em,
-    users: [...(r.users ?? [])],
-  }))
-  const entry = raw.find((r) => r.em === emoji)
-  if (entry) {
-    entry.users = entry.users.includes(myId)
-      ? entry.users.filter((u) => u !== myId)
-      : [...entry.users, myId]
-  } else {
-    raw.push({ em: emoji, users: [myId] })
-  }
-  raw = raw.filter((r) => r.users.length > 0)
-
-  const { error } = await supabase.rpc('set_message_reactions', {
-    p_message_id: messageId,
-    p_reactions: raw,
-  })
-  if (error) {
-    await dispatch(loadConversations())
-    throw new Error(error.message)
-  }
-})
 
 /** Закрепить / отключить звук у беседы (флаги своего участника). */
 export const setConversationFlag = createAsyncThunk<

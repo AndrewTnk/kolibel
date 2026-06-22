@@ -1,18 +1,20 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
-import { markConversationRead, sendMessage } from '../model/chatThunks'
+import {
+  deleteMessage,
+  editMessage,
+  markConversationRead,
+  sendMessage,
+} from '../model/chatThunks'
 import { chatUiActions } from '../model/chatUiSlice'
-import { dayKey, formatDaySeparator, formatMessageTime, formatChatTime, lastMessagePreview } from '../lib/format'
-import { useChatAttach } from '../lib/useChatAttach'
+import { formatChatTime, lastMessagePreview } from '../lib/format'
 import { ChatAvatar } from './ChatAvatar'
-import { ChatAttachView } from './ChatAttachView'
+import { ChatThread, type SendExtras } from './ChatThread'
 import { ChatIco } from './chatIcons'
 import styles from './Chat.module.css'
-
-const EMOJI_SET = ['😀', '😂', '😍', '😎', '🤔', '🙏', '👍', '👏', '🔥', '✨', '💯', '🎉', '❤️', '💪', '✅', '🚀', '📌', '💬', '🤝', '😅', '😉', '😇', '🥳', '🤩']
 
 export function MiniChatWidget() {
   const dispatch = useAppDispatch()
@@ -25,10 +27,6 @@ export function MiniChatWidget() {
   const conversations = useAppSelector((s) => s.chat.conversations)
 
   const [query, setQuery] = useState('')
-  const [draft, setDraft] = useState('')
-  const [attachOpen, setAttachOpen] = useState(false)
-  const [emojiOpen, setEmojiOpen] = useState(false)
-  const canvasRef = useRef<HTMLDivElement | null>(null)
 
   const active = conversations.find((c) => c.id === activeId) ?? null
   const totalUnread = conversations.reduce((acc, c) => acc + (c.unreadCount ?? 0), 0)
@@ -53,39 +51,6 @@ export function MiniChatWidget() {
     })
   }, [withMessages, query])
 
-  useLayoutEffect(() => {
-    if (view === 'chat' && canvasRef.current) {
-      canvasRef.current.scrollTop = canvasRef.current.scrollHeight
-    }
-  }, [view, activeId, active?.messages.length])
-
-  // Закрытие поповеров вложений/эмодзи по клику-вне и Esc.
-  useEffect(() => {
-    function onDocClick() {
-      setAttachOpen(false)
-      setEmojiOpen(false)
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setAttachOpen(false)
-        setEmojiOpen(false)
-      }
-    }
-    window.addEventListener('click', onDocClick)
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('click', onDocClick)
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [])
-
-  // Вложения (фото/видео/документ в Storage + вакансия) — общий с большим чатом хук.
-  const att = useChatAttach((text, attach) => {
-    if (!active) return
-    void dispatch(sendMessage({ conversationId: active.id, text, attach }))
-    setAttachOpen(false)
-  })
-
   // Ранний выход — строго после всех хуков. На самой странице чата мини-чат не нужен.
   if (isMobile || pathname.startsWith('/chat')) return null
 
@@ -93,18 +58,6 @@ export function MiniChatWidget() {
     dispatch(chatUiActions.openConversationInMini(id))
     void dispatch(markConversationRead(id))
   }
-  function send() {
-    const t = draft.trim()
-    if (!t || !active) return
-    void dispatch(sendMessage({ conversationId: active.id, text: t }))
-    setDraft('')
-  }
-  // Юзер: фото и документ. Компания: + вакансия (своя). Гео/контакт убраны.
-  const ATTACH_ITEMS: { icon: keyof typeof ChatIco; label: string; run: () => void }[] = [
-    { icon: 'photo', label: 'Фото или видео', run: () => { att.pickPhoto(); setAttachOpen(false) } },
-    { icon: 'doc', label: 'Документ', run: () => { att.pickDoc(); setAttachOpen(false) } },
-    ...(att.isCompany ? [{ icon: 'briefcase' as const, label: 'Вакансия', run: () => att.setAttachMode('vacancy') }] : []),
-  ]
   function expandToPage(id?: string) {
     dispatch(chatUiActions.closeMini())
     navigate(id ? `/chat?c=${id}` : '/chat')
@@ -178,196 +131,47 @@ export function MiniChatWidget() {
               </div>
             </>
           ) : active ? (
-            <>
-              <div className={styles.miniThreadHead}>
-                <button
-                  type="button"
-                  className={styles.miniBackBtn}
-                  onClick={() => dispatch(chatUiActions.setMiniView('list'))}
-                  aria-label="Назад"
-                >
-                  ←
-                </button>
-                {active.otherId ? (
-                  <Link to={`/u/${active.otherId}`} className={styles.threadAvatarLink} aria-label={active.title}>
-                    <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} id={active.otherId} />
-                  </Link>
-                ) : (
-                  <ChatAvatar name={active.title} avatar={active.avatar} size={34} square={active.type === 'company'} id={active.otherId} />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {active.otherId ? (
-                    <Link to={`/u/${active.otherId}`} className={[styles.miniThreadName, styles.threadTitleLink].join(' ')}>
-                      {active.title}
-                    </Link>
-                  ) : (
-                    <div className={styles.miniThreadName}>{active.title}</div>
-                  )}
-                  {active.subtitle ? <div className={styles.miniThreadStatus}>{active.subtitle}</div> : null}
-                </div>
-                <button
-                  type="button"
-                  className={styles.miniExpandBtn}
-                  onClick={() => expandToPage(active.id)}
-                  title="Открыть на всю страницу"
-                  aria-label="Развернуть"
-                >
-                  <ChatIco.expand />
-                </button>
-                <button
-                  type="button"
-                  className={styles.miniHeadBtn}
-                  onClick={() => dispatch(chatUiActions.closeMini())}
-                  aria-label="Свернуть"
-                >
-                  <ChatIco.close />
-                </button>
-              </div>
-              <div className={styles.canvas} ref={canvasRef}>
-                {active.messages.map((m, i) => {
-                  const prev = active.messages[i - 1]
-                  const next = active.messages[i + 1]
-                  const showDay = !prev || dayKey(prev.createdAt) !== dayKey(m.createdAt)
-                  const tailHide =
-                    !!next && next.sender === m.sender && next.createdAt - m.createdAt < 5 * 60 * 1000
-                  return (
-                    <div key={m.id}>
-                      {showDay ? (
-                        <div className={styles.daySep}>
-                          <span className={styles.daySepPill}>{formatDaySeparator(m.createdAt)}</span>
-                        </div>
-                      ) : null}
-                      <div
-                        className={[
-                          styles.msgRow,
-                          m.sender === 'me' ? styles.msgMe : styles.msgThem,
-                          tailHide ? styles.tailHide : '',
-                        ].join(' ')}
-                      >
-                        <div className={styles.bubbleWrap}>
-                          <div className={styles.bubble}>
-                            {m.attach ? <ChatAttachView attach={m.attach} /> : null}
-                            {m.text ? <span className={styles.txt}>{m.text}</span> : null}
-                            <span className={styles.meta}>
-                              {formatMessageTime(m.createdAt)}
-                              {m.sender === 'me' ? (
-                                <span className={[styles.check, m.readAt ? styles.checkRead : ''].join(' ')}>
-                                  {m.readAt ? (
-                                    <ChatIco.check2 width={16} height={11} />
-                                  ) : (
-                                    <ChatIco.check1 width={14} height={11} />
-                                  )}
-                                </span>
-                              ) : null}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <div className={styles.composer} style={{ padding: '8px 10px' }}>
-                <div className={styles.composerInner} onClick={(e) => e.stopPropagation()}>
+            <ChatThread
+              conversation={active}
+              onBack={() => dispatch(chatUiActions.setMiniView('list'))}
+              onSend={(text: string, extras?: SendExtras) =>
+                void dispatch(
+                  sendMessage({
+                    conversationId: active.id,
+                    text,
+                    replyTo: extras?.replyTo ?? null,
+                    attach: extras?.attach ?? null,
+                  }),
+                )
+              }
+              onDeleteMessage={(messageId) =>
+                void dispatch(deleteMessage({ conversationId: active.id, messageId }))
+              }
+              onEditMessage={(messageId, text) =>
+                void dispatch(editMessage({ conversationId: active.id, messageId, text }))
+              }
+              headerExtra={
+                <>
                   <button
                     type="button"
-                    className={styles.composerBtn}
-                    title="Прикрепить"
-                    aria-label="Прикрепить"
-                    onClick={() => {
-                      setAttachOpen((v) => !v)
-                      setEmojiOpen(false)
-                      att.setAttachMode('main')
-                    }}
+                    className={styles.miniHeadBtn}
+                    onClick={() => expandToPage(active.id)}
+                    title="Открыть на всю страницу"
+                    aria-label="Развернуть"
                   >
-                    <ChatIco.attach />
+                    <ChatIco.expand />
                   </button>
-                  <input ref={att.fileRef} type="file" hidden onChange={att.onFileChange} />
-                  <input
-                    className={styles.composerTextarea}
-                    style={{ minHeight: 24 }}
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        send()
-                      }
-                    }}
-                    placeholder="Сообщение…"
-                  />
                   <button
                     type="button"
-                    className={styles.composerBtn}
-                    title="Эмодзи"
-                    aria-label="Эмодзи"
-                    onClick={() => {
-                      setEmojiOpen((v) => !v)
-                      setAttachOpen(false)
-                    }}
+                    className={styles.miniHeadBtn}
+                    onClick={() => dispatch(chatUiActions.closeMini())}
+                    aria-label="Свернуть"
                   >
-                    <ChatIco.smile />
+                    <ChatIco.close />
                   </button>
-
-                  {attachOpen ? (
-                    <div className={styles.attachPop} onClick={(e) => e.stopPropagation()}>
-                      {att.attachMode === 'vacancy' ? (
-                        <>
-                          <button type="button" className={styles.attachBack} onClick={() => att.setAttachMode('main')}>
-                            ‹ Вакансия
-                          </button>
-                          {att.vacancies.length ? (
-                            att.vacancies.map((v) => (
-                              <button
-                                type="button"
-                                key={v.id}
-                                className={styles.attachItem}
-                                onClick={() => {
-                                  att.sendVacancy(v)
-                                  setAttachOpen(false)
-                                }}
-                              >
-                                {v.title}
-                              </button>
-                            ))
-                          ) : (
-                            <div className={styles.attachEmpty}>Нет вакансий</div>
-                          )}
-                        </>
-                      ) : (
-                        ATTACH_ITEMS.map((it) => {
-                          const Icon = ChatIco[it.icon]
-                          return (
-                            <button type="button" key={it.label} className={styles.attachItem} onClick={it.run}>
-                              <span className={styles.ic}>
-                                <Icon />
-                              </span>
-                              {it.label}
-                            </button>
-                          )
-                        })
-                      )}
-                    </div>
-                  ) : null}
-
-                  {emojiOpen ? (
-                    <div className={styles.emojiPop} onClick={(e) => e.stopPropagation()}>
-                      <div className={styles.emojiPopTitle}>Часто используемые</div>
-                      <div className={styles.emojiGrid}>
-                        {EMOJI_SET.map((em) => (
-                          <button type="button" key={em} onClick={() => setDraft((t) => t + em)}>
-                            {em}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-                <button type="button" className={styles.sendBtn} onClick={send} aria-label="Отправить" disabled={!draft.trim()}>
-                  <ChatIco.send />
-                </button>
-              </div>
-            </>
+                </>
+              }
+            />
           ) : null}
         </div>
       ) : null}

@@ -294,6 +294,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  flex: 1;
   position: relative;
 }
 .threadHead {
@@ -462,6 +463,33 @@
 }
 .msgMe.tailHide .bubble {
   border-bottom-right-radius: 16px;
+}
+
+/* Сообщение в состоянии отложенного удаления — нейтральный пузырь с отсчётом + отмена. */
+.msgDeleting {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+  background: var(--field-bg) !important;
+  color: var(--text) !important;
+}
+.delMsgText {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.delMsgCancel {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+.delMsgCancel:hover {
+  text-decoration: underline;
 }
 .msgThem:not(.tailHide) .bubble::before {
   content: '';

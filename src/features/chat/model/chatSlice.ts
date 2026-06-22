@@ -52,34 +52,35 @@ const slice = createSlice({
       const conv = state.conversations.find((c) => c.id === action.payload)
       if (conv) conv.unreadCount = 0
     },
-    /** Удалить беседу из стора (оптимистично при удалении). */
-    removeConversation(state, action: PayloadAction<string>) {
-      state.conversations = state.conversations.filter((c) => c.id !== action.payload)
-    },
-    /** Оптимистичный тоггл реакции на сообщении. */
-    toggleReactionLocal(
+    /** Удалить сообщение из беседы (оптимистично + realtime DELETE).
+     *  conversationId необязателен: realtime может прислать DELETE без него — тогда ищем по всем беседам. */
+    removeMessage(
       state,
-      action: PayloadAction<{ conversationId: string; messageId: string; emoji: string }>,
+      action: PayloadAction<{ conversationId?: string; messageId: string }>,
     ) {
-      const { conversationId, messageId, emoji } = action.payload
-      const conv = state.conversations.find((c) => c.id === conversationId)
-      const msg = conv?.messages.find((m) => m.id === messageId)
-      if (!msg) return
-      const list = msg.reactions ? [...msg.reactions] : []
-      const idx = list.findIndex((r) => r.em === emoji)
-      if (idx === -1) {
-        list.push({ em: emoji, count: 1, mine: true })
-      } else {
-        const r = list[idx]
-        if (r.mine) {
-          const count = r.count - 1
-          if (count <= 0) list.splice(idx, 1)
-          else list[idx] = { ...r, count, mine: false }
-        } else {
-          list[idx] = { ...r, count: r.count + 1, mine: true }
+      const { conversationId, messageId } = action.payload
+      const conv = conversationId
+        ? state.conversations.find((c) => c.id === conversationId)
+        : undefined
+      if (conv) {
+        conv.messages = conv.messages.filter((m) => m.id !== messageId)
+        return
+      }
+      for (const c of state.conversations) {
+        if (c.messages.some((m) => m.id === messageId)) {
+          c.messages = c.messages.filter((m) => m.id !== messageId)
+          return
         }
       }
-      msg.reactions = list.length ? list : undefined
+    },
+    /** Изменить текст сообщения (оптимистично при редактировании). */
+    updateMessageText(
+      state,
+      action: PayloadAction<{ conversationId: string; messageId: string; text: string }>,
+    ) {
+      const conv = state.conversations.find((c) => c.id === action.payload.conversationId)
+      const msg = conv?.messages.find((m) => m.id === action.payload.messageId)
+      if (msg) msg.text = action.payload.text
     },
     /** Флаги беседы (закрепление / без звука). */
     setConversationFlags(

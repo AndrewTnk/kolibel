@@ -152,15 +152,8 @@ export function ConversationList({
                       {isMe ? 'Вы: ' : ''}
                       {last ? lastMessagePreview(last.text || last.attach?.title || '', 38) : 'Нет сообщений'}
                     </div>
-                    {c.muted ? (
-                      <span className={styles.lMuteIc} title="Без звука">
-                        <ChatIco.mute width={13} height={13} />
-                      </span>
-                    ) : null}
                     {c.unreadCount ? (
-                      <span className={[styles.lBadge, c.muted ? styles.lBadgeMuted : ''].join(' ')}>
-                        {c.unreadCount}
-                      </span>
+                      <span className={styles.lBadge}>{c.unreadCount}</span>
                     ) : null}
                   </div>
                 </div>

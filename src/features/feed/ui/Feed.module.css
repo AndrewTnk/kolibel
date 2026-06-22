@@ -692,6 +692,87 @@
   overflow: hidden;
 }
 
+/* ── Отложенное удаление поста (отсчёт + отмена) ── */
+.postDeleting {
+  border-style: dashed;
+}
+.delPending {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 20px;
+  min-height: 92px;
+}
+.delRing {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+}
+.delRingTrack {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 4;
+}
+.delRingProg {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  /* Длительность синхронна DELETE_DELAY в PostCard.tsx (5 с). */
+  animation: delDeplete 5s linear forwards;
+}
+@keyframes delDeplete {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: var(--ringC);
+  }
+}
+.delRingNum {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--primary);
+}
+.delText {
+  flex: 1;
+  min-width: 0;
+}
+.delTitle {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text);
+}
+.delSub {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+.delCancel {
+  flex: 0 0 auto;
+  height: 38px;
+  padding: 0 18px;
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  background: var(--primarySoftBg);
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+}
+.delCancel:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
 .postHeader {
   display: flex;
   gap: 12px;

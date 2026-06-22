@@ -69,6 +69,15 @@
   transition: filter 0.15s;
 }
 
+/* Без обложки в тёмной теме — тёмный градиент (со слабым коралловым свечением). */
+:global([data-theme='dark']) .heroBanner:not(.heroBannerWithImage) {
+  background:
+    radial-gradient(80% 200% at 70% 10%, rgba(255, 127, 80, 0.18), rgba(255, 127, 80, 0) 55%),
+    linear-gradient(135deg, #1c1d1f 0%, #2c2d2e 100%);
+  background-size: cover;
+  background-position: center;
+}
+
 .heroBanner::after {
   content: '';
   position: absolute;

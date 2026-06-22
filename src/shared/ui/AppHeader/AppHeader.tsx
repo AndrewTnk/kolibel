@@ -7,6 +7,7 @@ import {
 } from "../../../features/auth/model/authThunks.ts";
 import {
   getSavedAccounts,
+  removeSavedAccount,
   type SavedAccount,
 } from "../../../features/auth/lib/accountsStore";
 import { useIsMobile } from "../../lib/useMediaQuery";
@@ -83,6 +84,12 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
       .map((w: string) => w[0])
       .join("")
       .toUpperCase() || "U";
+  // Лимит устройства — максимум 3 аккаунта (текущий + до 2 дополнительных).
+  const MAX_ACCOUNTS = 3;
+  const totalAccounts = accounts.some((a) => a.id === user?.id)
+    ? accounts.length
+    : accounts.length + 1;
+  const canAddAccount = totalAccounts < MAX_ACCOUNTS;
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -446,18 +453,24 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
 
                   <div className={styles.acctSep} />
 
-                  <button
-                    className={[styles.acctAct, styles.acctActAdd].join(" ")}
-                    role="menuitem"
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setNewAccountOpen(true);
-                    }}
-                  >
-                    <span className={styles.acctActIco}>+</span> Добавить
-                    аккаунт
-                  </button>
+                  {canAddAccount ? (
+                    <button
+                      className={[styles.acctAct, styles.acctActAdd].join(" ")}
+                      role="menuitem"
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setNewAccountOpen(true);
+                      }}
+                    >
+                      <span className={styles.acctActIco}>+</span> Добавить
+                      аккаунт
+                    </button>
+                  ) : (
+                    <div className={styles.acctLimit}>
+                      Можно войти максимум в {MAX_ACCOUNTS} аккаунта
+                    </div>
+                  )}
                   <button
                     className={styles.acctAct}
                     role="menuitem"
@@ -490,8 +503,28 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
                     type="button"
                     onClick={() => {
                       setMenuOpen(false);
-                      void dispatch(signOut());
-                      nav("/auth", { replace: true });
+                      // Выход = убрать текущий аккаунт из реестра переключения.
+                      // Если остаётся другой — сразу переключаемся на него,
+                      // иначе полный выход на окно авторизации.
+                      const others = getSavedAccounts().filter(
+                        (a) => a.id !== user?.id,
+                      );
+                      if (user?.id) removeSavedAccount(user.id);
+                      if (others.length > 0) {
+                        void dispatch(switchAccount(others[0].id)).then(
+                          (res) => {
+                            if (switchAccount.fulfilled.match(res)) {
+                              nav("/");
+                            } else {
+                              void dispatch(signOut());
+                              nav("/auth", { replace: true });
+                            }
+                          },
+                        );
+                      } else {
+                        void dispatch(signOut());
+                        nav("/auth", { replace: true });
+                      }
                     }}
                   >
                     <span className={styles.acctActIco} aria-hidden>

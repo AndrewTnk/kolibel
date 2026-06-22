@@ -39,6 +39,9 @@ const slice = createSlice({
     b.addCase(loadCompany.pending, (s) => {
       s.status = 'loading'
       s.error = null
+      // Грузим компанию (нового) аккаунта — текущие данные больше не валидны.
+      // Вызывается только из loadProfile (auth-переход для company-аккаунта).
+      s.loaded = false
     })
     b.addCase(loadCompany.fulfilled, (s, a) => {
       s.status = 'idle'

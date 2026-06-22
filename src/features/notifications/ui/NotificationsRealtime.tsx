@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { supabase } from '../../../shared/lib/supabase'
+import { store } from '../../../app/store/store'
+import { selectViewedConversationId } from '../../chat/model/chatUiSlice'
 import { notificationsActions } from '../model/notificationsSlice'
 import {
   loadNotifications,
+  markNotificationRead,
   rowToNotification,
   enrichNotificationAvatars,
   type NotificationRow,
@@ -29,10 +32,23 @@ export function NotificationsRealtime() {
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
         (payload) => {
           const notif = rowToNotification(payload.new as NotificationRow)
-          // Дотягиваем аватар актора, затем добавляем в список и показываем пуш-тост.
+          // Если это сообщение из беседы, которую пользователь СЕЙЧАС открыл —
+          // он уже видит сообщение, тост не нужен (помечаем уведомление прочитанным).
+          const state = store.getState()
+          const viewedId = selectViewedConversationId(state)
+          const viewedConv = viewedId
+            ? state.chat.conversations.find((c) => c.id === viewedId)
+            : null
+          const inOpenChat =
+            notif.kind === 'message' && !!viewedConv?.otherId && notif.actorId === viewedConv.otherId
+          // Дотягиваем аватар актора, затем добавляем в список и (если нужно) показываем пуш-тост.
           void enrichNotificationAvatars([notif]).then(() => {
             dispatch(notificationsActions.prepend(notif))
-            dispatch(notificationsActions.pushToast(notif))
+            if (inOpenChat) {
+              void dispatch(markNotificationRead(notif.id))
+            } else {
+              dispatch(notificationsActions.pushToast(notif))
+            }
           })
         },
       )

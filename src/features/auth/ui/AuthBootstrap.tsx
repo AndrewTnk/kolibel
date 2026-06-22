@@ -6,6 +6,7 @@ import { authActions } from '../model/authSlice'
 import { mapSession } from '../lib/session'
 import { setAccountIdentity, upsertAccount } from '../lib/accountsStore'
 import { loadProfile } from '../../profile/model/profileThunks'
+import { loadMyApplications } from '../../vacancies/model/vacancyThunks'
 
 const CAPTURE_EVENTS = ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED', 'USER_UPDATED']
 
@@ -13,6 +14,8 @@ export function AuthBootstrap() {
   const dispatch = useAppDispatch()
   const userId = useAppSelector((s) => s.auth.user?.id)
   const accountType = useAppSelector((s) => s.account.type)
+  const profileLoaded = useAppSelector((s) => s.profile.loaded)
+  const companyLoaded = useAppSelector((s) => s.company.loaded)
   const resumeName = useAppSelector((s) => s.profile.resume.fullName)
   const resumeAvatar = useAppSelector((s) => s.profile.resume.avatar)
   const companyName = useAppSelector((s) => s.company.profile.name)
@@ -50,6 +53,10 @@ export function AuthBootstrap() {
       // При входе/восстановлении сессии подтягиваем профиль из БД
       if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         void dispatch(loadProfile())
+        // Сразу грузим id вакансий, на которые уже откликнулись — чтобы статус
+        // «Откликнулся» был корректен везде (главная/рекомендации), а не только
+        // после захода на /vacancies (иначе можно повторно открыть отклик).
+        void dispatch(loadMyApplications())
       }
     })
 
@@ -59,9 +66,14 @@ export function AuthBootstrap() {
   // Когда подгрузился профиль — сохраняем актуальные имя+фото активного аккаунта
   // в реестр (для компании — из companies.name/logo, для юзера — из резюме),
   // чтобы в меню переключения не-текущий аккаунт показывался правильно.
+  // ⚠️ Пишем ТОЛЬКО когда профиль реально загружен (`loaded`) — иначе при создании
+  // второго аккаунта (signUp не делает resetStores) в реестр попало бы фото ещё
+  // не сменившегося профиля первого аккаунта (баг «чужое фото у нового аккаунта»).
   useEffect(() => {
     if (!userId) return
     const isCompany = accountType === 'company'
+    const loaded = isCompany ? companyLoaded : profileLoaded
+    if (!loaded) return
     setAccountIdentity(userId, {
       name: isCompany ? companyName : resumeName,
       avatar: isCompany ? companyLogo || companyAvatar : resumeAvatar,
@@ -69,6 +81,8 @@ export function AuthBootstrap() {
   }, [
     userId,
     accountType,
+    profileLoaded,
+    companyLoaded,
     resumeName,
     resumeAvatar,
     companyName,

@@ -66,6 +66,9 @@ const slice = createSlice({
     b.addCase(loadProfile.pending, (s) => {
       s.status = 'loading'
       s.error = null
+      // Грузим профиль (нового) аккаунта — текущие данные больше не валидны.
+      // Вызывается только при auth-переходах (вход/INITIAL_SESSION/switchAccount).
+      s.loaded = false
     })
     b.addCase(loadProfile.fulfilled, (s, a) => {
       s.status = 'idle'

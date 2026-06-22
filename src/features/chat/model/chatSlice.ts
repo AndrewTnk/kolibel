@@ -18,19 +18,34 @@ const slice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
-    /** Добавить сообщение в беседу (используется и оптимистичной отправкой, и realtime). */
+    /** Добавить сообщение в беседу (используется и оптимистичной отправкой, и realtime).
+     *  `active` — беседа сейчас открыта у пользователя → не наращиваем непрочитанное. */
     appendMessage(
       state,
-      action: PayloadAction<{ conversationId: string; message: ChatMessage }>,
+      action: PayloadAction<{ conversationId: string; message: ChatMessage; active?: boolean }>,
     ) {
-      const { conversationId, message } = action.payload
+      const { conversationId, message, active } = action.payload
       const conv = state.conversations.find((c) => c.id === conversationId)
       if (!conv) return // беседы ещё нет в сторе — realtime-обработчик перезагрузит список
       if (conv.messages.some((m) => m.id === message.id)) return // дедуп (id уже есть)
       conv.messages.push(message)
       conv.updatedAt = message.createdAt
-      if (message.sender === 'them') conv.unreadCount = (conv.unreadCount ?? 0) + 1
+      if (message.sender === 'them' && !active) conv.unreadCount = (conv.unreadCount ?? 0) + 1
       state.conversations.sort((a, b) => b.updatedAt - a.updatedAt)
+    },
+    /** Собеседник прочитал мои сообщения (его last_read_at обновился) — ставим галочки
+     *  «прочитано» на мои сообщения до этого времени (realtime read receipts). */
+    applyOtherRead(
+      state,
+      action: PayloadAction<{ conversationId: string; readAt: number }>,
+    ) {
+      const conv = state.conversations.find((c) => c.id === action.payload.conversationId)
+      if (!conv) return
+      for (const m of conv.messages) {
+        if (m.sender === 'me' && !m.readAt && m.createdAt <= action.payload.readAt) {
+          m.readAt = action.payload.readAt
+        }
+      }
     },
     /** Сбросить счётчик непрочитанного у беседы. */
     markRead(state, action: PayloadAction<string>) {

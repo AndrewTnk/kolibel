@@ -7,11 +7,13 @@ export type ChatModalRect = {
   h: number
 }
 
-type ChatUiState = {
+export type ChatUiState = {
   modalOpen: boolean
   miniOpen: boolean
   miniView: 'list' | 'chat'
   activeConversationId: string | null
+  /** Беседа, открытая на полной странице /chat (тред виден). */
+  pageConversationId: string | null
   modalRect: ChatModalRect
 }
 
@@ -27,6 +29,7 @@ const initialState: ChatUiState = {
   miniOpen: false,
   miniView: 'list',
   activeConversationId: null,
+  pageConversationId: null,
   modalRect: typeof window !== 'undefined' ? defaultRect() : { x: 80, y: 80, w: 680, h: 520 },
 }
 
@@ -55,6 +58,10 @@ const slice = createSlice({
     setActiveConversation(state, action: PayloadAction<string>) {
       state.activeConversationId = action.payload
     },
+    /** Беседа, открытая на странице /chat (null — тред закрыт). */
+    setPageConversation(state, action: PayloadAction<string | null>) {
+      state.pageConversationId = action.payload
+    },
     setMiniView(state, action: PayloadAction<'list' | 'chat'>) {
       state.miniView = action.payload
     },
@@ -71,3 +78,17 @@ const slice = createSlice({
 
 export const chatUiReducer = slice.reducer
 export const chatUiActions = slice.actions
+
+/**
+ * id беседы, которую пользователь СЕЙЧАС видит (тред открыт): страница /chat,
+ * либо модалка чата, либо мини-чат в режиме переписки. Используется, чтобы не
+ * слать тосты/не считать непрочитанное для открытой беседы.
+ */
+export function selectViewedConversationId(s: { chatUi: ChatUiState }): string | null {
+  const ui = s.chatUi
+  if (ui.pageConversationId) return ui.pageConversationId
+  if (ui.activeConversationId && (ui.modalOpen || (ui.miniOpen && ui.miniView === 'chat'))) {
+    return ui.activeConversationId
+  }
+  return null
+}

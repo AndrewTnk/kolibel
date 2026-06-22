@@ -117,14 +117,18 @@
     border: none;
     border-radius: 0;
     box-shadow: none;
-    /* Шапки нет — высота до плавающего таб-бара */
-    height: calc(100dvh - var(--bottom-nav-height) - env(safe-area-inset-top));
+    /* Высота по видимой области (минус таб-бар) — сжимается под клавиатуру */
+    height: calc(var(--chat-vvh, 100dvh) - var(--bottom-nav-height) - env(safe-area-inset-top));
   }
 
-  /* Тред — полноэкранный оверлей, выезжающий справа (Telegram-стиль) */
+  /* Тред — полноэкранный оверлей, выезжающий справа (Telegram-стиль).
+     Высота = видимая область (VisualViewport), чтобы поле ввода не уезжало под клавиатуру. */
   .threadOverlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--chat-vvh, 100dvh);
     z-index: 50; /* выше таб-бара (40) и шапки */
     background: var(--card);
     display: flex;

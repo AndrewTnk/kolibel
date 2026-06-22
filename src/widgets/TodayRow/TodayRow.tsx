@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
 import { incrementVacancyView, loadVacancies } from '../../features/vacancies/model/vacancyThunks'
 import { vacanciesActions } from '../../features/vacancies/model/vacanciesSlice'
 import { formatSalary } from '../../features/vacancies/lib/labels'
+import { computeMatch, resumeToMatchProfile } from '../../features/vacancies/lib/useVacancyMatch'
 import { loadNetwork, toggleFollow } from '../../features/network/model/networkThunks'
 import { useProfilePulse, formatDelta } from '../../features/profile/lib/useProfilePulse'
 import { useIsMobile } from '../../shared/lib/useMediaQuery'
@@ -37,6 +38,8 @@ export function TodayRow() {
 
   const vacancies = useAppSelector((s) => s.vacanciesList.items)
   const vacanciesLoaded = useAppSelector((s) => s.vacanciesList.loaded)
+  const resume = useAppSelector((s) => s.profile.resume)
+  const appliedIds = useAppSelector((s) => s.vacancies.appliedIds)
   const people = useAppSelector((s) => s.network.recommendedPeople)
   const followingIds = useAppSelector((s) => s.network.followingIds)
   const networkStatus = useAppSelector((s) => s.network.status)
@@ -54,8 +57,25 @@ export function TodayRow() {
     if (networkStatus === 'idle') void dispatch(loadNetwork())
   }, [networkStatus, dispatch])
 
-  // Топ-вакансия (нет match-скора на бэке → берём первую из списка).
-  const vacancy = vacancies[0]
+  // Топ-вакансия = с самым высоким совпадением по профилю (лексический движок).
+  const { vacancy, matchScore } = useMemo(() => {
+    if (!vacancies.length) return { vacancy: undefined, matchScore: null as number | null }
+    const profile = resumeToMatchProfile(resume)
+    let best = vacancies[0]
+    let bestScore = computeMatch(best, profile).score ?? -1
+    for (let i = 1; i < vacancies.length; i++) {
+      const sc = computeMatch(vacancies[i], profile).score ?? -1
+      if (sc > bestScore) {
+        best = vacancies[i]
+        bestScore = sc
+      }
+    }
+    return { vacancy: best, matchScore: bestScore >= 0 ? bestScore : null }
+  }, [vacancies, resume])
+  // Вакансия «новая», если опубликована за последние 7 дней.
+  const isNewVacancy = !!vacancy && Date.now() - vacancy.postedAt < 7 * 24 * 60 * 60 * 1000
+  // Уже откликнулся на эту вакансию.
+  const applied = !!vacancy && appliedIds.includes(vacancy.id)
   // Открыть карточку вакансии (модалка) + засчитать просмотр. Клик по всей карточке и по CTA.
   const openVacancy = () => {
     if (!vacancy) return
@@ -115,7 +135,7 @@ export function TodayRow() {
               }}
             >
               <div className={styles.kind}>
-                Совпадение по вакансии <span className={styles.badge}>новое</span>
+                Совпадение по вакансии {isNewVacancy ? <span className={styles.badge}>новое</span> : null}
               </div>
               <div className={styles.body}>
                 <div className={styles.name}>{vacancy.title}</div>
@@ -131,18 +151,23 @@ export function TodayRow() {
                 )}
               </div>
               <div className={styles.foot}>
-                <div className={styles.fitPill} title="Подходит тебе" aria-label="Подходит тебе">
-                  <span>✓</span>
+                <div
+                  className={styles.fitPill}
+                  style={matchScore != null ? ({ ['--p']: `${matchScore}%` } as CSSProperties) : undefined}
+                  title={matchScore != null ? `Совпадение ${matchScore}%` : 'Подходит тебе'}
+                  aria-label={matchScore != null ? `Совпадение ${matchScore}%` : 'Подходит тебе'}
+                >
+                  <span>{matchScore != null ? `${matchScore}%` : '✓'}</span>
                 </div>
                 <button
                   type="button"
-                  className={styles.cta}
+                  className={[styles.cta, applied ? styles.ctaDone : ''].join(' ')}
                   onClick={(e) => {
                     e.stopPropagation()
                     openVacancy()
                   }}
                 >
-                  Откликнуться <ArrowIcon />
+                  {applied ? '✓ Откликнулся' : (<>Откликнуться <ArrowIcon /></>)}
                 </button>
               </div>
             </article>

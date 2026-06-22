@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAppDispatch } from '../../../app/store/hooks'
 import { vacanciesActions } from '../../vacancies/model/vacanciesSlice'
 import { incrementVacancyView } from '../../vacancies/model/vacancyThunks'
@@ -8,16 +10,46 @@ import styles from './Chat.module.css'
 /** Рендер вложения сообщения: фото/видео — медиа, документ — карточка-ссылка, вакансия — карточка. */
 export function ChatAttachView({ attach }: { attach: ChatAttach }) {
   const dispatch = useAppDispatch()
+  const [zoom, setZoom] = useState(false)
   const { kind, url, mime, title, subtitle, vacancyId, salary, city } = attach
 
   const isImage = kind === 'photo' || mime?.startsWith('image/')
   const isVideo = kind === 'video' || mime?.startsWith('video/')
 
+  // Закрытие лайтбокса по Esc + блокировка скролла фона.
+  useEffect(() => {
+    if (!zoom) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setZoom(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [zoom])
+
   if (url && isImage) {
+    // Фото открывается полноэкранным лайтбоксом в этой же вкладке (как в ленте), не в новой.
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className={styles.atMediaWrap}>
-        <img className={styles.atImage} src={url} alt={title} />
-      </a>
+      <>
+        <button type="button" className={styles.atMediaWrap} onClick={() => setZoom(true)} aria-label="Открыть фото">
+          <img className={styles.atImage} src={url} alt={title} />
+        </button>
+        {zoom
+          ? createPortal(
+              <div className={styles.imgLbOverlay} onClick={() => setZoom(false)} role="dialog" aria-modal="true">
+                <button className={styles.imgLbClose} type="button" onClick={() => setZoom(false)} aria-label="Закрыть">
+                  ✕
+                </button>
+                <img className={styles.imgLbImg} src={url} alt={title} onClick={(e) => e.stopPropagation()} />
+              </div>,
+              document.body,
+            )
+          : null}
+      </>
     )
   }
 

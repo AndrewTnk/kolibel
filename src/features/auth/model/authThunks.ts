@@ -4,6 +4,7 @@ import { resetStores } from '../../../app/store/resetStores'
 import { mapSession } from '../lib/session'
 import { getSavedAccounts, removeSavedAccount } from '../lib/accountsStore'
 import { loadProfile } from '../../profile/model/profileThunks'
+import { loadMyApplications } from '../../vacancies/model/vacancyThunks'
 import type { AuthSession } from './types'
 
 /** Переводит частые сообщения Supabase на русский. */
@@ -98,6 +99,7 @@ export const switchAccount = createAsyncThunk<string, string>(
     // Обновляем стор и профиль под новый аккаунт
     await dispatch(bootstrapAuth())
     await dispatch(loadProfile())
+    void dispatch(loadMyApplications())
     return accountId
   },
 )

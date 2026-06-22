@@ -39,13 +39,16 @@ function initials(name: string) {
 
 function rowToApplicant(row: ApplicationRow): Applicant {
   const p = row.profiles
-  const name = row.applicant_name || p?.full_name || 'Без имени'
+  // Имя/должность берём из АКТУАЛЬНОГО профиля (как фото/компания) — денормализованные
+  // applicant_name/applicant_title (снимок на момент отклика) лишь запасной вариант,
+  // иначе у компании в откликах показывались старые данные после правки профиля.
+  const name = p?.full_name?.trim() || row.applicant_name || 'Без имени'
   return {
     id: row.id,
     userId: row.applicant_id,
     status: row.status ?? 'new',
     name,
-    jobTitle: row.applicant_title || p?.job_title || '',
+    jobTitle: p?.job_title?.trim() || row.applicant_title || '',
     avatarInitials: initials(name),
     avatar: p?.avatar_url ?? undefined,
     company: p?.job_status?.company ?? undefined,

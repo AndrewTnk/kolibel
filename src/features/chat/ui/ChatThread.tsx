@@ -1,6 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createPortal } from 'react-dom'
+import type { RealtimeChannel } from '@supabase/supabase-js'
+import { useAppSelector } from '../../../app/store/hooks'
+import { supabase } from '../../../shared/lib/supabase'
 import type { ChatAttach, ChatConversation, ChatMessage } from '../model/types'
 import { dayKey, formatDaySeparator, formatMessageTime } from '../lib/format'
 import { useChatAttach } from '../lib/useChatAttach'
@@ -36,9 +39,15 @@ export function ChatThread({
   onTogglePin,
   onToggleMute,
 }: Props) {
+  const myId = useAppSelector((s) => s.auth.user?.id)
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const [text, setText] = useState('')
+  // «Печатает…» собеседника (через broadcast на канале беседы).
+  const [othersTyping, setOthersTyping] = useState(false)
+  const typingChanRef = useRef<RealtimeChannel | null>(null)
+  const typingClearRef = useRef<number | null>(null)
+  const lastTypingSentRef = useRef(0)
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
   const [attachOpen, setAttachOpen] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false)
@@ -59,6 +68,38 @@ export function ChatThread({
     el.style.height = 'auto'
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`
   }, [text])
+
+  // Индикатор «печатает…»: broadcast-канал беседы. Получив событие от собеседника,
+  // показываем статус и гасим через 3 c (Telegram-стиль). Оба видят его, только когда
+  // тред открыт у обоих (канал живёт на время монтирования треда).
+  useEffect(() => {
+    setOthersTyping(false)
+    const channel = supabase.channel(`typing:${conversation.id}`, {
+      config: { broadcast: { self: false } },
+    })
+    channel
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if ((payload.payload as { userId?: string })?.userId === myId) return
+        setOthersTyping(true)
+        if (typingClearRef.current) window.clearTimeout(typingClearRef.current)
+        typingClearRef.current = window.setTimeout(() => setOthersTyping(false), 3000)
+      })
+      .subscribe()
+    typingChanRef.current = channel
+    return () => {
+      if (typingClearRef.current) window.clearTimeout(typingClearRef.current)
+      typingChanRef.current = null
+      void supabase.removeChannel(channel)
+    }
+  }, [conversation.id, myId])
+
+  /** Сообщить собеседнику, что я печатаю (не чаще раза в 1.5 c). */
+  function notifyTyping() {
+    const now = Date.now()
+    if (now - lastTypingSentRef.current < 1500) return
+    lastTypingSentRef.current = now
+    void typingChanRef.current?.send({ type: 'broadcast', event: 'typing', payload: { userId: myId } })
+  }
 
   // Закрытие поповеров/меню по клику вне и Esc
   useEffect(() => {
@@ -158,7 +199,11 @@ export function ChatThread({
             )}
             <CompanyBadge logo={conversation.companyLogo} title={conversation.company} size={15} />
           </div>
-          {conversation.subtitle ? <div className={styles.threadStatus}>{conversation.subtitle}</div> : null}
+          {othersTyping ? (
+            <div className={[styles.threadStatus, styles.threadTyping].join(' ')}>печатает…</div>
+          ) : conversation.subtitle ? (
+            <div className={styles.threadStatus}>{conversation.subtitle}</div>
+          ) : null}
         </div>
         <div className={styles.threadHeadBtns}>
           <div style={{ position: 'relative' }}>
@@ -333,7 +378,10 @@ export function ChatThread({
             ref={textareaRef}
             className={styles.composerTextarea}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value)
+              if (e.target.value.trim()) notifyTyping()
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()

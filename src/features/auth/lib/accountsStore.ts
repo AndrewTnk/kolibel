@@ -51,10 +51,13 @@ export function upsertAccount(acc: Omit<SavedAccount, 'savedAt'>) {
 }
 
 /**
- * Обновить имя/аватар сохранённого аккаунта (когда подгрузился профиль).
+ * Обновить имя/аватар сохранённого аккаунта по ЗАГРУЖЕННОМУ профилю.
  * Имя для компании живёт в `companies.name`, а не в `user_metadata`, поэтому
  * актуальные имя+фото берём из загруженного профиля — иначе в меню переключения
  * не-текущий аккаунт-компания показывался как «email» + заглушка.
+ * Вызывать ТОЛЬКО когда профиль загружен (см. AuthBootstrap): аватар тогда
+ * отражает профиль 1:1 — в т.ч. **сбрасывается**, если фото нет (чинит баг,
+ * когда новому аккаунту прилипало фото предыдущего).
  */
 export function setAccountIdentity(
   id: string,
@@ -71,7 +74,8 @@ export function setAccountIdentity(
     next.name = name
     changed = true
   }
-  if (patch.avatar && patch.avatar !== cur.avatar) {
+  // Аватар отражает загруженный профиль как есть (undefined = фото нет → очищаем).
+  if (patch.avatar !== cur.avatar) {
     next.avatar = patch.avatar
     changed = true
   }

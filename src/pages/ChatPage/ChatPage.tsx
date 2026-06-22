@@ -11,6 +11,7 @@ import {
   startConversation,
   toggleReaction,
 } from '../../features/chat/model/chatThunks'
+import { chatUiActions } from '../../features/chat/model/chatUiSlice'
 import { ConversationList } from '../../features/chat/ui/ConversationList'
 import { ChatThread, type SendExtras } from '../../features/chat/ui/ChatThread'
 import type { ChatConversation } from '../../features/chat/model/types'
@@ -38,6 +39,13 @@ export function ChatPage() {
     void dispatch(loadConversations())
   }, [dispatch])
 
+  // Сообщаем, какая беседа открыта на странице (для подавления тостов/непрочитанного
+  // активной беседы в realtime). Сбрасываем при уходе со страницы.
+  useEffect(() => {
+    dispatch(chatUiActions.setPageConversation(activeId))
+  }, [activeId, dispatch])
+  useEffect(() => () => { dispatch(chatUiActions.setPageConversation(null)) }, [dispatch])
+
   // Блокируем скролл страницы — чат занимает весь экран (скроллятся список/канва).
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -46,6 +54,25 @@ export function ChatPage() {
       document.body.style.overflow = prev
     }
   }, [])
+
+  // Мобилка: высоту чата привязываем к ВИДИМОЙ области (VisualViewport), чтобы при
+  // открытии клавиатуры интерфейс не «уезжал» — поле ввода остаётся над клавиатурой.
+  useEffect(() => {
+    if (!isMobile) return
+    const vv = window.visualViewport
+    if (!vv) return
+    const apply = () => {
+      document.documentElement.style.setProperty('--chat-vvh', `${vv.height}px`)
+    }
+    apply()
+    vv.addEventListener('resize', apply)
+    vv.addEventListener('scroll', apply)
+    return () => {
+      vv.removeEventListener('resize', apply)
+      vv.removeEventListener('scroll', apply)
+      document.documentElement.style.removeProperty('--chat-vvh')
+    }
+  }, [isMobile])
 
   // Переход из мини-чата: /chat?c=<id> — подсветить нужную беседу.
   useEffect(() => {

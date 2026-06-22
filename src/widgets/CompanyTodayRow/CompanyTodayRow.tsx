@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
 import { loadVacancies } from '../../features/vacancies/model/vacancyThunks'
 import { fetchOwnerApplications } from '../../features/vacancies/lib/applicationsApi'
+import { isPublicVacancy } from '../../features/vacancies/lib/vacancyVisibility'
 import type { Applicant } from '../../features/vacancies/model/types'
 import { loadNetwork } from '../../features/network/model/networkThunks'
 import { candidateBestMatch } from '../../features/company/lib/candidateMatch'
@@ -87,18 +88,22 @@ export function CompanyTodayRow() {
     () => allVacancies.filter((v) => v.companyId && v.companyId === myId),
     [allVacancies, myId],
   )
-  const topVacancyTitle = myVacancies[0]?.title
+  // Только активные вакансии — пауза/черновик/закрытая в блоке не показываются.
+  const activeVacancies = useMemo(() => myVacancies.filter(isPublicVacancy), [myVacancies])
+  const topVacancyTitle = activeVacancies[0]?.title
 
-  // Вакансия с наибольшим числом откликов (для карточки «Новые отклики»).
+  // Активная вакансия с наибольшим числом откликов (для карточки «Новые отклики»).
   const topApplied = useMemo(() => {
+    const activeIds = new Set(activeVacancies.map((v) => v.id))
     let best: { vacancyId: string; list: Applicant[] } | null = null
     for (const [vacancyId, list] of Object.entries(applicantsByVacancy)) {
+      if (!activeIds.has(vacancyId)) continue
       if (!best || list.length > best.list.length) best = { vacancyId, list }
     }
     if (!best) return null
-    const vac = allVacancies.find((v) => v.id === best!.vacancyId)
+    const vac = activeVacancies.find((v) => v.id === best!.vacancyId)
     return { vacancy: vac, list: best.list }
-  }, [applicantsByVacancy, allVacancies])
+  }, [applicantsByVacancy, activeVacancies])
 
   // Человек, которого «стоит позвать» (первый рекомендованный, не я).
   const sourcing = useMemo(() => people.find((p) => p.id !== myId), [people, myId])
@@ -257,8 +262,9 @@ export function CompanyTodayRow() {
   )
 
   function renderApplicationsCard() {
-    // Нет вакансий — зовём опубликовать.
-    if (!myVacancies.length) {
+    // Нет активных вакансий (совсем нет / все на паузе / закрыты) — зовём создать вакансию.
+    if (!activeVacancies.length) {
+      const hasVacancies = myVacancies.length > 0
       return (
         <article
           className={[styles.card, styles.match].join(' ')}
@@ -271,12 +277,17 @@ export function CompanyTodayRow() {
         >
           <div className={styles.kind}>Отклики</div>
           <div className={styles.body}>
-            <div className={styles.name}>Пока нет вакансий</div>
-            <div className={styles.why}>Опубликуй первую вакансию — и сюда придут отклики кандидатов.</div>
+            <div className={styles.name}>{hasVacancies ? 'Нет активных вакансий' : 'Пока нет вакансий'}</div>
+            <div className={styles.why}>
+              {hasVacancies
+                ? 'Активируй или создай вакансию, чтобы получать по ней отклики.'
+                : 'Создай вакансию, чтобы видеть по ней отклики кандидатов.'}
+            </div>
           </div>
           <div className={styles.foot}>
+            <div />
             <button type="button" className={styles.cta} onClick={(e) => { e.stopPropagation(); nav('/my-vacancies') }}>
-              Мои вакансии <ArrowIcon />
+              {hasVacancies ? 'Мои вакансии' : 'Создать вакансию'} <ArrowIcon />
             </button>
           </div>
         </article>
@@ -314,7 +325,9 @@ export function CompanyTodayRow() {
           {list.length ? (
             <div className={styles.todayApplicants} aria-hidden>
               {list.slice(0, 2).map((a) => (
-                <span key={a.id} className={styles.ava}>{a.avatarInitials}</span>
+                <span key={a.id} className={styles.ava}>
+                  {a.avatar ? <img src={a.avatar} alt="" className={styles.avaImg} /> : a.avatarInitials}
+                </span>
               ))}
               {list.length > 2 ? <span className={styles.ava}>+{list.length - 2}</span> : null}
             </div>

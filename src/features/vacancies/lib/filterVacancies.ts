@@ -1,4 +1,5 @@
 import type { Vacancy, VacancyFilters } from '../model/types'
+import { isPublicVacancy } from './vacancyVisibility'
 
 const day = 1000 * 60 * 60 * 24
 
@@ -25,6 +26,8 @@ export function filterVacancies(items: Vacancy[], filters: VacancyFilters): Vaca
   const cutoff = postedCutoff(filters.postedWithin)
 
   let list = items.filter((v) => {
+    // Только активные — пауза/черновик/закрытая в публичную выдачу не попадают.
+    if (!isPublicVacancy(v)) return false
     if (q) {
       const hay = `${v.title} ${v.company} ${v.description} ${v.skills.join(' ')}`.toLowerCase()
       if (!hay.includes(q)) return false

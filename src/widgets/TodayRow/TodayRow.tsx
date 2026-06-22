@@ -5,6 +5,7 @@ import { incrementVacancyView, loadVacancies } from '../../features/vacancies/mo
 import { vacanciesActions } from '../../features/vacancies/model/vacanciesSlice'
 import { formatSalary } from '../../features/vacancies/lib/labels'
 import { computeMatch, resumeToMatchProfile } from '../../features/vacancies/lib/useVacancyMatch'
+import { isPublicVacancy } from '../../features/vacancies/lib/vacancyVisibility'
 import { loadNetwork, toggleFollow } from '../../features/network/model/networkThunks'
 import { useProfilePulse, formatDelta } from '../../features/profile/lib/useProfilePulse'
 import { useIsMobile } from '../../shared/lib/useMediaQuery'
@@ -58,15 +59,17 @@ export function TodayRow() {
   }, [networkStatus, dispatch])
 
   // Топ-вакансия = с самым высоким совпадением по профилю (лексический движок).
+  // Только активные — пауза/черновик/закрытая в подборку не попадают.
   const { vacancy, matchScore } = useMemo(() => {
-    if (!vacancies.length) return { vacancy: undefined, matchScore: null as number | null }
+    const pool = vacancies.filter(isPublicVacancy)
+    if (!pool.length) return { vacancy: undefined, matchScore: null as number | null }
     const profile = resumeToMatchProfile(resume)
-    let best = vacancies[0]
+    let best = pool[0]
     let bestScore = computeMatch(best, profile).score ?? -1
-    for (let i = 1; i < vacancies.length; i++) {
-      const sc = computeMatch(vacancies[i], profile).score ?? -1
+    for (let i = 1; i < pool.length; i++) {
+      const sc = computeMatch(pool[i], profile).score ?? -1
       if (sc > bestScore) {
-        best = vacancies[i]
+        best = pool[i]
         bestScore = sc
       }
     }

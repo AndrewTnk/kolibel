@@ -30,7 +30,7 @@ export function VacancyCard({ vacancy, applied, onOpen, onCompany }: Props) {
       className={[s.vacCard, applied ? s.vacCardApplied : ''].filter(Boolean).join(' ')}
       onClick={onOpen}
     >
-      <CompanyAvatar initial={companyInitial(vacancy.company)} className={s.vacAva} />
+      <CompanyAvatar initial={companyInitial(vacancy.company)} logo={vacancy.companyLogo} className={s.vacAva} />
 
       <div className={s.vacBody}>
         <div className={s.vacTopLine}>

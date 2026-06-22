@@ -2,10 +2,13 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '../../../shared/ui/AppHeader/AppHeader'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { PostCard } from '../../feed/ui/PostCard'
+import { PostComposer } from '../../feed/ui/PostComposer'
 import type { FeedPost } from '../../feed/model/types'
 import { loadFeed } from '../../feed/model/feedThunks'
 import { loadVacancies } from '../../vacancies/model/vacancyThunks'
+import { isPublicVacancy } from '../../vacancies/lib/vacancyVisibility'
 import { vacanciesActions } from '../../vacancies/model/vacanciesSlice'
 import { loadNetwork } from '../../network/model/networkThunks'
 import type { Vacancy } from '../../vacancies/model/types'
@@ -48,8 +51,13 @@ export function CompanyMainContent() {
   const companyLoaded = useAppSelector((s) => s.company.loaded)
   const myId = useAppSelector((s) => s.auth.user?.id)
   const networkStatus = useAppSelector((s) => s.network.status)
+  const isMobile = useIsMobile()
 
-  const vacancies = useAppSelector((s) => s.vacanciesList.items).filter((v) => v.companyId && v.companyId === myId)
+  // Бренд-страница показывает только активные вакансии (пауза/черновик/закрытая —
+  // только в «Мои вакансии»).
+  const vacancies = useAppSelector((s) => s.vacanciesList.items).filter(
+    (v) => v.companyId && v.companyId === myId && isPublicVacancy(v),
+  )
   const posts = useAppSelector((s) => s.feed.posts).filter((p) => p.authorId === myId)
 
   const [tab, setTab] = useState<Tab>('about')
@@ -126,7 +134,7 @@ export function CompanyMainContent() {
                 {tab === 'about' ? <AboutTab c={c} onOpen={open} /> : null}
                 {tab === 'vacancies' ? <VacanciesTab vacancies={vacancies} onOpen={open} /> : null}
                 {tab === 'team' ? <TeamTab employees={employees} companyName={c.name} onToast={showToast} onOpenPerson={(id) => nav(`/u/${id}`)} /> : null}
-                {tab === 'posts' ? <PostsTab posts={posts} /> : null}
+                {tab === 'posts' ? <PostsTab posts={posts} isMobile={isMobile} /> : null}
               </div>
             </div>
 
@@ -440,10 +448,13 @@ function TeamTab({ employees, companyName, onToast, onOpenPerson }: {
 }
 
 // ── Tab: Посты ────────────────────────────────
-function PostsTab({ posts }: { posts: FeedPost[] }) {
+function PostsTab({ posts, isMobile }: { posts: FeedPost[]; isMobile: boolean }) {
   return (
     <div className={styles.bodyPad}>
       <div className={styles.postsCol}>
+        {/* Композер нового поста — как в профиле пользователя (только веб;
+            на мобилке создание поста — из иконки «+» в шапке). */}
+        {!isMobile ? <PostComposer compact /> : null}
         {posts.length ? (
           <div className={styles.feed}>
             {posts.map((p) => <PostCard key={p.id} post={p} />)}

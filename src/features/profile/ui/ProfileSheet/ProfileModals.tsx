@@ -12,6 +12,7 @@ import type {
 } from '../../model/types'
 import { useProfilePulse, buildSparkline, formatDelta } from '../../lib/useProfilePulse'
 import { findCompanyLogoByName } from '../../../company/lib/findCompanyLogo'
+import { CompanyAutocomplete } from '../../../company/ui/CompanyAutocomplete'
 import { ImageUploadField } from '../../../../shared/ui/ImageUploadField/ImageUploadField'
 import { LocationField } from '../../../../shared/ui/LocationField/LocationField'
 import { sanitizePersonName } from '../../../../shared/lib/nameValidation'
@@ -179,10 +180,10 @@ function EditHeaderModal({ onClose, showToast }: ModalProps) {
           />
         </Field>
         <Field label="Компания">
-          <input
-            className={m.input}
+          <CompanyAutocomplete
             value={company}
-            onChange={(e) => setCompany(e.target.value)}
+            onChange={setCompany}
+            inputClassName={m.input}
             placeholder="Где работаешь сейчас"
           />
         </Field>
@@ -619,8 +620,15 @@ function ContactsModal({ onClose, showToast }: ModalProps) {
               }
             }}
           />
-          <button className={m.addBtn} type="button" onClick={add} disabled={!value.trim()}>
-            <Ic.plus /> Добавить
+          <button
+            className={[m.addBtn, m.addBtnIcon].join(' ')}
+            type="button"
+            onClick={add}
+            disabled={!value.trim()}
+            aria-label="Добавить"
+            title="Добавить"
+          >
+            <Ic.plus />
           </button>
         </div>
       </Field>

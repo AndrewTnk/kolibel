@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { incrementVacancyView, loadVacancies } from '../../../features/vacancies/model/vacancyThunks'
 import { vacanciesActions } from '../../../features/vacancies/model/vacanciesSlice'
 import { formatSalary } from '../../../features/vacancies/lib/labels'
+import { isPublicVacancy } from '../../../features/vacancies/lib/vacancyVisibility'
 import type { Vacancy } from '../../../features/vacancies/model/types'
 import { RecSkeleton } from './RecSkeleton'
 import { RecPager } from './RecPager'
@@ -36,12 +37,14 @@ export function RecommendedVacancies({ horizontal = false }: { horizontal?: bool
   const hcarousel = horizontal || isMobile
   const vacancies = useAppSelector((s) => s.vacanciesList.items)
   const loaded = useAppSelector((s) => s.vacanciesList.loaded)
+  // Рекомендуем только активные (пауза/черновик/закрытая скрыты).
+  const list = vacancies.filter(isPublicVacancy)
 
   useEffect(() => {
     if (!vacancies.length) void dispatch(loadVacancies())
   }, [vacancies.length, dispatch])
 
-  if (!vacancies.length) {
+  if (!list.length) {
     if (!loaded) return <RecSkeleton />
     return null
   }
@@ -52,12 +55,12 @@ export function RecommendedVacancies({ horizontal = false }: { horizontal?: bool
 
       {hcarousel ? (
         <HScroll>
-          {vacancies.slice(0, 10).map((v) => (
+          {list.slice(0, 10).map((v) => (
             <VacancyRow key={v.id} v={v} />
           ))}
         </HScroll>
       ) : (
-        <RecPager items={vacancies} perPage={3} renderItem={(v) => <VacancyRow key={v.id} v={v} />} />
+        <RecPager items={list} perPage={3} renderItem={(v) => <VacancyRow key={v.id} v={v} />} />
       )}
 
       {!hcarousel ? (

@@ -53,7 +53,7 @@ export function EditHeaderModal({ onClose }: { onClose: () => void }) {
   const [country, setCountry] = useState(company.country ?? '')
 
   return (
-    <RecModal title="Профиль компании" onClose={onClose} maxWidth={620}>
+    <RecModal title="Профиль компании" onClose={onClose} fullScreenMobile maxWidth={620}>
       <div className={styles.sub}>Основная информация в шапке</div>
       <label className={styles.field}>
         <span className={styles.label}>Название</span>
@@ -101,7 +101,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
   const { company, saving, save } = useSaveCompany()
   const [about, setAbout] = useState(company.about)
   return (
-    <RecModal title="О компании" onClose={onClose} maxWidth={620}>
+    <RecModal title="О компании" onClose={onClose} fullScreenMobile maxWidth={620}>
       <label className={styles.field}>
         <span className={styles.label}>Расскажите о компании</span>
         <textarea className={styles.area} style={{ minHeight: 200 }} value={about} onChange={(e) => setAbout(e.target.value)} />
@@ -121,7 +121,7 @@ export function DirectionsModal({ onClose }: { onClose: () => void }) {
   const del = (i: number) => setItems((arr) => arr.filter((_, j) => j !== i))
   const add = () => setItems((arr) => [...arr, { id: uid(), icon: 'bolt', title: '', desc: '' }])
   return (
-    <RecModal title="Чем занимаемся" onClose={onClose} maxWidth={620}>
+    <RecModal title="Чем занимаемся" onClose={onClose} fullScreenMobile maxWidth={620}>
       <div className={styles.sub}>Направления, продукты или услуги</div>
       <div className={styles.itemEditor}>
         {items.map((d, i) => (
@@ -153,7 +153,7 @@ export function ValuesModal({ onClose }: { onClose: () => void }) {
   const del = (i: number) => setItems((arr) => arr.filter((_, j) => j !== i))
   const add = () => setItems((arr) => [...arr, { id: uid(), title: '', desc: '' }])
   return (
-    <RecModal title="Ценности и культура" onClose={onClose} maxWidth={620}>
+    <RecModal title="Ценности и культура" onClose={onClose} fullScreenMobile maxWidth={620}>
       <div className={styles.sub}>Во что верит команда</div>
       <div className={styles.itemEditor}>
         {items.map((v, i) => (
@@ -181,7 +181,7 @@ export function GalleryModal({ onClose }: { onClose: () => void }) {
   const { company, saving, save } = useSaveCompany()
   const [photos, setPhotos] = useState(company.gallery.map((g) => ({ ...g })))
   return (
-    <RecModal title="Жизнь в компании" onClose={onClose} maxWidth={620}>
+    <RecModal title="Жизнь в компании" onClose={onClose} fullScreenMobile maxWidth={620}>
       <div className={styles.sub}>Фото офиса, команды, событий</div>
       <div className={styles.galleryGrid}>
         {photos.map((g) => (
@@ -210,7 +210,7 @@ export function BannerModal({ onClose }: { onClose: () => void }) {
   const { company, saving, save } = useSaveCompany()
   const [banner, setBanner] = useState<string | undefined>(company.banner || undefined)
   return (
-    <RecModal title="Обложка компании" onClose={onClose} maxWidth={560}>
+    <RecModal title="Обложка компании" onClose={onClose} fullScreenMobile maxWidth={560}>
       <div className={styles.sub}>Загрузи фон страницы. Рекомендуем 1600×400.</div>
       <ImageUploadField shape="wide" category="banner" value={banner} onChange={setBanner} />
       <Foot onClose={onClose} saving={saving} onSave={() => save({ banner: banner ?? '' }, onClose)} />
@@ -223,7 +223,7 @@ export function LogoModal({ onClose }: { onClose: () => void }) {
   const { company, saving, save } = useSaveCompany()
   const [logo, setLogo] = useState<string | undefined>(company.logo)
   return (
-    <RecModal title="Логотип компании" onClose={onClose} maxWidth={460}>
+    <RecModal title="Логотип компании" onClose={onClose} fullScreenMobile maxWidth={460}>
       <div className={styles.sub}>Квадратный бейдж — показывается у всех сотрудников и в постах.</div>
       <ImageUploadField shape="square" category="logo" value={logo} onChange={setLogo} />
       <Foot onClose={onClose} saving={saving} onSave={() => save({ logo }, onClose)} />
@@ -245,7 +245,7 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
   const upd = (i: number, k: 'name' | 'position', v: string) =>
     setItems((arr) => arr.map((it, j) => (j === i ? { ...it, [k]: v } : it)))
   return (
-    <RecModal title="Контакты компании" onClose={onClose} maxWidth={560}>
+    <RecModal title="Контакты компании" onClose={onClose} fullScreenMobile maxWidth={560}>
       <div className={styles.sub}>Кому писать по разным вопросам</div>
       <div className={styles.itemEditor}>
         {items.map((c, i) => (
@@ -285,7 +285,7 @@ export function ShareModal({ shareUrl, onClose }: { shareUrl: string; onClose: (
     { lab: 'QR-код', bg: '#1f2937' },
   ]
   return (
-    <RecModal title="Поделиться компанией" onClose={onClose} maxWidth={480}>
+    <RecModal title="Поделиться компанией" onClose={onClose} fullScreenMobile maxWidth={480}>
       <div className={styles.sub}>Расскажите о странице кандидатам и партнёрам</div>
       <div className={styles.linkRow}>
         <span className={styles.url}>{shareUrl}</span>

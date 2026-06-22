@@ -39,7 +39,40 @@ export const loadVacancies = createAsyncThunk<Vacancy[], void>('vacancies/load',
     .select('*')
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
-  return (data as VacancyRow[]).map(rowToVacancy)
+  const vacancies = (data as VacancyRow[]).map(rowToVacancy)
+
+  // Освежаем денормализованные название/описание компании из таблицы companies —
+  // в строке вакансии они снимок на момент создания и устаревают после редактирования
+  // профиля компании (название/описание на карточках и в peek-модалке были старыми).
+  const ids = [...new Set(vacancies.map((v) => v.companyId).filter(Boolean))] as string[]
+  if (ids.length) {
+    const { data: comps } = await supabase
+      .from('companies')
+      .select('id, name, about, logo_url, avatar_url')
+      .in('id', ids)
+    if (comps) {
+      const byId = new Map(
+        (
+          comps as {
+            id: string
+            name: string | null
+            about: string | null
+            logo_url: string | null
+            avatar_url: string | null
+          }[]
+        ).map((c) => [c.id, c]),
+      )
+      for (const v of vacancies) {
+        const c = v.companyId ? byId.get(v.companyId) : undefined
+        if (!c) continue
+        if (c.name) v.company = c.name
+        if (c.about != null) v.companyAbout = c.about
+        const logo = c.logo_url || c.avatar_url
+        if (logo) v.companyLogo = logo
+      }
+    }
+  }
+  return vacancies
 })
 
 /** Создание вакансии текущей компанией. */

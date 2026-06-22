@@ -69,6 +69,8 @@ export type Vacancy = {
   status?: VacancyStatus
   title: string
   company: string
+  /** Лого компании-владельца (подтягивается из профиля при загрузке). */
+  companyLogo?: string
   companyAbout: string
   city: string
   workFormats: WorkFormat[]

@@ -258,6 +258,14 @@
   cursor: default;
 }
 
+/* Иконка-плюс без подписи — компактный квадрат, чтобы поле значения было шире. */
+.addBtnIcon {
+  width: 44px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+}
+
 .checkRow {
   display: flex;
   align-items: center;
@@ -984,5 +992,24 @@
   .pdfRow,
   .anTwoCol {
     grid-template-columns: 1fr;
+  }
+}
+
+/* На мобилке модалки редактора профиля — на весь экран. */
+@media (max-width: 980px) {
+  .scrim {
+    padding: 0;
+  }
+  .modal,
+  .modalLg,
+  .modalXl {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+  .mFoot {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
   }
 }

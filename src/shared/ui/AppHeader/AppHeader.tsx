@@ -122,7 +122,16 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
         <div className={styles.inner}>
           <div className={styles.left}>
             {isMobile ? (
-              <div className={styles.mobileTitle}>{pageTitle}</div>
+              <div
+                className={[
+                  styles.mobileTitle,
+                  netSearchOpen ? styles.mobileTitleHidden : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {pageTitle}
+              </div>
             ) : (
               <>
                 <NavLink to="/" className={styles.brand} aria-label="Kolibel">

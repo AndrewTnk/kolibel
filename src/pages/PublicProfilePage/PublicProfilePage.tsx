@@ -9,6 +9,7 @@ import { networkActions } from '../../features/network/model/networkSlice'
 import { loadFeed } from '../../features/feed/model/feedThunks'
 import { loadVacancies } from '../../features/vacancies/model/vacancyThunks'
 import { vacanciesActions } from '../../features/vacancies/model/vacanciesSlice'
+import { isPublicVacancy } from '../../features/vacancies/lib/vacancyVisibility'
 import {
   employmentLabels,
   formatExperienceYears,
@@ -330,7 +331,9 @@ function CompanyView({
   const [tab, setTab] = useState<CompanyTab>('about')
   const [employees, setEmployees] = useState<CompanyEmployee[]>([])
 
-  const vacancies = useAppSelector((s) => s.vacanciesList.items).filter((v) => v.companyId === id)
+  const vacancies = useAppSelector((s) => s.vacanciesList.items).filter(
+    (v) => v.companyId === id && isPublicVacancy(v),
+  )
   const openVacancy = (v: Vacancy) => dispatch(vacanciesActions.openVacancy(v.id))
 
   useEffect(() => {

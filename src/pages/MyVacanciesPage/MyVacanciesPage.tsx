@@ -280,6 +280,22 @@ export function MyVacanciesPage() {
     showToast(next === 'paused' ? 'Вакансия на паузе' : 'Вакансия снова активна')
   }
 
+  async function closeVacancy(v: Vacancy) {
+    if (
+      !window.confirm(
+        `Закрыть вакансию «${v.title}»? Она перестанет показываться соискателям и останется только в разделе «Закрытые».`,
+      )
+    )
+      return
+    await dispatch(updateVacancyStatus({ id: v.id, status: 'closed' }))
+    showToast('Вакансия закрыта')
+  }
+
+  async function reopenVacancy(v: Vacancy) {
+    await dispatch(updateVacancyStatus({ id: v.id, status: 'active' }))
+    showToast('Вакансия снова активна')
+  }
+
   async function onCreateFolder(input: { name: string; color: string; vacIds: string[] }) {
     setModal(null)
     try {
@@ -411,6 +427,8 @@ export function MyVacanciesPage() {
                       onEdit={() => setModal({ kind: 'publish', vacancy: v })}
                       onAssignFolder={() => setModal({ kind: 'assign', vacancy: v })}
                       onToggleStatus={() => toggleStatus(v)}
+                      onCloseVacancy={() => closeVacancy(v)}
+                      onReopen={() => reopenVacancy(v)}
                       onPromote={() => showToast('Вакансия поднята в выдаче')}
                     />
                   ))}
@@ -607,6 +625,8 @@ function MyVacCard({
   onEdit,
   onAssignFolder,
   onToggleStatus,
+  onCloseVacancy,
+  onReopen,
   onPromote,
 }: {
   v: Vacancy
@@ -618,6 +638,8 @@ function MyVacCard({
   onEdit: () => void
   onAssignFolder: () => void
   onToggleStatus: () => void
+  onCloseVacancy: () => void
+  onReopen: () => void
   onPromote: () => void
 }) {
   const c = vacCounts(applicants)
@@ -710,6 +732,16 @@ function MyVacCard({
               onClick={(e) => stop(e, onToggleStatus)}
             >
               {status === 'active' ? <Icon.pause /> : <Icon.play />}
+            </button>
+          ) : null}
+          {isOpen ? (
+            <button className={styles.vAct} title="Закрыть вакансию" onClick={(e) => stop(e, onCloseVacancy)}>
+              <Icon.xCircle />
+            </button>
+          ) : null}
+          {status === 'closed' ? (
+            <button className={styles.vAct} title="Возобновить вакансию" onClick={(e) => stop(e, onReopen)}>
+              <Icon.play />
             </button>
           ) : null}
           {status === 'active' ? (

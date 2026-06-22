@@ -6,6 +6,7 @@ import { incrementVacancyView } from '../model/vacancyThunks'
 import { toggleFollow } from '../../network/model/networkThunks'
 import { formatSalary } from '../lib/labels'
 import { fetchCompanyPeek, type CompanyPeekData } from '../lib/companyPeekApi'
+import { isPublicVacancy } from '../lib/vacancyVisibility'
 import { SeekerSheet } from './SeekerSheet'
 import { Button } from '../../../shared/ui/Button/Button'
 import { IcCheck, IcClose, IcExternal } from './icons'
@@ -40,8 +41,9 @@ export function CompanyPeekModal({ payload, onClose }: Props) {
     }
   }, [payload.id])
 
-  const vacancies = items.filter((v) =>
-    payload.id ? v.companyId === payload.id : v.company === payload.name,
+  const vacancies = items.filter(
+    (v) =>
+      isPublicVacancy(v) && (payload.id ? v.companyId === payload.id : v.company === payload.name),
   )
   const isFollowing = payload.id ? followingIds.includes(payload.id) : false
 
@@ -59,6 +61,8 @@ export function CompanyPeekModal({ payload, onClose }: Props) {
   const banner = bannerBroken ? undefined : peek?.banner
   const photo = peek?.avatar ?? payload.logo
   const about = peek?.about || payload.about
+  // Актуальное название из companies (payload мог устареть после редактирования профиля).
+  const companyName = peek?.name || payload.name
 
   function openVacancy(id: string) {
     onClose()
@@ -87,7 +91,7 @@ export function CompanyPeekModal({ payload, onClose }: Props) {
         <div className={[s.coAva, s.cpAva].join(' ')} aria-hidden>
           {photo ? <img src={photo} alt="" /> : payload.ava}
         </div>
-        <div className={s.cpName}>{payload.name}</div>
+        <div className={s.cpName}>{companyName}</div>
         <div className={s.cpRole}>{payload.sub || 'Компания'}</div>
 
         <div className={s.cpStats}>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, Fragment } from 'react'
+import { useEffect, useMemo, useRef, useState, Fragment } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { loadFeed } from '../model/feedThunks'
@@ -17,6 +17,8 @@ const recCarousels = [
   <RecommendedCompanies horizontal />,
 ]
 const REC_EVERY = 5
+/** Сколько постов рендерим в DOM за раз (следующая порция — по скроллу вниз). */
+const PAGE_SIZE = 20
 
 export function FeedList({
   intersperse = false,
@@ -78,6 +80,31 @@ export function FeedList({
     return [...pinned, ...rest]
   }, [allPosts, authorId, myId, ranked, followingIds, myInterests, justPostedIds])
 
+  // Рендерим ленту порциями по PAGE_SIZE: в DOM только видимое окно, остальное
+  // подгружается по мере прокрутки (sentinel + IntersectionObserver).
+  const [visible, setVisible] = useState(PAGE_SIZE)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const hasMore = visible < posts.length
+
+  // Сброс окна при смене контекста ленты (профиль/аккаунт) или уменьшении выборки.
+  useEffect(() => {
+    setVisible(PAGE_SIZE)
+  }, [authorId, myId])
+
+  useEffect(() => {
+    if (!hasMore) return
+    const el = sentinelRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setVisible((v) => v + PAGE_SIZE)
+      },
+      { rootMargin: '600px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [hasMore, visible, posts.length])
+
   if (!loaded) {
     return <FeedSkeleton />
   }
@@ -97,7 +124,7 @@ export function FeedList({
 
   return (
     <div className={styles.posts}>
-      {posts.map((p, i) => {
+      {posts.slice(0, visible).map((p, i) => {
         const recIndex = Math.floor(i / REC_EVERY) % carousels.length
         const insertRec = showRecs && (i + 1) % REC_EVERY === 0
         return (
@@ -107,6 +134,7 @@ export function FeedList({
           </Fragment>
         )
       })}
+      {hasMore ? <div ref={sentinelRef} className={styles.feedSentinel} aria-hidden /> : null}
     </div>
   )
 }

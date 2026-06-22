@@ -1,3 +1,9 @@
+/* Маяк подгрузки ленты — наблюдается IntersectionObserver'ом. */
+.feedSentinel {
+  height: 1px;
+  width: 100%;
+}
+
 /* ── Композер нового поста ────────────────────── */
 .composer {
   background: var(--card);
@@ -96,6 +102,19 @@
   outline: none;
   border-color: var(--primaryFocus);
   box-shadow: 0 0 0 4px var(--ring);
+}
+
+/* Расширенное состояние (фокус/есть контент): поле на ~3–4 строки, аватар и
+   кнопки прижаты к верху, поле можно тянуть вертикально вручную. */
+.composerExpanded .composerRow {
+  align-items: flex-start;
+}
+
+.composerExpanded .composerArea {
+  min-height: 132px;
+  max-height: 320px;
+  border-radius: 16px;
+  transition: min-height 0.16s ease;
 }
 
 /* Быстрые иконки выбора вложения (как в макете) */
@@ -739,6 +758,9 @@
   font-size: var(--text-base);
   line-height: 1.5;
   color: var(--text);
+  /* Сохраняем переносы строк из поля ввода и переносим длинные слова/ссылки. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .media {
@@ -1027,6 +1049,8 @@
   font-size: 14px;
   line-height: 1.5;
   color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 980px) {

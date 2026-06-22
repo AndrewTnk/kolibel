@@ -67,4 +67,10 @@
 .body {
   padding: 20px 22px;
   overflow-y: auto;
+  /* Прокрутка сохраняется, вертикальный скроллбар скрыт (как в др. модалках). */
+  scrollbar-width: none;
+}
+
+.body::-webkit-scrollbar {
+  display: none;
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useComposer, DOC_ACCEPT } from '../lib/useComposer'
 import { formatSalary } from '../../vacancies/lib/labels'
 import { AuthorAvatar } from './AuthorAvatar'
@@ -6,9 +7,21 @@ import styles from './Feed.module.css'
 
 export function PostComposer({ compact = false }: { compact?: boolean }) {
   const c = useComposer()
+  const [focused, setFocused] = useState(false)
+  // Поле расширяется при фокусе (или когда уже есть контент) — место для переноса
+  // строк и редактирования. Сворачивается обратно, если пусто и не в фокусе.
+  const expanded = focused || !!c.postText || c.media.length > 0 || !!c.vacancy
 
   return (
-    <div className={[styles.composer, compact ? styles.composerCompact : ''].filter(Boolean).join(' ')}>
+    <div
+      className={[
+        styles.composer,
+        compact ? styles.composerCompact : '',
+        expanded ? styles.composerExpanded : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className={styles.composerRow}>
         <AuthorAvatar
           name={c.isCompany ? c.company.name : c.authorName}
@@ -21,6 +34,8 @@ export function PostComposer({ compact = false }: { compact?: boolean }) {
           className={styles.composerArea}
           value={c.postText}
           onChange={(e) => c.setPostText(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           placeholder="Поделись обновлением…"
           rows={1}
         />

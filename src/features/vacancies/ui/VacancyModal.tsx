@@ -10,8 +10,21 @@ import { companyInitial } from '../lib/initials'
 import { CompanyAvatar } from './CompanyAvatar'
 import { Button } from '../../../shared/ui/Button/Button'
 import { Markdown } from '../../../shared/ui/Markdown/Markdown'
+import { ShareToChatModal } from '../../chat/ui/ShareToChatModal'
 import { IcArrow, IcBriefcase, IcChat, IcCheck, IcClose, IcDoc, IcMail, IcTelegram } from './icons'
 import s from './Vacancies.module.css'
+
+function IcShare() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <line x1="8.6" y1="13.5" x2="15.4" y2="17.5" />
+      <line x1="15.4" y1="6.5" x2="8.6" y2="10.5" />
+    </svg>
+  )
+}
 
 type Tab = 'about' | 'match' | 'company' | 'contacts'
 
@@ -26,6 +39,7 @@ export function VacancyModal() {
   const vacancy = items.find((v) => v.id === selectedId)
   const applied = vacancy ? appliedIds.includes(vacancy.id) : false
   const [tab, setTab] = useState<Tab>('about')
+  const [shareOpen, setShareOpen] = useState(false)
   const match = useVacancyMatch(vacancy ?? ({ id: '', skills: [] } as never))
 
   useEffect(() => {
@@ -263,6 +277,15 @@ export function VacancyModal() {
           <Button
             type="button"
             variant="secondary"
+            aria-label="Поделиться"
+            title="Поделиться"
+            onClick={() => setShareOpen(true)}
+          >
+            <IcShare />
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
             onClick={() => {
               close()
               dispatch(vacanciesActions.openContact(vacancy.id))
@@ -287,6 +310,22 @@ export function VacancyModal() {
           )}
         </div>
       </div>
+
+      {shareOpen ? (
+        <ShareToChatModal
+          message={{
+            attach: {
+              kind: 'vacancy',
+              title: vacancy.title,
+              vacancyId: vacancy.id,
+              salary: formatSalary(vacancy.salaryFrom, vacancy.salaryTo, vacancy.currency),
+              city: vacancy.city,
+            },
+          }}
+          title="Поделиться вакансией"
+          onClose={() => setShareOpen(false)}
+        />
+      ) : null}
     </div>,
     document.body,
   )

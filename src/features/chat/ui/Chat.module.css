@@ -445,6 +445,7 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   display: inline-flex;
   flex-direction: column;
+  max-width: 100%;
 }
 .msgThem .bubble {
   background: var(--bubble-them);
@@ -1331,6 +1332,203 @@
   text-align: center;
   color: var(--muted);
   font-weight: 700;
+}
+
+/* Пикер «Отправить в чат» открывается поверх других модалок (вакансия/лайтбокс). */
+.shareScrim {
+  z-index: 1400;
+}
+
+/* «Отправить в чат» — выбранная строка + чек + футер */
+.shareRowOn {
+  background: var(--primarySoftBg);
+}
+.shareRowOn:hover {
+  background: var(--primarySoftBg);
+}
+.shareCheck {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+.shareCheckOn {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.shareFoot {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+}
+.shareSend {
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.shareSend:disabled {
+  background: var(--field-bg);
+  color: var(--muted);
+  cursor: default;
+}
+.shareDone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 30px;
+}
+.shareDoneIco {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+.shareDoneText {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+/* ── Пересланный пост (полноценный, как в ленте) ── */
+.sharedPost {
+  width: 288px;
+  max-width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.spHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.spMeta {
+  min-width: 0;
+}
+.spName {
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spTime {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spMedia {
+  width: 100%;
+}
+/* Скруглять не нужно — медиа внутри карточки во всю ширину */
+.spMedia :global(.media),
+.spMedia :global(.collage),
+.spMedia :global(.videoWrap) {
+  border-radius: 0;
+  margin: 0;
+}
+.spText {
+  padding: 10px 12px 12px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.spText p {
+  margin: 0 0 8px;
+}
+.spText p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Пересланный профиль (мини-карточка как во вкладке «Сеть») ── */
+.sharedProfile {
+  position: relative;
+  width: 264px;
+  max-width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0 0 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text);
+  display: block;
+}
+.sharedProfile:hover {
+  border-color: var(--primary);
+}
+.spfBanner {
+  display: block;
+  height: 58px;
+  background: linear-gradient(120deg, #fdece2 0%, #f3b89e 100%);
+  background-size: cover;
+  background-position: center;
+}
+.spfAva {
+  position: absolute;
+  top: 28px;
+  left: 12px;
+  line-height: 0;
+}
+.spfBody {
+  display: block;
+  padding: 14px 12px 0 76px;
+  min-height: 30px;
+}
+.spfName {
+  display: block;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spfRole {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spfLoc {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 2px;
 }
 
 /* Подтверждение удаления (переиспользуется в списке) */

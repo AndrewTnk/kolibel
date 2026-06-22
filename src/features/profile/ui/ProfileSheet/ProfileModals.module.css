@@ -589,124 +589,111 @@
   color: #fff;
 }
 
-.shareGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+/* «Отправить в чат» — крупная строка-кнопка */
+.shareChatBtn {
   margin-top: 14px;
-}
-
-.shareTile {
+  width: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 14px 6px;
+  gap: 12px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--field-bg);
   cursor: pointer;
-  transition: border-color 0.12s, transform 0.08s;
   font-family: inherit;
+  text-align: left;
+  color: var(--text);
+  transition: border-color 0.12s, background 0.12s;
 }
 
-.shareTile:hover {
-  border-color: #d1d5db;
+.shareChatBtn:hover {
+  border-color: var(--primary);
   background: var(--card);
 }
 
-.shareTile:active {
-  transform: translateY(1px);
-}
-
-.shareTileIco {
-  width: 38px;
-  height: 38px;
+.shareChatIco {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
   border-radius: 11px;
   display: grid;
   place-items: center;
   color: #fff;
+  background: var(--primary);
 }
 
-.shareTileLab {
-  font-size: 12px;
+.shareChatText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.shareChatTitle {
   font-weight: 800;
-  color: var(--text-2);
+  font-size: 14.5px;
+}
+
+.shareChatSub {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 /* PDF */
 .pdfRow {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
 }
 
+/* Рамка-«бумага»: фиксированное A4, реальный лист резюме внутри (масштаб). */
 .pdfPreview {
-  aspect-ratio: 1 / 1.414;
-  border-radius: 12px;
+  width: 320px;
+  aspect-ratio: 210 / 297;
+  border-radius: 10px;
   background: #fff;
   border: 1px solid var(--border);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
   overflow: hidden;
-  position: relative;
-  padding: 12px;
 }
 
-.pdfPreview::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 8px;
-  background: linear-gradient(90deg, var(--c1, var(--primary)), #fbe3d6);
+.pdfPaper {
+  width: 210mm;
+  /* 320px / (210mm ≈ 793.7px) ≈ 0.403 — вписываем A4 в рамку 320px. */
+  transform: scale(0.403);
+  transform-origin: top left;
+  pointer-events: none;
 }
 
-.pdfName {
-  font-size: 11px;
-  font-weight: 900;
-  color: var(--accent);
-  margin-top: 4px;
-}
-
-.pdfRole {
-  font-size: 8px;
-  color: var(--muted);
-  font-weight: 700;
-  margin-top: 1px;
-}
-
-.pdfLns {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.pdfLns i {
-  display: block;
-  height: 3px;
-  border-radius: 2px;
-  background: #f3f4f6;
-  width: 95%;
-}
-
-.pdfLns i:nth-child(even) {
-  width: 75%;
-}
-
-.pdfLns i.hd {
-  height: 5px;
-  width: 40%;
-  background: var(--accent);
-  margin-top: 6px;
+.pdfSide {
+  min-width: 0;
 }
 
 .pdfTemplates {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 4px;
+}
+
+.pdfHint {
+  margin-top: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Полноразмерный A4-лист офскрином — источник для html2canvas. */
+.pdfOffscreen {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .pdfTpl {
@@ -732,10 +719,11 @@
 }
 
 .pdfSwatch {
-  width: 30px;
-  height: 42px;
-  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
   flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
 }
 
 .pdfTplNm {
@@ -964,14 +952,13 @@
 }
 
 .qrBox {
-  width: 72px;
-  height: 72px;
   border-radius: 10px;
-  background: var(--card);
+  /* Белый фон всегда (в т.ч. в тёмной теме) — иначе тёмный QR не сканируется. */
+  background: #fff;
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
-  color: var(--muted);
+  padding: 8px;
   flex-shrink: 0;
 }
 

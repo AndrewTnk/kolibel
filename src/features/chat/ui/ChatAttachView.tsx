@@ -5,13 +5,15 @@ import { vacanciesActions } from '../../vacancies/model/vacanciesSlice'
 import { incrementVacancyView } from '../../vacancies/model/vacancyThunks'
 import type { ChatAttach } from '../model/types'
 import { ChatIco } from './chatIcons'
+import { SharedPostCard } from './SharedPostCard'
+import { SharedProfileCard } from './SharedProfileCard'
 import styles from './Chat.module.css'
 
-/** Рендер вложения сообщения: фото/видео — медиа, документ — карточка-ссылка, вакансия — карточка. */
+/** Рендер вложения сообщения: фото/видео — медиа, документ — карточка, вакансия/пост/профиль — карточка. */
 export function ChatAttachView({ attach }: { attach: ChatAttach }) {
   const dispatch = useAppDispatch()
   const [zoom, setZoom] = useState(false)
-  const { kind, url, mime, title, subtitle, vacancyId, salary, city } = attach
+  const { kind, url, mime, title, subtitle, vacancyId, salary, city, post, profile } = attach
 
   const isImage = kind === 'photo' || mime?.startsWith('image/')
   const isVideo = kind === 'video' || mime?.startsWith('video/')
@@ -74,6 +76,14 @@ export function ChatAttachView({ attach }: { attach: ChatAttach }) {
         {meta ? <span className={styles.atVacancyMeta}>{meta}</span> : null}
       </button>
     )
+  }
+
+  if (kind === 'post' && post) {
+    return <SharedPostCard post={post} />
+  }
+
+  if (kind === 'profile' && profile) {
+    return <SharedProfileCard profile={profile} />
   }
 
   // Документ / прочее — карточка-ссылка для скачивания.

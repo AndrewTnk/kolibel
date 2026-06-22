@@ -5,10 +5,11 @@ import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { toggleLike } from '../model/feedThunks'
 import type { FeedContent, FeedPost } from '../model/types'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
-import { PostActions } from './PostActions'
+import { PostActions, buildPostShareAttach } from './PostActions'
 import { PostComments } from './PostComments'
 import { CommentForm } from './CommentForm'
 import { PostCommentsModal } from './PostCommentsModal'
+import { ShareToChatModal } from '../../chat/ui/ShareToChatModal'
 import styles from './Feed.module.css'
 
 type MediaItem = Extract<FeedContent, { kind: 'image' | 'video' }>
@@ -49,6 +50,7 @@ export function PostLightbox({
   const media = post.content.filter((c) => c.kind === 'image' || c.kind === 'video') as MediaItem[]
   const [idx, setIdx] = useState(startIndex)
   const [commentsOpen, setCommentsOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const swipeX = useRef<number | null>(null)
 
   const go = (dir: -1 | 1) =>
@@ -150,7 +152,7 @@ export function PostLightbox({
               </svg>
               {post.comments.length > 0 ? <span>{post.comments.length}</span> : null}
             </button>
-            <button type="button" className={styles.lbBarBtn} aria-label="Поделиться" onClick={() => {}}>
+            <button type="button" className={styles.lbBarBtn} aria-label="Поделиться" onClick={() => setShareOpen(true)}>
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <circle cx="18" cy="5" r="3" />
                 <circle cx="6" cy="12" r="3" />
@@ -201,6 +203,13 @@ export function PostLightbox({
       ) : null}
     </div>
     {commentsOpen ? <PostCommentsModal post={post} onClose={() => setCommentsOpen(false)} /> : null}
+    {shareOpen ? (
+      <ShareToChatModal
+        message={{ attach: buildPostShareAttach(post) }}
+        title="Поделиться публикацией"
+        onClose={() => setShareOpen(false)}
+      />
+    ) : null}
     </>,
     document.body,
   )

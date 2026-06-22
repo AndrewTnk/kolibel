@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
+import { QRCodeSVG } from 'qrcode.react'
+import { ShareToChatModal } from '../../../chat/ui/ShareToChatModal'
 import { useAppDispatch, useAppSelector } from '../../../../app/store/hooks'
 import { saveProfile } from '../../model/profileThunks'
 import type {
@@ -18,6 +22,7 @@ import { LocationField } from '../../../../shared/ui/LocationField/LocationField
 import { sanitizePersonName } from '../../../../shared/lib/nameValidation'
 import { Ic } from './icons'
 import type { SectionId } from './ResumeView'
+import { ResumeDocument } from './ResumeDocument'
 import m from './ProfileModals.module.css'
 
 /** Активная модалка профиля. */
@@ -694,20 +699,33 @@ function AvatarModal({ onClose, showToast }: ModalProps) {
 // ── 3. Поделиться ───────────────────────────────────────────
 function ShareModal({ onClose, showToast }: ModalProps) {
   const myId = useAppSelector((s) => s.auth.user?.id)
+  const resume = useAppSelector((s) => s.profile.resume)
   const url = `${window.location.origin}/u/${myId ?? ''}`
   const [copied, setCopied] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
+
   function copy() {
     void navigator.clipboard?.writeText(url)
     setCopied(true)
     showToast('Ссылка скопирована')
     setTimeout(() => setCopied(false), 2000)
   }
-  const tiles = [
-    { lab: 'Telegram', bg: '#0088cc', ico: <Ic.tg size={18} />, href: `https://t.me/share/url?url=${encodeURIComponent(url)}` },
-    { lab: 'VK', bg: '#0077ff', ico: <Ic.vk size={18} />, href: `https://vk.com/share.php?url=${encodeURIComponent(url)}` },
-    { lab: 'Email', bg: '#7c3aed', ico: <Ic.mail size={18} />, href: `mailto:?body=${encodeURIComponent(url)}` },
-    { lab: 'Ссылка', bg: '#475569', ico: <Ic.link size={18} />, href: '' },
-  ]
+
+  // Мини-карточка профиля для пересылки в чат (как во вкладке «Сеть»).
+  const profileAttach = {
+    kind: 'profile' as const,
+    title: resume.fullName || 'Профиль',
+    profile: {
+      id: myId ?? '',
+      name: resume.fullName || 'Профиль',
+      avatar: resume.avatar,
+      role: [resume.jobTitle, resume.jobStatus.company].filter(Boolean).join(' · ') || undefined,
+      location: [resume.location, resume.country].filter(Boolean).join(', ') || undefined,
+      isCompany: false,
+      banner: resume.banner,
+    },
+  }
+
   return (
     <Modal
       title="Поделиться профилем"
@@ -725,81 +743,142 @@ function ShareModal({ onClose, showToast }: ModalProps) {
           {copied ? <Ic.check /> : <Ic.copy />} {copied ? 'Скопировано' : 'Скопировать'}
         </button>
       </div>
-      <div className={m.shareGrid}>
-        {tiles.map((t) => (
-          <button
-            key={t.lab}
-            type="button"
-            className={m.shareTile}
-            onClick={() => (t.href ? window.open(t.href, '_blank', 'noopener') : copy())}
-          >
-            <span className={m.shareTileIco} style={{ background: t.bg }}>
-              {t.ico}
-            </span>
-            <span className={m.shareTileLab}>{t.lab}</span>
-          </button>
-        ))}
-      </div>
+
+      <button type="button" className={m.shareChatBtn} onClick={() => setChatOpen(true)}>
+        <span className={m.shareChatIco}>
+          <Ic.share />
+        </span>
+        <span className={m.shareChatText}>
+          <span className={m.shareChatTitle}>Отправить в чат</span>
+          <span className={m.shareChatSub}>Поделиться профилем с собеседником на Kolibel</span>
+        </span>
+        <Ic.arrowRight />
+      </button>
+
       <div className={m.qrCard}>
         <div className={m.qrBox}>
-          <Ic.qr />
+          <QRCodeSVG value={url} size={104} bgColor="transparent" fgColor="#1f2328" />
         </div>
         <div style={{ flex: 1 }}>
           <div className={m.qrTitle}>QR-код для оффлайна</div>
           <div className={m.qrSub}>Покажи на встрече — рекрутёр откроет профиль одним кликом.</div>
         </div>
       </div>
+
+      {chatOpen ? (
+        <ShareToChatModal
+          message={{ attach: profileAttach }}
+          title="Отправить профиль"
+          onClose={() => setChatOpen(false)}
+        />
+      ) : null}
     </Modal>
   )
 }
 
 // ── 4. PDF (печать) ─────────────────────────────────────────
 const PDF_TPLS = [
-  { id: 'warm', nm: 'Тёплый Kolibel', ds: 'Коралл, Manrope — фирменный стиль', c1: '#ff7f50', c2: '#fbe3d6' },
-  { id: 'mono', nm: 'Строгий моно', ds: 'Чёрно-белый, для классических HR', c1: '#1f2328', c2: '#e5e7eb' },
-  { id: 'compact', nm: 'Компактный', ds: 'Влезает в одну страницу', c1: '#475569', c2: '#cbd5e1' },
+  { id: 'warm', nm: 'Тёплый Kolibel', ds: 'Коралл, Manrope — фирменный стиль', c1: '#ff7f50' },
+  { id: 'mono', nm: 'Строгий графит', ds: 'Сдержанный, для классических HR', c1: '#1f2328' },
+  { id: 'ocean', nm: 'Морская синь', ds: 'Спокойный сине-стальной акцент', c1: '#2563eb' },
+  { id: 'forest', nm: 'Изумруд', ds: 'Тёплый зелёный — мягко и солидно', c1: '#0f766e' },
 ]
+
+/**
+ * Прямое сохранение листа резюме в PDF-файл (без окна печати): рендерим
+ * A4-лист офскрином, снимаем html2canvas → собираем jsPDF (с разбивкой на
+ * страницы) → `pdf.save()`. Возвращает off-screen-узел для захвата.
+ */
+function useResumeDownload(resume: Resume, accent: string) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function download() {
+    const node = ref.current
+    if (!node || busy) return
+    setBusy(true)
+    try {
+      // Шрифты должны быть готовы до снимка, иначе подставится дефолтный.
+      await document.fonts?.ready
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      })
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pageW = 210
+      const pageH = 297
+      const imgH = (canvas.height * pageW) / canvas.width
+      const img = canvas.toDataURL('image/png')
+      let heightLeft = imgH
+      let position = 0
+      pdf.addImage(img, 'PNG', 0, position, pageW, imgH, undefined, 'FAST')
+      heightLeft -= pageH
+      while (heightLeft > 0) {
+        position -= pageH
+        pdf.addPage()
+        pdf.addImage(img, 'PNG', 0, position, pageW, imgH, undefined, 'FAST')
+        heightLeft -= pageH
+      }
+      const safeName = (resume.fullName || 'Резюме').trim().replace(/[\\/:*?"<>|]+/g, ' ')
+      pdf.save(`${safeName} — резюме.pdf`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const offscreen = (
+    <div ref={ref} className={m.pdfOffscreen} aria-hidden>
+      <ResumeDocument resume={resume} accent={accent} />
+    </div>
+  )
+
+  return { download, busy, offscreen }
+}
 
 function PdfModal({ onClose, showToast }: ModalProps) {
   const resume = useAppSelector((s) => s.profile.resume)
   const [tpl, setTpl] = useState('warm')
   const cur = PDF_TPLS.find((t) => t.id === tpl)!
+  const { download, busy, offscreen } = useResumeDownload(resume, cur.c1)
+
+  async function onDownload() {
+    showToast('Готовим PDF…')
+    try {
+      await download()
+      showToast('PDF сохранён')
+    } catch {
+      showToast('Не удалось собрать PDF')
+    }
+  }
+
   return (
     <Modal
       title="Скачать резюме в PDF"
-      sub="Откроется окно печати — выбери «Сохранить как PDF»"
+      sub="Готовый PDF-файл сохранится сразу — без окна печати"
       onClose={onClose}
       size="lg"
       footer={
         <>
-          <button className={m.btnGhost} onClick={onClose} type="button">
+          <button className={m.btnGhost} onClick={onClose} type="button" disabled={busy}>
             Отмена
           </button>
-          <button
-            className={m.btnPrimary}
-            type="button"
-            onClick={() => {
-              onClose()
-              showToast('Открываем окно печати…')
-              setTimeout(() => window.print(), 150)
-            }}
-          >
-            <Ic.download /> Скачать PDF
+          <button className={m.btnPrimary} type="button" onClick={onDownload} disabled={busy}>
+            <Ic.download /> {busy ? 'Готовим PDF…' : 'Скачать PDF'}
           </button>
         </>
       }
     >
       <div className={m.pdfRow}>
-        <div className={m.pdfPreview} style={{ ['--c1' as string]: cur.c1 }}>
-          <div className={m.pdfName}>{resume.fullName || 'Ваше имя'}</div>
-          <div className={m.pdfRole}>{resume.jobTitle}</div>
-          <div className={m.pdfLns}>
-            <i className="hd" /><i /><i /><i /><i className="hd" /><i /><i /><i className="hd" /><i /><i /><i /><i />
+        <div className={m.pdfPreview}>
+          <div className={m.pdfPaper}>
+            <ResumeDocument resume={resume} accent={cur.c1} />
           </div>
         </div>
-        <div>
+        <div className={m.pdfSide}>
           <div className={m.fLabel} style={{ marginBottom: 8 }}>
-            Шаблон
+            Цвет шаблона
           </div>
           <div className={m.pdfTemplates}>
             {PDF_TPLS.map((t) => (
@@ -809,7 +888,7 @@ function PdfModal({ onClose, showToast }: ModalProps) {
                 className={[m.pdfTpl, tpl === t.id ? m.pdfTplOn : ''].filter(Boolean).join(' ')}
                 onClick={() => setTpl(t.id)}
               >
-                <div className={m.pdfSwatch} style={{ background: `linear-gradient(180deg, ${t.c1} 0 30%, ${t.c2} 30% 100%)` }} />
+                <div className={m.pdfSwatch} style={{ background: t.c1 }} />
                 <div>
                   <div className={m.pdfTplNm}>{t.nm}</div>
                   <div className={m.pdfTplDs}>{t.ds}</div>
@@ -817,8 +896,13 @@ function PdfModal({ onClose, showToast }: ModalProps) {
               </button>
             ))}
           </div>
+          <div className={m.pdfHint}>
+            Резюме соберётся из заполненных секций профиля. Чем подробнее профиль — тем
+            полнее лист.
+          </div>
         </div>
       </div>
+      {offscreen}
     </Modal>
   )
 }

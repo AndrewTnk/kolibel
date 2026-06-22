@@ -1,0 +1,315 @@
+/* ─────────────────────────────────────────────────────────────
+   A4-лист резюме. Размеры в мм — точная печать; цвета принудительно
+   печатаются (print-color-adjust). Используется и в превью (масштаб),
+   и в скрытом портале печати.
+   ───────────────────────────────────────────────────────────── */
+.doc {
+  --ink: #1f2328;
+  --soft: #6b7280;
+  --hair: #e7e9ee;
+  /* --accent / --accentSoft / --accentInk / --accentBorder приходят инлайн
+     (вычисляются в JS — html2canvas не понимает color-mix). */
+  box-sizing: border-box;
+  width: 210mm;
+  min-height: 297mm;
+  background: #fff;
+  color: var(--ink);
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.5;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.doc * {
+  box-sizing: border-box;
+}
+
+/* Шапка */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 7mm;
+  padding: 14mm 14mm 9mm;
+  background: var(--accentSoft);
+  border-bottom: 2px solid var(--accent);
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 26mm;
+  height: 26mm;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 17pt;
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--accent) 100%);
+  border: 1.4mm solid #fff;
+  box-shadow: 0 1mm 3mm rgba(15, 23, 42, 0.14);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.headMeta {
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: 23pt;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+  color: #16181d;
+}
+
+.role {
+  margin-top: 2mm;
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--accentInk);
+}
+
+.metaLine {
+  margin-top: 1.5mm;
+  font-size: 9.5pt;
+  color: var(--soft);
+  font-weight: 600;
+}
+
+/* Сетка */
+.grid {
+  display: grid;
+  grid-template-columns: 62mm 1fr;
+}
+
+.aside {
+  padding: 10mm 8mm 12mm 14mm;
+  border-right: 1px solid var(--hair);
+}
+
+.main {
+  padding: 10mm 14mm 12mm 9mm;
+}
+
+/* Секция */
+.sec {
+  margin-bottom: 8mm;
+}
+.sec:last-child {
+  margin-bottom: 0;
+}
+
+.secTitle {
+  margin: 0 0 4mm;
+  font-size: 8.5pt;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--accentInk);
+  padding-bottom: 1.6mm;
+  border-bottom: 1px solid var(--accent);
+}
+
+/* Контакты */
+.contacts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
+}
+.contacts li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4mm;
+}
+.contactLab {
+  font-size: 7.6pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--soft);
+}
+.contactVal {
+  font-size: 9.6pt;
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+/* Навыки */
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6mm;
+}
+.skill {
+  font-size: 8.6pt;
+  font-weight: 700;
+  padding: 1mm 2.6mm;
+  border-radius: 2mm;
+  background: var(--accentSoft);
+  color: var(--accentInk);
+  border: 1px solid var(--accentBorder);
+}
+
+/* Языки */
+.langs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3.2mm;
+}
+.langTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2mm;
+  margin-bottom: 1mm;
+}
+.langName {
+  font-size: 9.4pt;
+  font-weight: 700;
+}
+.langLevel {
+  font-size: 8pt;
+  color: var(--soft);
+  font-weight: 600;
+}
+.langBar {
+  display: block;
+  height: 1.6mm;
+  border-radius: 1mm;
+  background: var(--hair);
+  overflow: hidden;
+}
+.langBar i {
+  display: block;
+  height: 100%;
+  border-radius: 1mm;
+  background: var(--accent);
+}
+
+/* О себе */
+.about p {
+  margin: 0 0 2.4mm;
+  font-size: 10pt;
+  color: #2c3036;
+}
+.about p:last-child {
+  margin-bottom: 0;
+}
+
+/* Опыт */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 6mm;
+}
+.expItem {
+  position: relative;
+  padding-left: 5mm;
+  border-left: 1.4px solid var(--hair);
+}
+.expItem::before {
+  content: '';
+  position: absolute;
+  left: -1.6mm;
+  top: 1mm;
+  width: 3mm;
+  height: 3mm;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 1px solid #fff;
+}
+.expRow,
+.eduRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4mm;
+}
+.expRole {
+  font-size: 11pt;
+  font-weight: 800;
+  color: #16181d;
+}
+.expPeriod {
+  flex: 0 0 auto;
+  font-size: 8.4pt;
+  font-weight: 600;
+  color: var(--soft);
+  white-space: nowrap;
+}
+.expCompany {
+  font-size: 9.6pt;
+  font-weight: 700;
+  color: var(--accentInk);
+  margin-top: 0.4mm;
+}
+.expSummary {
+  margin: 1.8mm 0 0;
+  font-size: 9.6pt;
+  color: #2c3036;
+}
+.expBullets {
+  margin: 1.8mm 0 0;
+  padding-left: 4.4mm;
+}
+.expBullets li {
+  font-size: 9.6pt;
+  color: #2c3036;
+  margin-bottom: 0.8mm;
+}
+.expStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4mm;
+  margin-top: 2.2mm;
+}
+.tag {
+  font-size: 8pt;
+  font-weight: 700;
+  padding: 0.6mm 2mm;
+  border-radius: 1.6mm;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Образование */
+.eduList {
+  display: flex;
+  flex-direction: column;
+  gap: 4mm;
+}
+.eduInst {
+  font-size: 10.4pt;
+  font-weight: 800;
+  color: #16181d;
+}
+.eduDegree {
+  font-size: 9.4pt;
+  color: var(--soft);
+  font-weight: 600;
+  margin-top: 0.4mm;
+}
+
+/* ── Печать: разрывы страниц аккуратно ── */
+@media print {
+  .expItem,
+  .eduItem,
+  .sec {
+    break-inside: avoid;
+  }
+}

@@ -223,6 +223,7 @@ export const applyToVacancy = createAsyncThunk<
           vacancyTitle: v.title,
           company: v.company,
           companyInitials: nameInitials(v.company),
+          companyLogo: v.companyLogo,
           status: 'sent',
           appliedAt: Date.now(),
         }

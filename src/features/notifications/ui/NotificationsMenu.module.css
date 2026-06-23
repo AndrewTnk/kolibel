@@ -109,6 +109,38 @@
   color: var(--bad, #dc2626);
 }
 
+.settingsBtn {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.settingsBtn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* Кнопка закрытия — только в полноэкранном мобильном режиме. */
+.closeBtn {
+  display: none;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 2px;
+  border-radius: 8px;
+}
+.closeBtn:hover {
+  background: var(--hover);
+}
+
 .list {
   max-height: 380px;
   overflow-y: auto;
@@ -139,6 +171,65 @@
 
 .item:hover {
   background: var(--hover);
+}
+
+/* ── Группы уведомлений ── */
+.group {
+  border-top: 1px solid var(--border);
+}
+.group:first-child {
+  border-top: 0;
+}
+.group .item {
+  border-top: 0;
+}
+
+/* Стек аватаров участников группы. */
+.avStack {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+.avStackItem {
+  margin-left: -10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--card);
+}
+.avStackItem:first-child {
+  margin-left: 0;
+}
+.avMore {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--hover);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.chev {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+/* Раскрытый список группы — отделён фоном и левым акцентом. */
+.children {
+  background: var(--hover);
+  border-left: 2px solid var(--primarySoftMd);
+}
+.children .item {
+  padding-left: 24px;
+  border-top: 1px solid var(--border);
+  background: transparent;
+}
+.children .item:hover {
+  background: var(--card);
 }
 
 /* Аватар-инициалы с фирменным градиентом (круг — человек, квадрат — компания). */
@@ -211,24 +302,44 @@
   font-weight: 700;
 }
 
-/* Мобилка: панель уведомлений во всю ширину под хедером (иначе absolute right:0
-   от колокольчика уезжает за край экрана), высота ограничена, список скроллится. */
+/* Мобилка: уведомления на весь экран (как отдельная страница). */
 @media (max-width: 980px) {
   .menu {
     position: fixed;
-    top: calc(var(--header-height) + 6px);
-    left: 8px;
-    right: 8px;
+    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: auto;
     max-width: none;
-    max-height: calc(100dvh - var(--header-height) - 24px);
+    max-height: none;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    z-index: 2000;
     display: flex;
     flex-direction: column;
+  }
+
+  .menuHead {
+    padding: 14px 16px;
+    padding-top: calc(14px + env(safe-area-inset-top));
+  }
+
+  .menuTitle {
+    font-size: 17px;
   }
 
   .list {
     max-height: none;
     flex: 1;
     min-height: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .closeBtn {
+    display: grid;
   }
 }

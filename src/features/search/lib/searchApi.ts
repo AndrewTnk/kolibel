@@ -55,28 +55,33 @@ export async function searchEntities(query: string): Promise<SearchResults> {
   const pattern = `%${escapeLike(q)}%`
   const lim = q ? LIMIT : SUGGEST_LIMIT
 
-  // Люди
+  // Люди (только публичные профили)
   let peopleQ = supabase
     .from('profiles')
     .select('id, full_name, job_title, avatar_url, job_status')
     .eq('account_type', 'user')
+    .eq('is_public', true)
     .neq('id', me)
     .order('full_name', { ascending: true })
     .limit(lim)
   if (q) peopleQ = peopleQ.ilike('full_name', pattern)
 
-  // Компании
+  // Компании (берём с запасом — приватные отфильтруем по profiles.is_public)
   let compQ = supabase
     .from('companies')
     .select('id, name, industry, location, logo_url')
     .neq('id', me)
     .order('name', { ascending: true })
-    .limit(lim)
+    .limit(lim * 3)
   if (q) compQ = compQ.ilike('name', pattern)
 
   const [peopleRes, compRes] = await Promise.all([peopleQ, compQ])
   if (peopleRes.error) throw new Error(peopleRes.error.message)
   if (compRes.error) throw new Error(compRes.error.message)
+
+  // Скрываем компании с непубличным профилем-аккаунтом.
+  const compRows = (compRes.data ?? []) as { id: string }[]
+  const publicCompanyIds = await filterPublicIds(compRows.map((r) => r.id))
 
   const people: SearchPerson[] = (
     peopleRes.data as {
@@ -102,17 +107,36 @@ export async function searchEntities(query: string): Promise<SearchResults> {
 
   const companies: SearchCompany[] = (
     compRes.data as { id: string; name: string | null; industry: string | null; location: string | null; logo_url: string | null }[]
-  ).map((r) => {
-    const name = r.name?.trim() || 'Компания'
-    const sub = [r.industry?.trim(), r.location?.trim()].filter(Boolean).join(' · ')
-    return {
-      id: r.id,
-      name,
-      subtitle: sub || 'Компания',
-      logo: r.logo_url ?? undefined,
-      initial: name.charAt(0).toUpperCase() || 'K',
-    }
-  })
+  )
+    .filter((r) => publicCompanyIds.has(r.id))
+    .slice(0, lim)
+    .map((r) => {
+      const name = r.name?.trim() || 'Компания'
+      const sub = [r.industry?.trim(), r.location?.trim()].filter(Boolean).join(' · ')
+      return {
+        id: r.id,
+        name,
+        subtitle: sub || 'Компания',
+        logo: r.logo_url ?? undefined,
+        initial: name.charAt(0).toUpperCase() || 'K',
+      }
+    })
 
   return { people, companies }
+}
+
+/**
+ * Из набора id профилей возвращает множество тех, у кого профиль публичный
+ * (is_public = true). Используется для скрытия приватных компаний из выдачи,
+ * т.к. таблица companies не хранит флаг — он живёт в profiles того же аккаунта.
+ */
+async function filterPublicIds(ids: string[]): Promise<Set<string>> {
+  if (!ids.length) return new Set()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .in('id', ids)
+    .eq('is_public', true)
+  if (error) return new Set(ids) // мягкая деградация: не прячем, если запрос упал
+  return new Set((data ?? []).map((r) => (r as { id: string }).id))
 }

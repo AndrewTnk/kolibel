@@ -34,10 +34,18 @@ export function useRecommendations(): {
   const resume = useAppSelector((s) => s.profile.resume)
   const companyProfile = useAppSelector((s) => s.company.profile)
   const vacancies = useAppSelector((s) => s.vacanciesList.items)
-  const people = useAppSelector((s) => s.network.recommendedPeople)
-  const companies = useAppSelector((s) => s.network.recommendedCompanies)
+  const allPeople = useAppSelector((s) => s.network.recommendedPeople)
+  const allCompanies = useAppSelector((s) => s.network.recommendedCompanies)
   const followingIds = useAppSelector((s) => s.network.followingIds)
   const followingSet = useMemo(() => new Set(followingIds), [followingIds])
+  const hiddenIds = useAppSelector((s) => s.blocks.hiddenIds)
+  // Прячем заблокированных (в обе стороны) из всех блоков рекомендаций.
+  const hiddenSet = useMemo(() => new Set(hiddenIds), [hiddenIds])
+  const people = useMemo(() => allPeople.filter((p) => !hiddenSet.has(p.id)), [allPeople, hiddenSet])
+  const companies = useMemo(
+    () => allCompanies.filter((c) => !hiddenSet.has(c.id)),
+    [allCompanies, hiddenSet],
+  )
 
   const seedRef = useRef((Math.random() * 2 ** 31) | 0)
   const recentRef = useRef(loadRecentlyShown())

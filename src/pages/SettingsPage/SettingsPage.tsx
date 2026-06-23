@@ -1,13 +1,11 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../../shared/ui/AppHeader/AppHeader'
 import { menuItems, type SectionKey } from '../../features/settings/model/settingsData'
 import {
   AccountSection,
   SecuritySection,
   NotificationsSection,
-  AnalyticsSection,
-  BillingSection,
-  AdsSection,
   BlacklistSection,
 } from '../../features/settings/ui/sections'
 import { SupportLinks } from '../../shared/ui/Recommendations/SupportLinks'
@@ -17,14 +15,15 @@ const sectionMap: Record<SectionKey, () => React.ReactElement> = {
   account: AccountSection,
   security: SecuritySection,
   notifications: NotificationsSection,
-  analytics: AnalyticsSection,
-  billing: BillingSection,
-  ads: AdsSection,
   blacklist: BlacklistSection,
 }
 
 export function SettingsPage() {
-  const [active, setActive] = useState<SectionKey>('account')
+  const [searchParams] = useSearchParams()
+  // Раздел можно открыть напрямую через ?section=notifications (напр. из меню уведомлений).
+  const requested = searchParams.get('section')
+  const initial: SectionKey = requested && requested in sectionMap ? (requested as SectionKey) : 'account'
+  const [active, setActive] = useState<SectionKey>(initial)
   const ActiveSection = sectionMap[active]
 
   return (

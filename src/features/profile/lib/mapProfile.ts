@@ -30,6 +30,9 @@ export type ProfileRow = {
   contacts: ContactLink[] | null
   account_type: 'user' | 'company' | null
   onboarded: boolean | null
+  is_public: boolean | null
+  show_activity: boolean | null
+  last_seen_at: string | null
 }
 
 /**
@@ -68,7 +71,10 @@ export function rowToResume(row: ProfileRow): Resume {
     country: row.country ?? undefined,
     workFormat: row.work_format ?? '',
     available: row.available ?? true,
-    isOnline: true, // присутствие пока не храним в БД
+    isOnline: true, // онлайн-статус берём из presence-слайса, не из БД
+    isPublic: row.is_public ?? true,
+    showActivity: row.show_activity ?? true,
+    lastSeenAt: row.last_seen_at ?? undefined,
     jobStatus: normalizeJobStatus(row.job_status),
     avatarInitials: computeInitials(fullName),
     avatar: row.avatar_url ?? undefined,

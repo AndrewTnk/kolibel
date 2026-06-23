@@ -106,7 +106,13 @@ type MyApplicationRow = {
   status: ApplicationStatus | null
   created_at: string
   // Левый embed вакансии: null, если вакансию удалили (вакансия закрыта).
-  vacancies: { title: string | null; company: string | null } | null
+  // company/company_id — снимок на момент вакансии; живое имя/лого тянем из companies.
+  vacancies: {
+    title: string | null
+    company: string | null
+    company_id: string | null
+    status: string | null
+  } | null
 }
 
 /** Детальный список моих откликов для виджета/модалки «Мои отклики». */
@@ -116,24 +122,53 @@ export async function fetchMyApplicationsDetailed(): Promise<MyApplication[]> {
   if (!uid) return []
   const { data, error } = await supabase
     .from('vacancy_applications')
-    .select('id, vacancy_id, status, created_at, vacancies(title, company)')
+    .select('id, vacancy_id, status, created_at, vacancies(title, company, company_id, status)')
     .eq('applicant_id', uid)
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
-  return ((data as unknown as MyApplicationRow[]) ?? []).map((row) => {
-    const closed = row.vacancies === null
+  const rows = (data as unknown as MyApplicationRow[]) ?? []
+
+  // Живые имя/лого компании (denormalized vacancies.company устаревает после
+  // переименования; лого там вообще нет) — батч-запрос по company_id.
+  const companyIds = [
+    ...new Set(rows.map((r) => r.vacancies?.company_id).filter((x): x is string => !!x)),
+  ]
+  const companyById = new Map<string, { name?: string; logo?: string }>()
+  if (companyIds.length) {
+    const { data: comps } = await supabase
+      .from('companies')
+      .select('id, name, logo_url, avatar_url')
+      .in('id', companyIds)
+    for (const c of (comps ?? []) as {
+      id: string
+      name: string | null
+      logo_url: string | null
+      avatar_url: string | null
+    }[]) {
+      companyById.set(c.id, {
+        name: c.name?.trim() || undefined,
+        logo: c.logo_url ?? c.avatar_url ?? undefined,
+      })
+    }
+  }
+
+  return rows.map((row) => {
+    // Закрыто: вакансию удалили (embed null) ИЛИ у неё статус 'closed'.
+    const closed = row.vacancies === null || row.vacancies.status === 'closed'
     const status: MyApplication['status'] = closed
       ? 'closed'
       : row.status === 'rejected'
         ? 'rejected'
         : 'sent'
-    const company = row.vacancies?.company || 'Компания'
+    const live = row.vacancies?.company_id ? companyById.get(row.vacancies.company_id) : undefined
+    const company = live?.name || row.vacancies?.company || 'Компания'
     return {
       id: row.id,
       vacancyId: row.vacancy_id,
       vacancyTitle: row.vacancies?.title || 'Вакансия',
       company,
       companyInitials: initials(company),
+      companyLogo: live?.logo,
       status,
       appliedAt: new Date(row.created_at).getTime(),
     }

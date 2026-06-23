@@ -5,6 +5,7 @@ import { mapSession } from '../lib/session'
 import { getSavedAccounts, removeSavedAccount } from '../lib/accountsStore'
 import { loadProfile } from '../../profile/model/profileThunks'
 import { loadMyApplications } from '../../vacancies/model/vacancyThunks'
+import { loadBlocks } from '../../blocks/model/blocksThunks'
 import type { AuthSession } from './types'
 
 /** Переводит частые сообщения Supabase на русский. */
@@ -100,6 +101,7 @@ export const switchAccount = createAsyncThunk<string, string>(
     await dispatch(bootstrapAuth())
     await dispatch(loadProfile())
     void dispatch(loadMyApplications())
+    void dispatch(loadBlocks())
     return accountId
   },
 )

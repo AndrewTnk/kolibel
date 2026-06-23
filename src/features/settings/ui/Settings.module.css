@@ -380,9 +380,20 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
+  overflow: hidden;
   font-weight: 900;
   color: #fff;
   background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(51, 65, 85, 0.9) 55%, var(--primary) 100%);
+}
+
+.blockAvatarSquare {
+  border-radius: 12px;
+}
+
+.blockAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .blockMeta {
@@ -426,4 +437,39 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
+}
+
+/* Формы в модалках (смена email/пароля) */
+.formCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.formMsg {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 0;
+}
+
+.formErr {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b91c1c;
+  margin: 0;
+}
+
+.formOk {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green, #16a34a);
+  margin: 0;
 }

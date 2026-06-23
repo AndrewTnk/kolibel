@@ -25,6 +25,7 @@ export function FeedList({
   authorId,
   ranked = false,
   recSlots,
+  focusPostId,
 }: {
   intersperse?: boolean
   /** Показать только посты этого автора (режим профиля). */
@@ -34,6 +35,8 @@ export function FeedList({
   /** Чем чередовать ленту на мобилке (по умолчанию — пользовательские рекомендации).
    *  Страница задаёт сама, чтобы не тянуть widgets в feature (FSD). */
   recSlots?: React.ReactNode[]
+  /** Прокрутить к этому посту и подсветить (якорь из уведомлений: /?post=:id). */
+  focusPostId?: string
 }) {
   const dispatch = useAppDispatch()
   const allPosts = useAppSelector((s) => s.feed.posts)
@@ -91,6 +94,26 @@ export function FeedList({
     setVisible(PAGE_SIZE)
   }, [authorId, myId])
 
+  // Якорь из уведомлений: гарантируем, что нужный пост попал в окно рендера,
+  // затем прокручиваем к нему и кратко подсвечиваем.
+  useEffect(() => {
+    if (!focusPostId || !loaded) return
+    const idx = posts.findIndex((p) => p.id === focusPostId)
+    if (idx < 0) return
+    if (idx >= visible) {
+      setVisible(idx + 1)
+      return // дождёмся ререндера с расширенным окном, эффект сработает снова
+    }
+    const el = document.getElementById(`post-${focusPostId}`)
+    if (!el) return
+    const t = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      el.classList.add(styles.postFocusFlash)
+      window.setTimeout(() => el.classList.remove(styles.postFocusFlash), 2000)
+    }, 60)
+    return () => window.clearTimeout(t)
+  }, [focusPostId, loaded, posts, visible])
+
   useEffect(() => {
     if (!hasMore) return
     const el = sentinelRef.current
@@ -129,7 +152,9 @@ export function FeedList({
         const insertRec = showRecs && (i + 1) % REC_EVERY === 0
         return (
           <Fragment key={p.id}>
-            <PostCard post={p} />
+            <div id={`post-${p.id}`} className={styles.postAnchor}>
+              <PostCard post={p} />
+            </div>
             {insertRec ? <div className={styles.feedRec}>{carousels[recIndex]}</div> : null}
           </Fragment>
         )

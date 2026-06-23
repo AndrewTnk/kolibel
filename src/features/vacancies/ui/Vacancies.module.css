@@ -1641,6 +1641,12 @@
   text-align: left;
 }
 
+/* Закрытая вакансия — неактивная строка (без перехода). */
+.appRowClosed {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .appRowAva {
   width: 40px;
   height: 40px;

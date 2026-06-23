@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { supabase } from '../../../shared/lib/supabase'
-import { notificationsActions } from './notificationsSlice'
+import { notificationsActions, isKindEnabled, type NotificationPrefs } from './notificationsSlice'
 import type { AppNotification, NotificationKind } from './types'
 
 async function currentUserId(): Promise<string | null> {
@@ -17,6 +17,7 @@ export type NotificationRow = {
   read: boolean
   created_at: string
   actor_id: string | null
+  entity_id: string | null
 }
 
 export function rowToNotification(row: NotificationRow): AppNotification {
@@ -29,10 +30,11 @@ export function rowToNotification(row: NotificationRow): AppNotification {
     read: row.read,
     createdAt: new Date(row.created_at).getTime(),
     actorId: row.actor_id ?? undefined,
+    entityId: row.entity_id ?? undefined,
   }
 }
 
-const SELECT = 'id, kind, title, body, link, read, created_at, actor_id'
+const SELECT = 'id, kind, title, body, link, read, created_at, actor_id, entity_id'
 
 /**
  * Дотягивает аватар, тип и АКТУАЛЬНОЕ имя актора (из profiles/companies) по actorId.
@@ -76,20 +78,62 @@ export async function enrichNotificationAvatars(items: AppNotification[]): Promi
   return items
 }
 
-/** Загрузка уведомлений текущего пользователя. */
+/** Прочитать настройки уведомлений (jsonb на profiles). Устойчиво к 0033. */
+async function fetchPrefs(me: string): Promise<NotificationPrefs> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('notification_prefs')
+    .eq('id', me)
+    .maybeSingle()
+  if (error || !data) return {}
+  return ((data as { notification_prefs: NotificationPrefs | null }).notification_prefs ?? {}) as NotificationPrefs
+}
+
+/**
+ * Загрузка уведомлений текущего пользователя. Заодно подтягивает настройки по
+ * типам и отфильтровывает отключённые (они не попадают в список/бейдж).
+ */
 export const loadNotifications = createAsyncThunk<AppNotification[], void>(
   'notifications/load',
-  async () => {
+  async (_, { dispatch }) => {
     const me = await currentUserId()
     if (!me) return []
+    const prefs = await fetchPrefs(me)
+    dispatch(notificationsActions.setPrefs(prefs))
     const { data, error } = await supabase
       .from('notifications')
       .select(SELECT)
       .order('created_at', { ascending: false })
       .limit(50)
     if (error) throw new Error(error.message)
-    const items = (data as NotificationRow[]).map(rowToNotification)
+    const items = (data as NotificationRow[])
+      .map(rowToNotification)
+      .filter((n) => isKindEnabled(prefs, n.kind))
     return enrichNotificationAvatars(items)
+  },
+)
+
+/**
+ * Обновить настройки уведомлений (по группе типов) — оптимистично + запись в
+ * profiles.notification_prefs, затем перезагрузка списка для пере-фильтрации.
+ */
+export const updateNotificationPrefs = createAsyncThunk<void, NotificationPrefs>(
+  'notifications/updatePrefs',
+  async (patch, { dispatch, getState }) => {
+    const me = await currentUserId()
+    if (!me) throw new Error('Нет активной сессии')
+    const prev = (getState() as { notifications: { prefs: NotificationPrefs } }).notifications.prefs
+    const nextPrefs = { ...prev, ...patch }
+    dispatch(notificationsActions.setPrefs(patch)) // оптимистично
+    const { error } = await supabase
+      .from('profiles')
+      .update({ notification_prefs: nextPrefs })
+      .eq('id', me)
+    if (error) {
+      dispatch(notificationsActions.setPrefs(prev)) // откат
+      throw new Error(error.message)
+    }
+    void dispatch(loadNotifications()) // пере-фильтровать уже загруженные
   },
 )
 
@@ -113,6 +157,18 @@ export const markNotificationRead = createAsyncThunk<string, string>(
     const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id)
     if (error) throw new Error(error.message)
     return id
+  },
+)
+
+/** Пометить набор уведомлений прочитанными (напр. при разворачивании группы). */
+export const markNotificationsRead = createAsyncThunk<string[], string[]>(
+  'notifications/markManyRead',
+  async (ids, { dispatch }) => {
+    if (!ids.length) return ids
+    dispatch(notificationsActions.markManyRead(ids))
+    const { error } = await supabase.from('notifications').update({ read: true }).in('id', ids)
+    if (error) throw new Error(error.message)
+    return ids
   },
 )
 

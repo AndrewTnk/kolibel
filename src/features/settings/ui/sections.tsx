@@ -1,17 +1,21 @@
-import { useMemo, useState } from 'react'
-import { useAppSelector } from '../../../app/store/hooks'
+import { useEffect, useMemo, useState } from 'react'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { Select } from '../../../shared/ui/Select/Select'
+import { Input } from '../../../shared/ui/Input/Input'
+import { RecModal } from '../../../shared/ui/Recommendations/RecModal'
 import { getStoredTheme, setTheme, type Theme } from '../../../shared/lib/theme'
-import {
-  adStatsMock,
-  analyticsMock,
-  blacklistMock,
-  devicesMock,
-  notificationOptions,
-  plansMock,
-  transactionsMock,
-} from '../model/settingsData'
+import { updateProfileSettings } from '../../profile/model/profileThunks'
+import { changeEmail, changePassword } from '../../auth/lib/accountSecurity'
+import { updateNotificationPrefs } from '../../notifications/model/notificationsThunks'
+import { isKindEnabled } from '../../notifications/model/notificationsSlice'
+import type { NotificationKind } from '../../notifications/model/types'
+import { loadBlocks, unblockUser } from '../../blocks/model/blocksThunks'
+import { notificationOptions } from '../model/settingsData'
 import s from './Settings.module.css'
+
+/** Минимальная длина пароля (синхронно с настройкой Supabase Auth). */
+const MIN_PASSWORD = 6
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   return (
@@ -38,10 +42,11 @@ function Head({ title, desc }: { title: string; desc: string }) {
 
 /* ── Аккаунт и оформление ─────────────────────── */
 export function AccountSection() {
+  const dispatch = useAppDispatch()
   const [theme, setThemeState] = useState<Theme>(getStoredTheme())
-  const [lang, setLang] = useState<'ru' | 'en'>('ru')
-  const [publicProfile, setPublicProfile] = useState(true)
-  const [showActivity, setShowActivity] = useState(false)
+  const isCompany = useAppSelector((st) => st.account.type === 'company')
+  const publicProfile = useAppSelector((st) => st.profile.resume.isPublic)
+  const showActivity = useAppSelector((st) => st.profile.resume.showActivity)
 
   return (
     <div>
@@ -68,45 +73,38 @@ export function AccountSection() {
 
       <div className={s.row}>
         <div className={s.rowMeta}>
-          <div className={s.rowLabel}>Язык</div>
-          <div className={s.rowSub}>Язык интерфейса</div>
+          <div className={s.rowLabel}>Публичный профиль</div>
+          <div className={s.rowSub}>
+            Профиль виден в поиске, рекомендациях и по прямой ссылке. Выключите, чтобы скрыть.
+          </div>
         </div>
-        <Select
-          ariaLabel="Язык"
-          value={lang}
-          options={[
-            { value: 'ru', label: 'Русский' },
-            { value: 'en', label: 'English' },
-          ]}
-          onChange={setLang}
+        <Toggle
+          on={publicProfile}
+          onToggle={() => void dispatch(updateProfileSettings({ isPublic: !publicProfile }))}
         />
       </div>
 
-      <div className={s.row}>
-        <div className={s.rowMeta}>
-          <div className={s.rowLabel}>Публичный профиль</div>
-          <div className={s.rowSub}>Профиль виден всем пользователям</div>
+      {/* Активность («в сети»/«был(а) недавно») — только у людей; у компаний онлайн-метку не показываем. */}
+      {isCompany ? null : (
+        <div className={s.row}>
+          <div className={s.rowMeta}>
+            <div className={s.rowLabel}>Показывать активность</div>
+            <div className={s.rowSub}>«В сети» и время последнего посещения</div>
+          </div>
+          <Toggle
+            on={showActivity}
+            onToggle={() => void dispatch(updateProfileSettings({ showActivity: !showActivity }))}
+          />
         </div>
-        <Toggle on={publicProfile} onToggle={() => setPublicProfile((v) => !v)} />
-      </div>
-
-      <div className={s.row}>
-        <div className={s.rowMeta}>
-          <div className={s.rowLabel}>Показывать активность</div>
-          <div className={s.rowSub}>«В сети» и время последнего входа</div>
-        </div>
-        <Toggle on={showActivity} onToggle={() => setShowActivity((v) => !v)} />
-      </div>
+      )}
     </div>
   )
 }
 
 /* ── Вход и безопасность ──────────────────────── */
 export function SecuritySection() {
-  const resume = useAppSelector((st) => st.profile.resume)
-  const [twoFa, setTwoFa] = useState(false)
-  const email = resume.contacts.find((c) => c.label === 'Email')?.value ?? 'user@kolibel.app'
-  const phone = resume.contacts.find((c) => c.label === 'Телефон')?.value ?? '+7 999 000-00-00'
+  const email = useAppSelector((st) => st.auth.session?.user.email) ?? '—'
+  const [modal, setModal] = useState<null | 'email' | 'password'>(null)
 
   return (
     <div>
@@ -117,17 +115,7 @@ export function SecuritySection() {
           <div className={s.rowLabel}>Почта</div>
           <div className={s.rowSub}>{email}</div>
         </div>
-        <button type="button" className={s.btnGhost}>
-          Изменить
-        </button>
-      </div>
-
-      <div className={s.row}>
-        <div className={s.rowMeta}>
-          <div className={s.rowLabel}>Телефон</div>
-          <div className={s.rowSub}>{phone}</div>
-        </div>
-        <button type="button" className={s.btnGhost}>
+        <button type="button" className={s.btnGhost} onClick={() => setModal('email')}>
           Изменить
         </button>
       </div>
@@ -135,229 +123,267 @@ export function SecuritySection() {
       <div className={s.row}>
         <div className={s.rowMeta}>
           <div className={s.rowLabel}>Пароль</div>
-          <div className={s.rowSub}>Последнее изменение — 2 месяца назад</div>
+          <div className={s.rowSub}>Регулярно обновляйте пароль для безопасности</div>
         </div>
-        <button type="button" className={s.btnGhost}>
+        <button type="button" className={s.btnGhost} onClick={() => setModal('password')}>
           Сменить пароль
         </button>
       </div>
 
       <div className={s.row}>
         <div className={s.rowMeta}>
-          <div className={s.rowLabel}>Двухфакторная аутентификация</div>
-          <div className={s.rowSub}>Подтверждение входа по коду</div>
+          <div className={s.rowLabel}>Телефон</div>
+          <div className={s.rowSub}>Привязка телефона появится позже</div>
         </div>
-        <Toggle on={twoFa} onToggle={() => setTwoFa((v) => !v)} />
+        <span className={s.badgeCurrent}>Скоро</span>
       </div>
 
-      <div className={s.sectionHead} style={{ marginTop: 24, marginBottom: 8 }}>
-        <h2 className={s.sectionTitle} style={{ fontSize: 16 }}>
-          Активные устройства
-        </h2>
-      </div>
-      <div className={s.list}>
-        {devicesMock.map((d) => (
-          <div key={d.id} className={s.deviceItem}>
-            <div>
-              <div className={s.deviceName}>{d.name}</div>
-              <div className={s.deviceMeta}>{d.meta}</div>
-            </div>
-            {d.current ? (
-              <span className={s.badgeCurrent}>Это устройство</span>
-            ) : (
-              <button type="button" className={s.btnGhost}>
-                Выйти
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+      {modal === 'email' ? (
+        <EmailModal currentEmail={email} onClose={() => setModal(null)} />
+      ) : null}
+      {modal === 'password' ? <PasswordModal onClose={() => setModal(null)} /> : null}
     </div>
+  )
+}
+
+function EmailModal({ currentEmail, onClose }: { currentEmail: string; onClose: () => void }) {
+  const [value, setValue] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const [done, setDone] = useState(false)
+
+  async function submit() {
+    const next = value.trim()
+    setErr(null)
+    if (!EMAIL_RE.test(next)) return setErr('Введите корректный email')
+    if (next.toLowerCase() === currentEmail.toLowerCase()) return setErr('Это ваш текущий email')
+    setBusy(true)
+    try {
+      await changeEmail(next)
+      setDone(true)
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Не удалось сменить email')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <RecModal title="Смена email" onClose={onClose} maxWidth={460}>
+      {done ? (
+        <div className={s.formCol}>
+          <p className={s.formOk}>
+            Письмо для подтверждения отправлено на <b>{value.trim()}</b>. Перейдите по ссылке из
+            письма — после этого адрес обновится.
+          </p>
+          <div className={s.formActions}>
+            <button type="button" className={s.btnPrimary} onClick={onClose}>
+              Понятно
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={s.formCol}>
+          <p className={s.formMsg}>
+            Текущий адрес: <b>{currentEmail}</b>. На новый адрес придёт письмо для подтверждения.
+          </p>
+          <Input
+            label="Новый email"
+            type="email"
+            autoComplete="email"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="you@example.com"
+          />
+          {err ? <p className={s.formErr}>{err}</p> : null}
+          <div className={s.formActions}>
+            <button type="button" className={s.btnGhost} onClick={onClose} disabled={busy}>
+              Отмена
+            </button>
+            <button type="button" className={s.btnPrimary} onClick={submit} disabled={busy}>
+              {busy ? 'Отправляем…' : 'Отправить письмо'}
+            </button>
+          </div>
+        </div>
+      )}
+    </RecModal>
+  )
+}
+
+function PasswordModal({ onClose }: { onClose: () => void }) {
+  const [current, setCurrent] = useState('')
+  const [next, setNext] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const [done, setDone] = useState(false)
+
+  async function submit() {
+    setErr(null)
+    if (!current) return setErr('Введите текущий пароль')
+    if (next.length < MIN_PASSWORD) return setErr(`Новый пароль — минимум ${MIN_PASSWORD} символов`)
+    if (next !== confirm) return setErr('Пароли не совпадают')
+    if (next === current) return setErr('Новый пароль совпадает с текущим')
+    setBusy(true)
+    try {
+      await changePassword(current, next)
+      setDone(true)
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Не удалось сменить пароль')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <RecModal title="Смена пароля" onClose={onClose} maxWidth={460}>
+      {done ? (
+        <div className={s.formCol}>
+          <p className={s.formOk}>Пароль обновлён.</p>
+          <div className={s.formActions}>
+            <button type="button" className={s.btnPrimary} onClick={onClose}>
+              Готово
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={s.formCol}>
+          <Input
+            label="Текущий пароль"
+            type="password"
+            autoComplete="current-password"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+          />
+          <Input
+            label="Новый пароль"
+            type="password"
+            autoComplete="new-password"
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+            hint={`Минимум ${MIN_PASSWORD} символов`}
+          />
+          <Input
+            label="Повторите новый пароль"
+            type="password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+          {err ? <p className={s.formErr}>{err}</p> : null}
+          <div className={s.formActions}>
+            <button type="button" className={s.btnGhost} onClick={onClose} disabled={busy}>
+              Отмена
+            </button>
+            <button type="button" className={s.btnPrimary} onClick={submit} disabled={busy}>
+              {busy ? 'Сохраняем…' : 'Сменить пароль'}
+            </button>
+          </div>
+        </div>
+      )}
+    </RecModal>
   )
 }
 
 /* ── Уведомления ──────────────────────────────── */
 export function NotificationsSection() {
-  const [opts, setOpts] = useState(notificationOptions)
-
-  function toggle(id: string) {
-    setOpts((prev) => prev.map((o) => (o.id === id ? { ...o, enabled: !o.enabled } : o)))
-  }
+  const dispatch = useAppDispatch()
+  const prefs = useAppSelector((st) => st.notifications.prefs)
 
   return (
     <div>
       <Head title="Уведомления" desc="Выберите, о чём хотите получать уведомления" />
-      {opts.map((o) => (
-        <div key={o.id} className={s.row}>
-          <div className={s.rowMeta}>
-            <div className={s.rowLabel}>{o.label}</div>
-            <div className={s.rowSub}>{o.desc}</div>
-          </div>
-          <Toggle on={o.enabled} onToggle={() => toggle(o.id)} />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-/* ── Аналитика ────────────────────────────────── */
-export function AnalyticsSection() {
-  return (
-    <div>
-      <Head title="Аналитика" desc="Активность вашего аккаунта и рынок по вашей профессии" />
-      <div className={s.statGrid}>
-        {analyticsMock.map((a) => (
-          <div key={a.id} className={s.statCard}>
-            <div className={s.statValue}>{a.value}</div>
-            <div className={s.statLabel}>{a.label}</div>
-            <div className={s.statDelta}>{a.delta}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ── Подписки и оплата ────────────────────────── */
-export function BillingSection() {
-  return (
-    <div>
-      <Head title="Подписки и оплата" desc="Текущий тариф, варианты подписки и история платежей" />
-
-      <div className={s.planGrid}>
-        {plansMock.map((p) => (
-          <div key={p.id} className={[s.planCard, p.current ? s.planCardCurrent : ''].join(' ')}>
-            <div className={s.planName}>{p.name}</div>
-            <div>
-              <span className={s.planPrice}>{p.price}</span> <span className={s.planPeriod}>{p.period}</span>
+      {notificationOptions.map((o) => {
+        // Группа включена, если включены все её типы.
+        const on = o.kinds.every((k) => isKindEnabled(prefs, k))
+        const toggle = () => {
+          const patch = Object.fromEntries(o.kinds.map((k) => [k, !on])) as Partial<
+            Record<NotificationKind, boolean>
+          >
+          void dispatch(updateNotificationPrefs(patch))
+        }
+        return (
+          <div key={o.id} className={s.row}>
+            <div className={s.rowMeta}>
+              <div className={s.rowLabel}>{o.label}</div>
+              <div className={s.rowSub}>{o.desc}</div>
             </div>
-            <ul className={s.planFeatures}>
-              {p.features.map((f) => (
-                <li key={f}>{f}</li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className={[s.planBtn, p.current ? s.btnGhost : s.btnPrimary].join(' ')}
-              disabled={p.current}
-            >
-              {p.current ? 'Текущий тариф' : 'Подключить'}
-            </button>
+            <Toggle on={on} onToggle={toggle} />
           </div>
-        ))}
-      </div>
-
-      <div className={s.sectionHead} style={{ marginTop: 24, marginBottom: 8 }}>
-        <h2 className={s.sectionTitle} style={{ fontSize: 16 }}>
-          Последние транзакции
-        </h2>
-      </div>
-      <div className={s.list}>
-        {transactionsMock.map((t) => (
-          <div key={t.id} className={s.txItem}>
-            <div>
-              <div className={s.txTitle}>{t.title}</div>
-              <div className={s.txDate}>{t.date}</div>
-            </div>
-            <div className={[s.txAmount, t.amount.startsWith('+') ? s.txAmountPlus : ''].join(' ')}>
-              {t.amount}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ── Рекламные данные ─────────────────────────── */
-export function AdsSection() {
-  return (
-    <div>
-      <Head title="Рекламные данные" desc="Продвижение и статистика ваших рекламных кампаний" />
-
-      <div className={s.adPromo}>
-        <div className={s.adPromoTitle}>Продвигайте себя и свою компанию</div>
-        <p className={s.adPromoText}>
-          Покажите свой аккаунт, резюме или компанию большему числу людей. Выберите, что продвигать —
-          и отслеживайте результат в реальном времени.
-        </p>
-        <div className={s.adPromoBtns}>
-          <button type="button" className={s.btnPrimary}>
-            Продвигать аккаунт
-          </button>
-          <button type="button" className={s.btnGhost}>
-            Продвигать резюме
-          </button>
-          <button type="button" className={s.btnGhost}>
-            Продвигать компанию
-          </button>
-        </div>
-      </div>
-
-      <div className={s.sectionHead} style={{ marginBottom: 10 }}>
-        <h2 className={s.sectionTitle} style={{ fontSize: 16 }}>
-          Текущая кампания
-        </h2>
-        <p className={s.sectionDesc}>Продвижение резюме · активна</p>
-      </div>
-      <div className={s.statGrid}>
-        {adStatsMock.map((a) => (
-          <div key={a.id} className={s.statCard}>
-            <div className={s.statValue}>{a.value}</div>
-            <div className={s.statLabel}>{a.label}</div>
-          </div>
-        ))}
-      </div>
+        )
+      })}
     </div>
   )
 }
 
 /* ── Чёрный список ────────────────────────────── */
+function formatBlockDate(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+}
+
 export function BlacklistSection() {
-  const [list, setList] = useState(blacklistMock)
+  const dispatch = useAppDispatch()
+  const list = useAppSelector((st) => st.blocks.mine)
+  const status = useAppSelector((st) => st.blocks.status)
   const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    if (status === 'idle') void dispatch(loadBlocks())
+  }, [status, dispatch])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return list
-    return list.filter((b) => `${b.name} ${b.type} ${b.sub}`.toLowerCase().includes(q))
+    return list.filter((b) => b.name.toLowerCase().includes(q))
   }, [list, query])
 
   return (
     <div>
       <Head title="Чёрный список" desc="Заблокированные пользователи и компании" />
 
-      <input
-        className={s.search}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Поиск по чёрному списку"
-      />
+      {list.length ? (
+        <input
+          className={s.search}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Поиск по чёрному списку"
+        />
+      ) : null}
 
       {filtered.length ? (
         <div className={s.list}>
           {filtered.map((b) => (
             <div key={b.id} className={s.blockItem}>
-              <span className={s.blockAvatar} aria-hidden>
-                {b.name[0]}
+              <span
+                className={[s.blockAvatar, b.kind === 'company' ? s.blockAvatarSquare : '']
+                  .filter(Boolean)
+                  .join(' ')}
+                aria-hidden
+              >
+                {b.avatar ? <img className={s.blockAvatarImg} src={b.avatar} alt="" /> : b.name[0]}
               </span>
               <div className={s.blockMeta}>
                 <div className={s.blockName}>{b.name}</div>
-                <div className={s.blockSub}>{b.sub}</div>
+                <div className={s.blockSub}>Заблокирован · {formatBlockDate(b.createdAt)}</div>
               </div>
-              <span className={s.blockType}>{b.type}</span>
+              <span className={s.blockType}>{b.kind === 'company' ? 'Компания' : 'Пользователь'}</span>
               <button
                 type="button"
                 className={s.btnDanger}
-                onClick={() => setList((prev) => prev.filter((x) => x.id !== b.id))}
+                onClick={() => void dispatch(unblockUser(b.id))}
               >
-                Убрать
+                Разблокировать
               </button>
             </div>
           ))}
         </div>
       ) : (
-        <div className={s.empty}>Ничего не найдено</div>
+        <div className={s.empty}>
+          {list.length ? 'Ничего не найдено' : 'Чёрный список пуст'}
+        </div>
       )}
     </div>
   )

@@ -62,7 +62,10 @@ export function ChatPage() {
     const vv = window.visualViewport
     if (!vv) return
     const apply = () => {
+      // Высота видимой области + её смещение сверху (iOS при клавиатуре сдвигает
+      // визуальный вьюпорт вниз — fixed-оверлей надо двигать за ним, иначе уезжает).
       document.documentElement.style.setProperty('--chat-vvh', `${vv.height}px`)
+      document.documentElement.style.setProperty('--chat-vvtop', `${vv.offsetTop}px`)
     }
     apply()
     vv.addEventListener('resize', apply)
@@ -71,6 +74,7 @@ export function ChatPage() {
       vv.removeEventListener('resize', apply)
       vv.removeEventListener('scroll', apply)
       document.documentElement.style.removeProperty('--chat-vvh')
+      document.documentElement.style.removeProperty('--chat-vvtop')
     }
   }, [isMobile])
 

@@ -113,6 +113,22 @@ const PERSON_COLS =
   'id, full_name, job_title, location, avatar_url, banner_url, account_type, job_status, skills, about'
 const COMPANY_COLS = 'id, name, industry, about, location, country, size, logo_url, banner_url'
 
+/**
+ * Из набора id аккаунтов возвращает те, у кого профиль публичный (is_public).
+ * Флаг приватности живёт в profiles (в т.ч. для аккаунтов-компаний), поэтому
+ * компании фильтруем по нему. Мягкая деградация: при ошибке не прячем.
+ */
+async function filterPublicProfileIds(ids: string[]): Promise<Set<string>> {
+  if (!ids.length) return new Set()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .in('id', ids)
+    .eq('is_public', true)
+  if (error) return new Set(ids)
+  return new Set((data ?? []).map((r) => (r as { id: string }).id))
+}
+
 type VacancyStats = { total: number; recent: number }
 
 /** Активные вакансии у компаний: всего + сколько появилось за последнюю неделю. */
@@ -201,24 +217,28 @@ export const loadNetwork = createAsyncThunk<NetworkPayload, void>('network/load'
   }
   if (!me) return empty
 
-  // 1) Рекомендованные люди — другие пользователи
+  // 1) Рекомендованные люди — другие пользователи (только публичные профили)
   const recRes = await supabase
     .from('profiles')
     .select(PERSON_COLS)
     .eq('account_type', 'user')
+    .eq('is_public', true)
     .neq('id', me)
     .limit(60)
   if (recRes.error) throw new Error(recRes.error.message)
   const recommendedPeople = (recRes.data as ProfileRow[]).map(rowToPerson)
 
-  // 1b) Рекомендованные компании — другие компании
+  // 1b) Рекомендованные компании — другие компании (берём с запасом и прячем
+  //     непубличные по profiles.is_public того же аккаунта)
   const recCompRes = await supabase
     .from('companies')
     .select(COMPANY_COLS)
     .neq('id', me)
-    .limit(40)
+    .limit(80)
   if (recCompRes.error) throw new Error(recCompRes.error.message)
-  const recCompanyRows = recCompRes.data as CompanyRow[]
+  const recCompanyRowsRaw = recCompRes.data as CompanyRow[]
+  const publicCompanyIds = await filterPublicProfileIds(recCompanyRowsRaw.map((c) => c.id))
+  const recCompanyRows = recCompanyRowsRaw.filter((c) => publicCompanyIds.has(c.id)).slice(0, 40)
 
   // 2) Мои подписки (followee), с профилем того, на кого подписан
   const folRes = await supabase

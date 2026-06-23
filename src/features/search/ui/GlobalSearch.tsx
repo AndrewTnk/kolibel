@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAppDispatch } from '../../../app/store/hooks'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { markConversationRead, startConversation } from '../../chat/model/chatThunks'
 import { chatUiActions } from '../../chat/model/chatUiSlice'
 import { searchEntities, type SearchResults } from '../lib/searchApi'
@@ -36,9 +36,19 @@ export function GlobalSearch() {
   const dispatch = useAppDispatch()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
-  const [results, setResults] = useState<SearchResults>(empty)
+  const [rawResults, setRawResults] = useState<SearchResults>(empty)
   const [loading, setLoading] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
+  const hiddenIds = useAppSelector((s) => s.blocks.hiddenIds)
+  // Скрываем заблокированных (в обе стороны) из выдачи поиска.
+  const results = useMemo<SearchResults>(() => {
+    if (!hiddenIds.length) return rawResults
+    const hidden = new Set(hiddenIds)
+    return {
+      people: rawResults.people.filter((p) => !hidden.has(p.id)),
+      companies: rawResults.companies.filter((c) => !hidden.has(c.id)),
+    }
+  }, [rawResults, hiddenIds])
 
   // Закрытие по клику вне / Esc
   useEffect(() => {
@@ -63,8 +73,8 @@ export function GlobalSearch() {
     setLoading(true)
     const t = setTimeout(() => {
       searchEntities(query)
-        .then((r) => alive && setResults(r))
-        .catch(() => alive && setResults(empty))
+        .then((r) => alive && setRawResults(r))
+        .catch(() => alive && setRawResults(empty))
         .finally(() => alive && setLoading(false))
     }, 220)
     return () => {

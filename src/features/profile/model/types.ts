@@ -61,6 +61,12 @@ export type Resume = {
   workFormat: string
   available: boolean
   isOnline: boolean
+  /** Публичность профиля: виден в поиске/рекомендациях/по прямой ссылке. */
+  isPublic: boolean
+  /** Показывать ли «в сети»/«был(а) недавно» другим. */
+  showActivity: boolean
+  /** ISO-время последней активности (heartbeat presence). */
+  lastSeenAt?: string
   jobStatus: JobStatus
   avatarInitials: string
   /** URL аватара. Если задан — показывается фото вместо инициалов. */

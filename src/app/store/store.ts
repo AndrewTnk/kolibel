@@ -13,6 +13,7 @@ import { networkReducer } from '../../features/network/model/networkSlice'
 import { notificationsReducer } from '../../features/notifications/model/notificationsSlice'
 import { analyticsReducer } from '../../features/analytics/model/analyticsSlice'
 import { presenceReducer } from '../../features/presence/model/presenceSlice'
+import { blocksReducer } from '../../features/blocks/model/blocksSlice'
 
 const combinedReducer = combineReducers({
   auth: authReducer,
@@ -28,6 +29,7 @@ const combinedReducer = combineReducers({
   notifications: notificationsReducer,
   analytics: analyticsReducer,
   presence: presenceReducer,
+  blocks: blocksReducer,
 })
 
 export type RootState = ReturnType<typeof combinedReducer>

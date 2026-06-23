@@ -674,6 +674,28 @@
   gap: 14px;
 }
 
+/* Обёртка-якорь поста (для перехода из уведомлений к посту). */
+.postAnchor {
+  min-width: 0;
+  /* отступ под липким хедером при scrollIntoView */
+  scroll-margin-top: calc(var(--header-height) + 12px);
+}
+
+/* Кратковременная подсветка поста, к которому перешли по якорю. */
+.postFocusFlash {
+  animation: postFocusFlash 2s ease;
+  border-radius: var(--radius);
+}
+@keyframes postFocusFlash {
+  0%,
+  60% {
+    box-shadow: 0 0 0 3px var(--primary);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
 .feedEmpty {
   padding: 28px 20px;
   text-align: center;

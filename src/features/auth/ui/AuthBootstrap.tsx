@@ -7,6 +7,7 @@ import { mapSession } from '../lib/session'
 import { setAccountIdentity, upsertAccount } from '../lib/accountsStore'
 import { loadProfile } from '../../profile/model/profileThunks'
 import { loadMyApplications } from '../../vacancies/model/vacancyThunks'
+import { loadBlocks } from '../../blocks/model/blocksThunks'
 
 const CAPTURE_EVENTS = ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED', 'USER_UPDATED']
 
@@ -57,6 +58,8 @@ export function AuthBootstrap() {
         // «Откликнулся» был корректен везде (главная/рекомендации), а не только
         // после захода на /vacancies (иначе можно повторно открыть отклик).
         void dispatch(loadMyApplications())
+        // Чёрный список (для скрытия в поиске/рекомендациях/чате).
+        void dispatch(loadBlocks())
       }
     })
 

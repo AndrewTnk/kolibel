@@ -5,6 +5,7 @@ import { AppHeader } from '../../shared/ui/AppHeader/AppHeader'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
 import { fetchPublicProfile, type PublicProfile } from '../../features/profile/lib/publicProfileApi'
 import { loadNetwork, toggleFollow } from '../../features/network/model/networkThunks'
+import { blockUser, unblockUser } from '../../features/blocks/model/blocksThunks'
 import { networkActions } from '../../features/network/model/networkSlice'
 import { loadFeed } from '../../features/feed/model/feedThunks'
 import { loadVacancies } from '../../features/vacancies/model/vacancyThunks'
@@ -40,6 +41,7 @@ export function PublicProfilePage() {
   const navigate = useNavigate()
   const me = useAppSelector((s) => s.auth.user?.id)
   const followingIds = useAppSelector((s) => s.network.followingIds)
+  const hiddenIds = useAppSelector((s) => s.blocks.hiddenIds)
   const networkStatus = useAppSelector((s) => s.network.status)
   const publicGraphOpen = useAppSelector((s) => s.network.publicGraphOpen)
   const posts = useAppSelector((s) => s.feed.posts)
@@ -114,6 +116,21 @@ export function PublicProfilePage() {
   // Свой профиль в режиме «как гость» — без подписки/сообщения себе, только выход.
   const selfGuest = guestPreview && !!me && id === me
 
+  // Блокировка (чёрный список): спрятать «Написать», переключатель в меню «⋯».
+  const isBlocked = id ? hiddenIds.includes(id) : false
+  const blockLabel = data?.kind === 'company' ? 'компанию' : 'пользователя'
+  function toggleBlock() {
+    if (!id) return
+    if (isBlocked) {
+      void dispatch(unblockUser(id))
+      setToast('Разблокировано')
+    } else {
+      void dispatch(blockUser(id))
+      setToast('Добавлено в чёрный список')
+    }
+    window.setTimeout(() => setToast(null), 2400)
+  }
+
   const actions = selfGuest ? (
     <div className={styles.actions}>
       <button type="button" className={styles.writeBtn} onClick={() => navigate('/profile')}>
@@ -129,15 +146,34 @@ export function PublicProfilePage() {
       >
         {isFollowing ? '✓ Связь' : '+ Связь'}
       </button>
-      <button type="button" className={styles.writeBtn} onClick={write}>
-        Написать
-      </button>
+      {isBlocked ? null : (
+        <button type="button" className={styles.writeBtn} onClick={write}>
+          Написать
+        </button>
+      )}
     </div>
   )
 
   const networkName =
     data?.kind === 'company' ? data.company.name : data?.kind === 'user' ? data.resume.fullName : ''
   const networkTitle = networkName ? `Сеть «${networkName}»` : 'Сеть'
+
+  // Непубличный профиль виден только владельцу (прямой переход по ссылке закрыт).
+  const hidden = !!data && !data.isPublic && id !== me
+  if (!loading && hidden) {
+    return (
+      <div className={styles.page}>
+        <AppHeader />
+        <main className={styles.main}>
+          <div className={styles.inner}>
+            <div className={styles.soloColumn}>
+              <div className={styles.state}>Этот профиль скрыт настройками приватности.</div>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   // ── Профиль пользователя — тот же ProfileSheet, что и личный, в режиме просмотра ──
   if (!loading && id && data?.kind === 'user') {
@@ -151,7 +187,14 @@ export function PublicProfilePage() {
           heroActions={
             <>
               {actions}
-              <MoreMenu cls={styles} selfGuest={selfGuest} onReport={report} />
+              <MoreMenu
+                cls={styles}
+                selfGuest={selfGuest}
+                onReport={report}
+                blocked={isBlocked}
+                blockLabel={blockLabel}
+                onToggleBlock={toggleBlock}
+              />
             </>
           }
           rail={
@@ -201,7 +244,17 @@ export function PublicProfilePage() {
           ) : (
             <div className={styles.layout}>
               <div className={styles.colCenter}>
-                <CompanyView id={id!} data={data} actions={actions} posts={authorPosts} selfGuest={selfGuest} onReport={report} />
+                <CompanyView
+                  id={id!}
+                  data={data}
+                  actions={actions}
+                  posts={authorPosts}
+                  selfGuest={selfGuest}
+                  onReport={report}
+                  blocked={isBlocked}
+                  blockLabel={blockLabel}
+                  onToggleBlock={toggleBlock}
+                />
               </div>
               <aside className={styles.colRight}>
                 <div className="hideOnMobile">
@@ -231,7 +284,21 @@ export function PublicProfilePage() {
 }
 
 /* ── Меню «Ещё» ── */
-function MoreMenu({ cls, selfGuest, onReport }: { cls: Record<string, string>; selfGuest?: boolean; onReport?: () => void }) {
+function MoreMenu({
+  cls,
+  selfGuest,
+  onReport,
+  blocked,
+  blockLabel,
+  onToggleBlock,
+}: {
+  cls: Record<string, string>
+  selfGuest?: boolean
+  onReport?: () => void
+  blocked?: boolean
+  blockLabel?: string
+  onToggleBlock?: () => void
+}) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
 
@@ -281,9 +348,24 @@ function MoreMenu({ cls, selfGuest, onReport }: { cls: Record<string, string>; s
               <span className={cls.moreIco}><Ic.flag /></span>Сообщить об ошибке
             </button>
           ) : (
-            <button type="button" className={cls.moreItem} role="menuitem" onClick={() => setOpen(false)}>
-              Пожаловаться
-            </button>
+            <>
+              <button type="button" className={cls.moreItem} role="menuitem" onClick={() => setOpen(false)}>
+                Пожаловаться
+              </button>
+              {onToggleBlock ? (
+                <button
+                  type="button"
+                  className={[cls.moreItem, blocked ? '' : cls.moreDanger].filter(Boolean).join(' ')}
+                  role="menuitem"
+                  onClick={() => {
+                    setOpen(false)
+                    onToggleBlock()
+                  }}
+                >
+                  {blocked ? `Разблокировать ${blockLabel ?? ''}`.trim() : `Заблокировать ${blockLabel ?? ''}`.trim()}
+                </button>
+              ) : null}
+            </>
           )}
         </div>
       ) : null}
@@ -317,6 +399,9 @@ function CompanyView({
   posts,
   selfGuest,
   onReport,
+  blocked,
+  blockLabel,
+  onToggleBlock,
 }: {
   id: string
   data: Extract<PublicProfile, { kind: 'company' }>
@@ -324,6 +409,9 @@ function CompanyView({
   posts: FeedPost[]
   selfGuest?: boolean
   onReport?: () => void
+  blocked?: boolean
+  blockLabel?: string
+  onToggleBlock?: () => void
 }) {
   const dispatch = useAppDispatch()
   const nav = useNavigate()
@@ -390,7 +478,14 @@ function CompanyView({
           <div className={brand.heroBottom}>
             <div className={styles.bannerActions}>
               {actions}
-              <MoreMenu cls={brand} selfGuest={selfGuest} onReport={onReport} />
+              <MoreMenu
+                cls={brand}
+                selfGuest={selfGuest}
+                onReport={onReport}
+                blocked={blocked}
+                blockLabel={blockLabel}
+                onToggleBlock={onToggleBlock}
+              />
             </div>
           </div>
         </div>

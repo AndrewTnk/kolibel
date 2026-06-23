@@ -30,6 +30,8 @@ export type MyApplication = {
   vacancyTitle: string
   company: string
   companyInitials: string
+  /** Логотип компании (живой, из companies). */
+  companyLogo?: string
   status: MyApplicationStatus
   appliedAt: number
 }

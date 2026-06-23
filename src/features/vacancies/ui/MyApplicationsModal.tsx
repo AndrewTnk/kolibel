@@ -11,7 +11,7 @@ import s from './Vacancies.module.css'
 const BADGE: Record<MyApplicationStatus, { label: string; cls: string }> = {
   sent: { label: 'Отклик отправлен', cls: s.appBadgeSent },
   rejected: { label: 'Отказ', cls: s.appBadgeRejected },
-  closed: { label: 'Вакансия закрыта', cls: s.appBadgeClosed },
+  closed: { label: 'Закрыто', cls: s.appBadgeClosed },
 }
 
 type Props = {
@@ -47,14 +47,10 @@ export function MyApplicationsModal({ onClose }: Props) {
           <div className={s.appList}>
             {apps.map((a) => {
               const badge = BADGE[a.status]
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  className={s.appRow}
-                  onClick={() => openVacancy(a.vacancyId)}
-                >
-                  <CompanyAvatar initial={a.companyInitials} className={s.appRowAva} />
+              const closed = a.status === 'closed'
+              const inner = (
+                <>
+                  <CompanyAvatar initial={a.companyInitials} logo={a.companyLogo} className={s.appRowAva} />
                   <div className={s.appRowMeta}>
                     <div className={s.appRowTitle}>{a.vacancyTitle}</div>
                     <div className={s.appRowCo}>
@@ -62,6 +58,21 @@ export function MyApplicationsModal({ onClose }: Props) {
                     </div>
                   </div>
                   <span className={[s.appBadge, badge.cls].join(' ')}>{badge.label}</span>
+                </>
+              )
+              // Закрытая вакансия — неактивная, не кликается.
+              return closed ? (
+                <div key={a.id} className={[s.appRow, s.appRowClosed].join(' ')} aria-disabled>
+                  {inner}
+                </div>
+              ) : (
+                <button
+                  key={a.id}
+                  type="button"
+                  className={s.appRow}
+                  onClick={() => openVacancy(a.vacancyId)}
+                >
+                  {inner}
                 </button>
               )
             })}

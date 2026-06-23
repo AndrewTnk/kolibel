@@ -28,6 +28,12 @@ export function PresenceTracker() {
       dispatch(presenceActions.setOnlineIds(Object.keys(state)))
     }
 
+    // Heartbeat: пишем last_seen_at в БД (для «был(а) N назад»). RPC обновляет
+    // только last_seen_at и не дёргает updated_at профиля (см. миграцию 0032).
+    const touch = () => {
+      void supabase.rpc('touch_last_seen')
+    }
+
     channel
       .on('presence', { event: 'sync' }, syncIds)
       .on('presence', { event: 'join' }, syncIds)
@@ -35,10 +41,14 @@ export function PresenceTracker() {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           void channel.track({ online_at: new Date().toISOString() })
+          touch()
         }
       })
 
+    const heartbeat = window.setInterval(touch, 60_000)
+
     return () => {
+      window.clearInterval(heartbeat)
       void channel.untrack()
       void supabase.removeChannel(channel)
     }

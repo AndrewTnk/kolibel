@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../../shared/ui/AppHeader/AppHeader.tsx'
 import { useAppSelector } from '../../app/store/hooks'
 import { useIsMobile } from '../../shared/lib/useMediaQuery'
@@ -17,6 +18,9 @@ import styles from './HomePage.module.css'
 export function HomePage() {
   const isCompany = useAppSelector((s) => s.account.type === 'company')
   const isMobile = useIsMobile()
+  const [searchParams] = useSearchParams()
+  // Якорь к посту из уведомления (/?post=:id) — прокрутка + подсветка в ленте.
+  const focusPostId = searchParams.get('post') ?? undefined
 
   return (
     <div className={styles.page}>
@@ -41,6 +45,7 @@ export function HomePage() {
               <FeedList
                 intersperse
                 ranked
+                focusPostId={focusPostId}
                 recSlots={isCompany ? [<RecommendedCandidates key="cand" horizontal />] : undefined}
               />
             </div>

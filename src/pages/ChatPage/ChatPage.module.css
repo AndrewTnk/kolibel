@@ -125,7 +125,7 @@
      Высота = видимая область (VisualViewport), чтобы поле ввода не уезжало под клавиатуру. */
   .threadOverlay {
     position: fixed;
-    top: 0;
+    top: var(--chat-vvtop, 0);
     left: 0;
     right: 0;
     height: var(--chat-vvh, 100dvh);

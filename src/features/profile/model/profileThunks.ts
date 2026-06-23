@@ -51,6 +51,39 @@ export const saveProfile = createAsyncThunk<Resume, Resume>(
   },
 )
 
+/**
+ * Обновить настройки приватности/активности (публичный профиль, показ активности).
+ * Хранятся отдельно от резюме, чтобы обычное сохранение профиля их не перетирало.
+ * Оптимистично патчит стор, при ошибке откатывает.
+ */
+export const updateProfileSettings = createAsyncThunk<
+  void,
+  { isPublic?: boolean; showActivity?: boolean }
+>('profile/updateSettings', async (patch, { dispatch, getState }) => {
+  const uid = await currentUserId()
+  if (!uid) throw new Error('Нет активной сессии')
+
+  const prev = (getState() as { profile: { resume: Resume } }).profile.resume
+  // оптимистично
+  dispatch(profileActions.updateResume(patch))
+
+  const row: Record<string, boolean> = {}
+  if (patch.isPublic !== undefined) row.is_public = patch.isPublic
+  if (patch.showActivity !== undefined) row.show_activity = patch.showActivity
+
+  const { error } = await supabase.from('profiles').update(row).eq('id', uid)
+  if (error) {
+    // откат
+    dispatch(
+      profileActions.updateResume({
+        isPublic: prev.isPublic,
+        showActivity: prev.showActivity,
+      }),
+    )
+    throw new Error(error.message)
+  }
+})
+
 /** Отметить онбординг пройденным. */
 export const completeOnboarding = createAsyncThunk<void, void>(
   'profile/completeOnboarding',

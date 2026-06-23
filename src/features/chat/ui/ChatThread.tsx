@@ -2,8 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { Link } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import { useAppSelector } from '../../../app/store/hooks'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { supabase } from '../../../shared/lib/supabase'
+import { blockUser, unblockUser } from '../../blocks/model/blocksThunks'
 import type { ChatAttach, ChatConversation, ChatMessage } from '../model/types'
 import { dayKey, formatDaySeparator, formatMessageTime } from '../lib/format'
 import { useChatAttach } from '../lib/useChatAttach'
@@ -44,6 +45,10 @@ export function ChatThread({
   headerExtra,
 }: Props) {
   const myId = useAppSelector((s) => s.auth.user?.id)
+  const dispatch = useAppDispatch()
+  // Блокировка собеседника (чёрный список): блокируем отправку и старт.
+  const otherId = conversation.otherId
+  const blocked = useAppSelector((s) => (otherId ? s.blocks.hiddenIds.includes(otherId) : false))
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const [text, setText] = useState('')
@@ -293,9 +298,9 @@ export function ChatThread({
         </div>
         <div className={styles.threadHeadBtns}>
           {headerExtra}
-          {/* Меню «⋯» (только Закрепить) — показываем лишь если есть onTogglePin.
-              Мини-чат его не передаёт → кнопки «⋯» там нет. */}
-          {onTogglePin ? (
+          {/* Меню «⋯»: Закрепить (только основной чат — есть onTogglePin) +
+              Заблокировать/Разблокировать (если известен собеседник, в т.ч. мини-чат). */}
+          {onTogglePin || otherId ? (
             <div style={{ position: 'relative' }}>
               <button
                 type="button"
@@ -315,16 +320,31 @@ export function ChatThread({
                   style={{ position: 'absolute', top: 42, right: 0 }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button
-                    type="button"
-                    className={styles.ctxRow}
-                    onClick={() => {
-                      onTogglePin()
-                      setHeadMenu(false)
-                    }}
-                  >
-                    <ChatIco.pin /> {conversation.pinned ? 'Открепить' : 'Закрепить'}
-                  </button>
+                  {onTogglePin ? (
+                    <button
+                      type="button"
+                      className={styles.ctxRow}
+                      onClick={() => {
+                        onTogglePin()
+                        setHeadMenu(false)
+                      }}
+                    >
+                      <ChatIco.pin /> {conversation.pinned ? 'Открепить' : 'Закрепить'}
+                    </button>
+                  ) : null}
+                  {otherId ? (
+                    <button
+                      type="button"
+                      className={styles.ctxRow}
+                      onClick={() => {
+                        if (blocked) void dispatch(unblockUser(otherId))
+                        else void dispatch(blockUser(otherId))
+                        setHeadMenu(false)
+                      }}
+                    >
+                      <ChatIco.trash /> {blocked ? 'Разблокировать' : 'Заблокировать'}
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -447,6 +467,16 @@ export function ChatThread({
         </div>
       ) : null}
 
+      {blocked ? (
+        <div className={styles.composerBlocked}>
+          <span>Собеседник в чёрном списке — сообщения недоступны.</span>
+          {otherId ? (
+            <button type="button" onClick={() => void dispatch(unblockUser(otherId))}>
+              Разблокировать
+            </button>
+          ) : null}
+        </div>
+      ) : (
       <div className={styles.composer}>
         <div className={styles.composerInner} onClick={(e) => e.stopPropagation()}>
           <button
@@ -548,6 +578,7 @@ export function ChatThread({
           <ChatIco.send />
         </button>
       </div>
+      )}
 
       {ctx
         ? createPortal(

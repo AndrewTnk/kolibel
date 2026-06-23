@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { notificationsActions } from '../model/notificationsSlice'
+import { notifTarget } from '../lib/notificationLink'
 import styles from './NotificationToast.module.css'
 
 function initials(title: string): string {
@@ -44,7 +45,8 @@ export function NotificationToast() {
         className={styles.toast}
         role="alert"
         onClick={() => {
-          if (toast.link) navigate(toast.link)
+          const target = notifTarget(toast)
+          if (target) navigate(target)
           dispatch(notificationsActions.dismissToast())
         }}
       >
@@ -54,8 +56,9 @@ export function NotificationToast() {
         <span className={styles.body}>
           <span className={styles.text}>
             {toast.title ? <b>{toast.title}</b> : null}
-            {toast.title && toast.text ? ' ' : null}
-            {toast.text}
+            {toast.kind === 'message'
+              ? ' прислал(а) вам новое сообщение'
+              : (toast.title && toast.text ? ' ' : '') + toast.text}
           </span>
           <span className={styles.hint}>Нажми, чтобы открыть</span>
         </span>

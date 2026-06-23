@@ -11,7 +11,7 @@ import styles from './ApplicationsTracker.module.css'
 const STAGE: Record<MyApplicationStatus, { label: string; dot: string; text: string }> = {
   sent: { label: 'Отклик отправлен', dot: styles.dotSent, text: styles.stageSent },
   rejected: { label: 'Отказ', dot: styles.dotRejected, text: styles.stageRejected },
-  closed: { label: 'Вакансия закрыта', dot: styles.dotClosed, text: styles.stageClosed },
+  closed: { label: 'Закрыто', dot: styles.dotClosed, text: styles.stageClosed },
 }
 
 /** Правый сайдбар: пул моих откликов со статус-бейджами и переходом к полному списку. */
@@ -46,10 +46,10 @@ export function ApplicationsTracker() {
                 <button
                   key={a.id}
                   type="button"
-                  className={styles.item}
+                  className={[styles.item, a.status === 'closed' ? styles.itemClosed : ''].filter(Boolean).join(' ')}
                   onClick={() => dispatch(vacanciesActions.openApplications())}
                 >
-                  <CompanyAvatar initial={a.companyInitials} className={styles.ava} />
+                  <CompanyAvatar initial={a.companyInitials} logo={a.companyLogo} className={styles.ava} />
                   <div className={styles.meta}>
                     <div className={styles.name}>{a.vacancyTitle}</div>
                     <div className={styles.co}>

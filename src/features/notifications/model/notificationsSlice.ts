@@ -1,10 +1,15 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { AppNotification } from './types'
+import type { AppNotification, NotificationKind } from './types'
 import { loadNotifications } from './notificationsThunks'
+
+/** Карта настроек по типам: ключ отсутствует или true → уведомление включено. */
+export type NotificationPrefs = Partial<Record<NotificationKind, boolean>>
 
 type NotificationsState = {
   items: AppNotification[]
   status: 'idle' | 'loading' | 'ready' | 'error'
+  /** Настройки по типам (из profiles.notification_prefs). */
+  prefs: NotificationPrefs
   /** Текущий пуш-тост (новое уведомление, показать поверх интерфейса). */
   toast: AppNotification | null
 }
@@ -12,7 +17,14 @@ type NotificationsState = {
 const initialState: NotificationsState = {
   items: [],
   status: 'idle',
+  prefs: {},
   toast: null,
+}
+
+/** Включён ли данный тип уведомлений (по умолчанию — да; `system` всегда вкл). */
+export function isKindEnabled(prefs: NotificationPrefs, kind: NotificationKind): boolean {
+  if (kind === 'system') return true
+  return prefs[kind] !== false
 }
 
 const slice = createSlice({
@@ -28,6 +40,12 @@ const slice = createSlice({
       const n = state.items.find((x) => x.id === action.payload)
       if (n) n.read = true
     },
+    markManyRead(state, action: PayloadAction<string[]>) {
+      const ids = new Set(action.payload)
+      state.items.forEach((n) => {
+        if (ids.has(n.id)) n.read = true
+      })
+    },
     markAllRead(state) {
       state.items.forEach((n) => {
         n.read = true
@@ -35,6 +53,10 @@ const slice = createSlice({
     },
     clear(state) {
       state.items = []
+    },
+    /** Обновить настройки по типам (мерж). */
+    setPrefs(state, action: PayloadAction<NotificationPrefs>) {
+      state.prefs = { ...state.prefs, ...action.payload }
     },
     /** Показать пуш-тост о новом уведомлении. */
     pushToast(state, action: PayloadAction<AppNotification>) {

@@ -176,18 +176,22 @@ export function MiniChatWidget() {
         </div>
       ) : null}
 
-      <button
-        type="button"
-        className={styles.miniFab}
-        aria-label={open ? 'Свернуть чат' : 'Открыть мини-чат'}
-        onClick={() => dispatch(chatUiActions.toggleMini())}
-      >
-        {open ? <ChatIco.close width={22} height={22} /> : <ChatIco.chat />}
-        {!open ? <span className={styles.pulse} aria-hidden /> : null}
-        {!open && totalUnread > 0 ? (
-          <span className={styles.miniBadge}>{totalUnread > 9 ? '9+' : totalUnread}</span>
-        ) : null}
-      </button>
+      {/* FAB виден только когда панель закрыта — при открытии панель «вырастает»
+          из его угла и занимает его место (закрытие — крестиком в шапке панели). */}
+      {!open ? (
+        <button
+          type="button"
+          className={styles.miniFab}
+          aria-label="Открыть мини-чат"
+          onClick={() => dispatch(chatUiActions.toggleMini())}
+        >
+          <ChatIco.chat />
+          <span className={styles.pulse} aria-hidden />
+          {totalUnread > 0 ? (
+            <span className={styles.miniBadge}>{totalUnread > 9 ? '9+' : totalUnread}</span>
+          ) : null}
+        </button>
+      ) : null}
     </div>,
     document.body,
   )

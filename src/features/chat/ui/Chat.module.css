@@ -1135,6 +1135,29 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* Панель «вырастает» из угла кнопки-FAB (правый-нижний угол) — от круга к окну. */
+  transform-origin: bottom right;
+  animation: miniPanelIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes miniPanelIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.18);
+    border-radius: 50%;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    border-radius: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .miniPanel {
+    animation: none;
+  }
 }
 .miniHead {
   display: flex;

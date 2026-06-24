@@ -1029,10 +1029,12 @@
 .lbOverlay {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  /* Выше модалки поста (pmOverlay 1300), чтобы лайтбокс открывался ПОВЕРХ неё. */
+  z-index: 1400;
   background: rgba(8, 12, 20, 0.92);
   display: grid;
-  grid-template-columns: 1fr 360px;
+  /* Только сцена с медиа — без боковой панели (комментарии живут в модалке поста). */
+  grid-template-columns: 1fr;
 }
 
 .lbStage {
@@ -1314,8 +1316,8 @@
 .cmOverlay {
   position: fixed;
   inset: 0;
-  /* выше лайтбокса (1200), чтобы открываться поверх полноэкранного фото */
-  z-index: 1300;
+  /* выше лайтбокса (1400), чтобы на мобилке открываться поверх полноэкранного фото */
+  z-index: 1500;
   background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(4px);
   display: grid;
@@ -1538,6 +1540,17 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* Полоса прокрутки скрыта (как принято в проекте) — сама прокрутка работает. */
+  scrollbar-width: none;
+}
+.pmScroll::-webkit-scrollbar {
+  display: none;
+}
+/* Контент поста и комментарии занимают свою натуральную высоту и НЕ сжимаются
+   (по умолчанию flex-дети сжимаются → пост ужимался под растущими комментами);
+   избыток уходит в прокрутку .pmScroll. */
+.pmScroll > * {
+  flex-shrink: 0;
 }
 
 .pmState {

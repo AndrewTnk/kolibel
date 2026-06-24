@@ -4,39 +4,19 @@ import { useAppDispatch } from '../../../app/store/hooks'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { toggleLike } from '../model/feedThunks'
 import type { FeedContent, FeedPost } from '../model/types'
-import { AuthorAvatar, AuthorName } from './AuthorAvatar'
-import { PostActions, buildPostShareAttach } from './PostActions'
-import { PostComments } from './PostComments'
-import { CommentForm } from './CommentForm'
-import { emojify } from '../../../shared/ui/Emoji/emojify'
+import { buildPostShareAttach } from './PostActions'
 import { PostCommentsModal } from './PostCommentsModal'
 import { ShareToChatModal } from '../../chat/ui/ShareToChatModal'
 import styles from './Feed.module.css'
 
 type MediaItem = Extract<FeedContent, { kind: 'image' | 'video' }>
 
-/** «сегодня, 09:14» / «вчера, 17:32» / «4 июня, 11:08» — как на макете. */
-function formatTime(ts: number) {
-  const d = new Date(ts)
-  const now = new Date()
-  const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-  const yest = new Date(now)
-  yest.setDate(now.getDate() - 1)
-  if (d.toDateString() === now.toDateString()) return `сегодня, ${time}`
-  if (d.toDateString() === yest.toDateString()) return `вчера, ${time}`
-  return `${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}, ${time}`
-}
-
-/** Склонение «фотография» по числу: 1 фотография / 2 фотографии / 5 фотографий. */
-function photosLabel(n: number) {
-  const mod10 = n % 10
-  const mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return `${n} фотография`
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${n} фотографии`
-  return `${n} фотографий`
-}
-
-/** Увеличенный просмотр поста: шапка автора сверху, медиа-карусель, текст и комментарии — под ним. */
+/**
+ * Увеличенный просмотр медиа поста — ТОЛЬКО контент (фото/видео-карусель), без
+ * текста/комментариев. Полный пост с комментариями смотрят в модалке поста
+ * (`PostModal`) на вебе / в ленте + `PostCommentsModal` на мобилке.
+ * На мобилке снизу — минимальная панель действий (лайк/коммент/поделиться).
+ */
 export function PostLightbox({
   post,
   startIndex = 0,
@@ -75,13 +55,10 @@ export function PostLightbox({
   const cur = media[idx]
   if (!cur) return null
 
-  const photoCount = post.content.filter((c) => c.kind === 'image').length
-  const textBlocks = post.content.filter((c) => c.kind === 'text') as Extract<FeedContent, { kind: 'text' }>[]
-
   return createPortal(
     <>
     <div className={styles.lbOverlay} onClick={onClose} role="dialog" aria-modal="true">
-      {/* Левая часть — тёмная сцена с фото и навигацией */}
+      {/* Тёмная сцена с медиа и навигацией — на всю ширину (без боковой панели). */}
       <div className={styles.lbStage} onClick={(e) => e.stopPropagation()}>
         <button className={styles.lbClose} type="button" onClick={onClose} aria-label="Закрыть">
           ✕
@@ -165,43 +142,6 @@ export function PostLightbox({
           </div>
         ) : null}
       </div>
-
-      {/* Правая панель (только десктоп) — автор, текст, действия, комментарии */}
-      {!isMobile ? (
-      <aside className={styles.lbSide} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.lbAuthor}>
-          <AuthorAvatar
-            id={post.authorId}
-            name={post.authorName}
-            avatar={post.authorAvatar}
-            kind={post.authorKind}
-            size={42}
-          />
-          <div className={styles.lbHeaderMeta}>
-            <AuthorName id={post.authorId} name={post.authorName} logo={post.authorCompanyLogo} logoTitle={post.authorSubtitle} className={styles.lbAuthorName} />
-            <div className={styles.lbAuthorRole}>
-              {post.authorSubtitle ? `${post.authorSubtitle} · ` : ''}
-              {formatTime(post.createdAt)}
-              {photoCount > 0 ? ` · ${photosLabel(photoCount)}` : ''}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.lbSideScroll}>
-          {textBlocks.map((c, i) => (
-            <p key={i} className={styles.lbText}>
-              {emojify(c.text)}
-            </p>
-          ))}
-
-          <PostActions post={post} />
-          <PostComments post={post} />
-        </div>
-
-        {/* Форма ввода — вне скролла, закреплена внизу панели (не уезжает при добавлении). */}
-        <CommentForm post={post} />
-      </aside>
-      ) : null}
     </div>
     {commentsOpen ? <PostCommentsModal post={post} onClose={() => setCommentsOpen(false)} /> : null}
     {shareOpen ? (

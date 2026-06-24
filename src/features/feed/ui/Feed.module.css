@@ -1724,6 +1724,37 @@
   padding: 6px 0;
 }
 
+/* Состояние «комментарий удаляется» — отсчёт с отменой (как у поста, но компактно). */
+.commentDeleting {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--hover);
+}
+.commentDelText {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.commentDelCancel {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--primary);
+  border-radius: 9px;
+  background: var(--primarySoftBg);
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+.commentDelCancel:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
 .commentAvatar {
   flex: 0 0 auto;
   width: 36px;
@@ -1767,6 +1798,8 @@
   color: var(--text);
   line-height: 1.45;
   word-break: break-word;
+  /* Сохраняем переносы строк (Shift+Enter при вводе) и схлопываем лишние пробелы. */
+  white-space: pre-wrap;
 }
 
 /* Мета-строка под текстом: Ответить · Удалить */

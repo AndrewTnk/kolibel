@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { addComment, deleteComment, toggleCommentLike } from '../model/feedThunks'
 import type { FeedComment, FeedPost } from '../model/types'
@@ -6,6 +6,8 @@ import { useAuthorIdentity } from '../lib/useAuthorIdentity'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
 import { emojify } from '../../../shared/ui/Emoji/emojify'
 import styles from './Feed.module.css'
+
+const DELETE_DELAY = 5 // секунд до удаления комментария (можно отменить)
 
 /** «30 мая в 15:15» — формат даты комментария. */
 function formatCommentDate(ts: number) {
@@ -49,6 +51,31 @@ function CommentItem({
   const isOwn = !!myId && c.authorId === myId
   const threadId = c.parentId ?? c.id
 
+  // Отложенное удаление с отменой (как у постов): «Удалить» → отсчёт DELETE_DELAY с,
+  // по истечении — deleteComment. «Отменить» возвращает комментарий.
+  const [pending, setPending] = useState(false)
+  const [seconds, setSeconds] = useState(DELETE_DELAY)
+  useEffect(() => {
+    if (!pending) return
+    if (seconds <= 0) {
+      void dispatch(deleteComment({ postId: post.id, commentId: c.id }))
+      return
+    }
+    const t = window.setTimeout(() => setSeconds((s) => s - 1), 1000)
+    return () => window.clearTimeout(t)
+  }, [pending, seconds, dispatch, post.id, c.id])
+
+  if (pending) {
+    return (
+      <div className={[styles.comment, styles.commentDeleting].join(' ')}>
+        <span className={styles.commentDelText}>Удаление через {seconds} с…</span>
+        <button type="button" className={styles.commentDelCancel} onClick={() => setPending(false)}>
+          Отменить
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className={styles.comment}>
       <AuthorAvatar id={c.authorId} name={c.authorName} avatar={c.authorAvatar} kind={c.authorKind} size={36} />
@@ -70,9 +97,8 @@ function CommentItem({
               type="button"
               className={styles.commentAct}
               onClick={() => {
-                if (window.confirm('Удалить комментарий?')) {
-                  void dispatch(deleteComment({ postId: post.id, commentId: c.id }))
-                }
+                setSeconds(DELETE_DELAY)
+                setPending(true)
               }}
             >
               Удалить

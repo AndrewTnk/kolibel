@@ -21,6 +21,7 @@ export function buildPostShareAttach(post: FeedPost): ChatAttach {
     kind: 'post',
     title: post.authorName,
     post: {
+      id: post.id,
       authorId: post.authorId,
       authorName: post.authorName,
       authorAvatar: post.authorAvatar,

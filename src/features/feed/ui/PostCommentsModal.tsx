@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useAppDispatch } from '../../../app/store/hooks'
 import { addComment } from '../model/feedThunks'
 import type { FeedPost } from '../model/types'
 import { useAuthorIdentity } from '../lib/useAuthorIdentity'
-import { AuthorAvatar } from './AuthorAvatar'
 import { CommentList } from './CommentList'
-import { SendIcon } from './composerIcons'
+import { CommentComposer } from './CommentComposer'
 import styles from './Feed.module.css'
 
 function commentsWord(n: number) {
@@ -21,7 +20,6 @@ function commentsWord(n: number) {
 export function PostCommentsModal({ post, onClose }: { post: FeedPost; onClose: () => void }) {
   const dispatch = useAppDispatch()
   const me = useAuthorIdentity()
-  const [comment, setComment] = useState('')
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -36,19 +34,16 @@ export function PostCommentsModal({ post, onClose }: { post: FeedPost; onClose: 
     }
   }, [onClose])
 
-  function send() {
-    const t = comment.trim()
-    if (!t) return
+  function send(text: string) {
     void dispatch(
       addComment({
         postId: post.id,
         authorName: me.name,
         authorAvatar: me.avatar,
         authorKind: me.kind,
-        text: t,
+        text,
       }),
     )
-    setComment('')
   }
 
   return createPortal(
@@ -82,26 +77,9 @@ export function PostCommentsModal({ post, onClose }: { post: FeedPost; onClose: 
           )}
         </div>
 
-        <form
-          className={styles.cmInput}
-          onSubmit={(e) => {
-            e.preventDefault()
-            send()
-          }}
-        >
-          <AuthorAvatar name={me.name} avatar={me.avatar} kind={me.kind} size={36} />
-          <input
-            className={styles.cmField}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Оставь комментарий…"
-            aria-label="Комментарий"
-          />
-          <button className={styles.cmSend} type="submit" disabled={!comment.trim()} aria-label="Отправить">
-            <span className={styles.cmSendText}>Отправить</span>
-            <span className={styles.cmSendIcon} aria-hidden><SendIcon /></span>
-          </button>
-        </form>
+        <div className={styles.cmInput}>
+          <CommentComposer onSend={send} me={me} />
+        </div>
       </div>
     </div>,
     document.body,

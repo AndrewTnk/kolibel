@@ -9,7 +9,9 @@ import {
 } from '../model/notificationsThunks'
 import type { AppNotification } from '../model/types'
 import { groupNotifications, isGrouped, type NotifGroup } from '../lib/groupNotifications'
-import { notifTarget } from '../lib/notificationLink'
+import { notifTarget, isPostKind } from '../lib/notificationLink'
+import { feedActions } from '../../feed/model/feedSlice'
+import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { formatChatTime } from '../../chat/lib/format'
 import styles from './NotificationsMenu.module.css'
 
@@ -157,6 +159,7 @@ function BellIcon() {
 export function NotificationsMenu() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
   const items = useAppSelector((s) => s.notifications.items)
   const ref = useRef<HTMLDivElement | null>(null)
@@ -173,9 +176,16 @@ export function NotificationsMenu() {
     void dispatch(clearAllNotifications())
   }
 
-  /** Переход по дочернему уведомлению внутри группы. */
-  function navTo(n: AppNotification) {
-    if (!n.read) void dispatch(markNotificationRead(n.id))
+  /** Открыть цель уведомления: пост-типы → модалка поста (веб); прочее → маршрут. */
+  function go(n: AppNotification) {
+    if (isPostKind(n.kind)) {
+      // На мобилке модалки поста нет — клик ничего не открывает (пока).
+      if (!isMobile && n.entityId) {
+        dispatch(feedActions.openPost(n.entityId))
+        setOpen(false)
+      }
+      return
+    }
     const target = notifTarget(n)
     if (target) {
       setOpen(false)
@@ -183,15 +193,17 @@ export function NotificationsMenu() {
     }
   }
 
+  /** Переход по дочернему уведомлению внутри группы. */
+  function navTo(n: AppNotification) {
+    if (!n.read) void dispatch(markNotificationRead(n.id))
+    go(n)
+  }
+
   /** Клик по одиночной строке (в т.ч. «N сообщений»): прочитать все + перейти. */
   function openSingle(g: NotifGroup) {
     const unreadIds = g.items.filter((n) => !n.read).map((n) => n.id)
     if (unreadIds.length) void dispatch(markNotificationsRead(unreadIds))
-    const target = notifTarget(g.latest)
-    if (target) {
-      setOpen(false)
-      navigate(target)
-    }
+    go(g.latest)
   }
 
   /** Клик по группе: разворачиваем/сворачиваем + помечаем группу прочитанной. */

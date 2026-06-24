@@ -1,0 +1,30 @@
+.input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  line-height: 1.4;
+  color: inherit;
+  outline: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  max-height: 120px;
+  /* поведение как у textarea-композера */
+  cursor: text;
+}
+
+/* Плейсхолдер для пустого contentEditable. */
+.input:empty::before {
+  content: attr(data-ph);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* Inline-картинка эмодзи внутри поля. */
+.emoji {
+  width: 1.25em;
+  height: 1.25em;
+  display: inline-block;
+  vertical-align: -0.2em;
+  object-fit: contain;
+}

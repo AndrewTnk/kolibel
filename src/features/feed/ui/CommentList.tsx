@@ -4,6 +4,7 @@ import { addComment, deleteComment, toggleCommentLike } from '../model/feedThunk
 import type { FeedComment, FeedPost } from '../model/types'
 import { useAuthorIdentity } from '../lib/useAuthorIdentity'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
+import { emojify } from '../../../shared/ui/Emoji/emojify'
 import styles from './Feed.module.css'
 
 /** «30 мая в 15:15» — формат даты комментария. */
@@ -58,7 +59,7 @@ function CommentItem({
             {c.authorSubtitle ? `${c.authorSubtitle} · ` : ''}
             {formatCommentDate(c.createdAt)}
           </div>
-          <div className={styles.commentText}>{c.text}</div>
+          <div className={styles.commentText}>{emojify(c.text)}</div>
         </div>
         <div className={styles.commentMeta}>
           <button type="button" className={styles.commentAct} onClick={() => onReply(threadId, c.authorName)}>

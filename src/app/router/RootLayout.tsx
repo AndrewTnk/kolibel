@@ -6,6 +6,7 @@ import { VacancyModals } from '../../features/vacancies/ui/VacancyModals'
 import { ContactToast } from '../../features/vacancies/ui/ContactToast'
 import { PullToRefresh } from '../../shared/ui/PullToRefresh/PullToRefresh'
 import { NotificationToast } from '../../features/notifications/ui/NotificationToast'
+import { PostModal } from '../../features/feed/ui/PostModal'
 import { ProfileAnalyticsModal } from '../../widgets/ProfileAnalyticsModal/ProfileAnalyticsModal'
 import { CompanyAnalyticsModal } from '../../features/company/ui/CompanyAnalyticsModal/CompanyAnalyticsModal'
 import { profileActions } from '../../features/profile/model/profileSlice'
@@ -25,6 +26,7 @@ export function RootLayout() {
       <PullToRefresh />
       <NotificationToast />
       <ChatOverlay />
+      <PostModal />
       <VacancyModal />
       <VacancyModals />
       <ContactToast />

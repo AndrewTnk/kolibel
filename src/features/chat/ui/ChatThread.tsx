@@ -12,6 +12,9 @@ import { ChatAvatar } from './ChatAvatar'
 import { ChatAttachView } from './ChatAttachView'
 import { ChatIco } from './chatIcons'
 import { CompanyBadge } from '../../../shared/ui/CompanyBadge/CompanyBadge'
+import { EmojiPicker } from '../../../shared/ui/EmojiPicker/EmojiPicker'
+import { emojify } from '../../../shared/ui/Emoji/emojify'
+import { EmojiInput, type EmojiInputHandle } from '../../../shared/ui/Emoji/EmojiInput'
 import styles from './Chat.module.css'
 
 export type SendExtras = { replyTo?: ChatMessage['replyTo']; attach?: ChatAttach | null }
@@ -28,8 +31,6 @@ type Props = {
   /** Доп. кнопки справа в шапке (мини-чат: развернуть/свернуть). */
   headerExtra?: ReactNode
 }
-
-const EMOJI_SET = ['😀', '😂', '😍', '😎', '🤔', '🙏', '👍', '👏', '🔥', '✨', '💯', '🎉', '❤️', '💪', '✅', '🚀', '📌', '💬', '🤝', '😅', '😉', '😇', '🥳', '🤩']
 
 type Ctx = { msg: ChatMessage; x: number; y: number }
 
@@ -50,8 +51,8 @@ export function ChatThread({
   const otherId = conversation.otherId
   const blocked = useAppSelector((s) => (otherId ? s.blocks.hiddenIds.includes(otherId) : false))
   const canvasRef = useRef<HTMLDivElement | null>(null)
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
-  const [text, setText] = useState('')
+  const inputRef = useRef<EmojiInputHandle | null>(null)
+  const [empty, setEmpty] = useState(true)
   // «Печатает…» собеседника (через broadcast на канале беседы).
   const [othersTyping, setOthersTyping] = useState(false)
   const typingChanRef = useRef<RealtimeChannel | null>(null)
@@ -99,14 +100,6 @@ export function ChatThread({
     prevLenRef.current = conversation.messages.length
     distBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight
   }, [conversation.id, conversation.messages.length, delDeadlines])
-
-  // Авто-рост textarea
-  useEffect(() => {
-    const el = textareaRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
-  }, [text])
 
   // Индикатор «печатает…»: broadcast-канал беседы. Получив событие от собеседника,
   // показываем статус и гасим через 3 c (Telegram-стиль). Оба видят его, только когда
@@ -203,13 +196,15 @@ export function ChatThread({
     setCtx(null)
     setReplyTo(null)
     setEditing(m)
-    setText(m.text)
-    setTimeout(() => textareaRef.current?.focus(), 0)
+    inputRef.current?.setText(m.text)
+    setEmpty(m.text.trim() === '')
+    setTimeout(() => inputRef.current?.focus(), 0)
   }
 
   function cancelEdit() {
     setEditing(null)
-    setText('')
+    inputRef.current?.clear()
+    setEmpty(true)
   }
 
   function replySnapshot(m: ChatMessage): ChatMessage['replyTo'] {
@@ -221,16 +216,18 @@ export function ChatThread({
   }
 
   function send() {
-    const t = text.trim()
+    const t = inputRef.current?.getText().trim() ?? ''
     if (!t) return
     if (editing) {
       onEditMessage?.(editing.id, t)
       setEditing(null)
-      setText('')
+      inputRef.current?.clear()
+      setEmpty(true)
       return
     }
     onSend(t, { replyTo: replyTo ? replySnapshot(replyTo) : null })
-    setText('')
+    inputRef.current?.clear()
+    setEmpty(true)
     setReplyTo(null)
     setAttachOpen(false)
     setEmojiOpen(false)
@@ -417,7 +414,7 @@ export function ChatThread({
                       </div>
                     ) : null}
                     {m.attach ? <ChatAttachView attach={m.attach} /> : null}
-                    {m.text ? <span className={styles.txt}>{m.text}</span> : null}
+                    {m.text ? <span className={styles.txt}>{emojify(m.text)}</span> : null}
                     <span className={styles.meta}>
                       {formatMessageTime(m.createdAt)}
                       {m.sender === 'me' ? (
@@ -488,22 +485,15 @@ export function ChatThread({
             <ChatIco.attach />
           </button>
           <input ref={att.fileRef} type="file" hidden onChange={att.onFileChange} />
-          <textarea
-            ref={textareaRef}
+          <EmojiInput
+            ref={inputRef}
             className={styles.composerTextarea}
-            value={text}
-            onChange={(e) => {
-              setText(e.target.value)
-              if (e.target.value.trim()) notifyTyping()
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                send()
-              }
-            }}
             placeholder="Сообщение…"
-            rows={1}
+            onEnter={send}
+            onChange={(isEmpty) => {
+              setEmpty(isEmpty)
+              if (!isEmpty) notifyTyping()
+            }}
           />
           <button
             type="button"
@@ -557,14 +547,7 @@ export function ChatThread({
 
           {emojiOpen ? (
             <div className={styles.emojiPop} onClick={(e) => e.stopPropagation()}>
-              <div className={styles.emojiPopTitle}>Часто используемые</div>
-              <div className={styles.emojiGrid}>
-                {EMOJI_SET.map((e) => (
-                  <button type="button" key={e} onClick={() => setText((t) => t + e)}>
-                    {e}
-                  </button>
-                ))}
-              </div>
+              <EmojiPicker onPick={(em) => { inputRef.current?.insertEmoji(em); setEmpty(false) }} />
             </div>
           ) : null}
         </div>
@@ -572,7 +555,7 @@ export function ChatThread({
           type="button"
           className={styles.sendBtn}
           onClick={send}
-          disabled={!text.trim()}
+          disabled={empty}
           aria-label="Отправить"
         >
           <ChatIco.send />

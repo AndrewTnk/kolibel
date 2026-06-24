@@ -129,12 +129,12 @@ export function CompanyTodayRow() {
       <section className={styles.today}>
         {loading ? (
           isMobile ? (
-            <BlockSkeleton height={180} radius={16} />
+            <BlockSkeleton height={200} radius={16} />
           ) : (
             <>
-              <BlockSkeleton height={180} radius={16} />
-              <BlockSkeleton height={180} radius={16} />
-              <BlockSkeleton height={180} radius={16} />
+              <BlockSkeleton height={200} radius={16} />
+              <BlockSkeleton height={200} radius={16} />
+              <BlockSkeleton height={200} radius={16} />
             </>
           )
         ) : (

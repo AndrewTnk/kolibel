@@ -7,6 +7,13 @@ type FeedState = {
   /** Id своих только что опубликованных постов — закрепляются вверху общей ленты
    *  до следующей загрузки ленты (затем ранжируются на общих основаниях). */
   justPostedIds: string[]
+  /** Счётчик «явных перезагрузок» ленты (растёт только на loadFeed.fulfilled).
+   *  Маркер для FeedList: порядок ранжированной ленты пересчитывается ТОЛЬКО при
+   *  смене feedVersion — лайки/комменты порядок не двигают (позиция стабильна до
+   *  перезагрузки страницы/ленты). */
+  feedVersion: number
+  /** Открытая модалка поста (веб): id поста или null. */
+  openPostId: string | null
   loaded: boolean
   status: 'idle' | 'loading'
   error: string | null
@@ -15,6 +22,8 @@ type FeedState = {
 const initialState: FeedState = {
   posts: [],
   justPostedIds: [],
+  feedVersion: 0,
+  openPostId: null,
   loaded: false,
   status: 'idle',
   error: null,
@@ -36,6 +45,14 @@ const slice = createSlice({
     /** Удалить пост из ленты (оптимистично при удалении). */
     removePost(state, action: PayloadAction<string>) {
       state.posts = state.posts.filter((p) => p.id !== action.payload)
+      if (state.openPostId === action.payload) state.openPostId = null
+    },
+    /** Открыть модалку поста (веб). */
+    openPost(state, action: PayloadAction<string>) {
+      state.openPostId = action.payload
+    },
+    closePost(state) {
+      state.openPostId = null
     },
     /** Оптимистичный лайк комментария (используется thunk-ом toggleCommentLike). */
     applyCommentLike(
@@ -69,6 +86,8 @@ const slice = createSlice({
       s.posts = a.payload
       // Лента перезагружена — свои свежие посты больше не закрепляем, идут в общий алгоритм.
       s.justPostedIds = []
+      // Явная перезагрузка ленты → разрешаем FeedList пересчитать замороженный порядок.
+      s.feedVersion += 1
     })
     b.addCase(loadFeed.rejected, (s, a) => {
       s.status = 'idle'

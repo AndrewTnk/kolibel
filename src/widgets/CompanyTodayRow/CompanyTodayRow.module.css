@@ -34,7 +34,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 180px;
+  /* Фиксированная высота (с border-box) — чтобы карточка и скелетон занимали одно
+     место и интерфейс не скакал при появлении контента. .why ограничен 2 строками. */
+  height: 200px;
   min-width: 0;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -135,6 +137,11 @@
   font-size: 13px;
   color: var(--text-2);
   line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .foot {

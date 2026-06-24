@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useAppDispatch } from '../../../app/store/hooks'
+import { useIsMobile } from '../../../shared/lib/useMediaQuery'
+import { feedActions } from '../../feed/model/feedSlice'
 import { ChatAvatar } from './ChatAvatar'
 import { PostMedia, type MediaItem } from '../../feed/ui/PostMedia'
+import { emojify } from '../../../shared/ui/Emoji/emojify'
 import type { SharedPost } from '../model/types'
 import styles from './Chat.module.css'
 
@@ -24,8 +28,18 @@ function formatTime(ts: number) {
  * полноэкранный просмотр в этой же вкладке.
  */
 export function SharedPostCard({ post }: { post: SharedPost }) {
+  const dispatch = useAppDispatch()
+  const isMobile = useIsMobile()
   const [zoom, setZoom] = useState<string | null>(null)
+  const [textExpanded, setTextExpanded] = useState(false)
   const media = (post.media ?? []).map((m) => ({ kind: m.kind, url: m.url })) as MediaItem[]
+  // Шапка кликабельна на вебе, если известен id поста → открывает модалку поста.
+  const canOpen = !isMobile && !!post.id
+  const openPost = () => post.id && dispatch(feedActions.openPost(post.id))
+  // Длинный текст (>200 симв.) сворачиваем → «Показать ещё»/«Свернуть».
+  const longText = !!post.text && post.text.length > 200
+  const shownText =
+    longText && !textExpanded ? post.text!.slice(0, 200).trimEnd() + '…' : (post.text ?? '')
 
   useEffect(() => {
     if (!zoom) return
@@ -43,7 +57,12 @@ export function SharedPostCard({ post }: { post: SharedPost }) {
 
   return (
     <div className={styles.sharedPost}>
-      <div className={styles.spHead}>
+      <div
+        className={[styles.spHead, canOpen ? styles.spHeadClickable : ''].filter(Boolean).join(' ')}
+        onClick={canOpen ? openPost : undefined}
+        role={canOpen ? 'button' : undefined}
+        title={canOpen ? 'Открыть пост' : undefined}
+      >
         <ChatAvatar
           name={post.authorName}
           avatar={post.authorAvatar}
@@ -72,11 +91,18 @@ export function SharedPostCard({ post }: { post: SharedPost }) {
       ) : null}
 
       {post.text ? (
-        <div className={styles.spText}>
-          {post.text.split('\n\n').map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
-        </div>
+        <>
+          <div className={styles.spText}>
+            {shownText.split('\n\n').map((p, i) => (
+              <p key={i}>{emojify(p)}</p>
+            ))}
+          </div>
+          {longText ? (
+            <button type="button" className={styles.spTextMore} onClick={() => setTextExpanded((v) => !v)}>
+              {textExpanded ? 'Свернуть' : 'Показать ещё'}
+            </button>
+          ) : null}
+        </>
       ) : null}
 
       {zoom

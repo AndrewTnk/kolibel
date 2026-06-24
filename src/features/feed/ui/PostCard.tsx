@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { deletePost } from '../model/feedThunks'
+import { feedActions } from '../model/feedSlice'
 import type { FeedPost } from '../model/types'
 import { MoreMenu, type MoreMenuItem } from '../../../shared/ui/MoreMenu/MoreMenu'
+import { emojify } from '../../../shared/ui/Emoji/emojify'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
 import { PostActions } from './PostActions'
 import { PostCommentsModal } from './PostCommentsModal'
@@ -25,11 +28,18 @@ export function formatPostTime(ts: number) {
 }
 
 const DELETE_DELAY = 5 // секунд до удаления (можно отменить)
+const TEXT_LIMIT = 200 // символов до сворачивания длинного текста поста
 
 export function PostCard({ post }: { post: FeedPost }) {
   const dispatch = useAppDispatch()
   const myId = useAppSelector((s) => s.auth.user?.id)
+  const isMobile = useIsMobile()
   const [commentsOpen, setCommentsOpen] = useState(false)
+  const [textExpanded, setTextExpanded] = useState(false)
+
+  // Веб: открываем модалку поста (текст + комментарии). Мобилка: комментарии модалкой.
+  const openPost = () => dispatch(feedActions.openPost(post.id))
+  const onCommentClick = () => (isMobile ? setCommentsOpen(true) : openPost())
   const [lightbox, setLightbox] = useState<number | null>(null)
   // Отложенное удаление с отменой: пост сменяется отсчётом, удаление — через DELETE_DELAY с.
   const [pending, setPending] = useState(false)
@@ -113,12 +123,27 @@ export function PostCard({ post }: { post: FeedPost }) {
 
       <div className={styles.postBody}>
         {post.content.map((c, idx) => {
-          if (c.kind === 'text')
+          if (c.kind === 'text') {
+            // Длинный текст (>200 симв.) сворачиваем → «Показать ещё»/«Свернуть» (веб и мобилка).
+            // На вебе клик по самому тексту открывает модалку поста.
+            const long = c.text.length > TEXT_LIMIT
+            const shown = long && !textExpanded ? c.text.slice(0, TEXT_LIMIT).trimEnd() + '…' : c.text
             return (
-              <div key={idx} className={styles.text}>
-                {c.text}
+              <div key={idx}>
+                <div
+                  className={[styles.text, isMobile ? '' : styles.textClickable].filter(Boolean).join(' ')}
+                  onClick={isMobile ? undefined : openPost}
+                >
+                  {emojify(shown)}
+                </div>
+                {long ? (
+                  <button type="button" className={styles.textMore} onClick={() => setTextExpanded((v) => !v)}>
+                    {textExpanded ? 'Свернуть' : 'Показать ещё'}
+                  </button>
+                ) : null}
               </div>
             )
+          }
           if (c.kind === 'image' || c.kind === 'video') {
             // Все медиа рисуем единым коллажем на месте первого медиа-блока.
             if (mediaRendered) return null
@@ -161,11 +186,7 @@ export function PostCard({ post }: { post: FeedPost }) {
         })}
       </div>
 
-      <PostActions
-        post={post}
-        commentsOpen={commentsOpen}
-        onCommentClick={() => setCommentsOpen(true)}
-      />
+      <PostActions post={post} commentsOpen={commentsOpen} onCommentClick={onCommentClick} />
 
       {commentsOpen ? <PostCommentsModal post={post} onClose={() => setCommentsOpen(false)} /> : null}
 

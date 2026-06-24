@@ -2,8 +2,10 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { notificationsActions } from '../model/notificationsSlice'
-import { notifTarget } from '../lib/notificationLink'
+import { notifTarget, isPostKind } from '../lib/notificationLink'
+import { feedActions } from '../../feed/model/feedSlice'
 import styles from './NotificationToast.module.css'
 
 function initials(title: string): string {
@@ -27,6 +29,7 @@ function initials(title: string): string {
 export function NotificationToast() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const toast = useAppSelector((s) => s.notifications.toast)
 
   useEffect(() => {
@@ -45,8 +48,12 @@ export function NotificationToast() {
         className={styles.toast}
         role="alert"
         onClick={() => {
-          const target = notifTarget(toast)
-          if (target) navigate(target)
+          if (isPostKind(toast.kind)) {
+            if (!isMobile && toast.entityId) dispatch(feedActions.openPost(toast.entityId))
+          } else {
+            const target = notifTarget(toast)
+            if (target) navigate(target)
+          }
           dispatch(notificationsActions.dismissToast())
         }}
       >

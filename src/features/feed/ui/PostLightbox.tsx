@@ -8,6 +8,7 @@ import { AuthorAvatar, AuthorName } from './AuthorAvatar'
 import { PostActions, buildPostShareAttach } from './PostActions'
 import { PostComments } from './PostComments'
 import { CommentForm } from './CommentForm'
+import { emojify } from '../../../shared/ui/Emoji/emojify'
 import { PostCommentsModal } from './PostCommentsModal'
 import { ShareToChatModal } from '../../chat/ui/ShareToChatModal'
 import styles from './Feed.module.css'
@@ -189,7 +190,7 @@ export function PostLightbox({
         <div className={styles.lbSideScroll}>
           {textBlocks.map((c, i) => (
             <p key={i} className={styles.lbText}>
-              {c.text}
+              {emojify(c.text)}
             </p>
           ))}
 

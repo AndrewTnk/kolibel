@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, Fragment } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { loadFeed } from '../model/feedThunks'
+import type { FeedPost } from '../model/types'
 import { rankFeed, type RankContext } from '../lib/rankFeed'
 import { PostCard } from './PostCard'
 import { FeedSkeleton } from './FeedSkeleton'
@@ -41,6 +42,7 @@ export function FeedList({
   const dispatch = useAppDispatch()
   const allPosts = useAppSelector((s) => s.feed.posts)
   const justPostedIds = useAppSelector((s) => s.feed.justPostedIds)
+  const feedVersion = useAppSelector((s) => s.feed.feedVersion)
   const myId = useAppSelector((s) => s.auth.user?.id)
   const loaded = useAppSelector((s) => s.feed.loaded)
   const isMobile = useIsMobile()
@@ -53,11 +55,35 @@ export function FeedList({
   const companyIndustry = useAppSelector((s) => s.company.profile.industry)
   const companyDirections = useAppSelector((s) => s.company.profile.directions)
 
+  // Готовность сигналов ранжирования: сеть (подписки) и интересы (профиль/компания)
+  // грузятся параллельно с лентой. Пока они не готовы — ранжированную ленту НЕ
+  // показываем, иначе посты отрисуются в «неполном» порядке и через секунду
+  // пересортируются (видимый прыжок). Профиль (authorId) сигналов не требует.
+  const networkStatus = useAppSelector((s) => s.network.status)
+  const profileLoaded = useAppSelector((s) => s.profile.loaded)
+  const companyLoaded = useAppSelector((s) => s.company.loaded)
+  const interestsReady = accountType === 'company' ? companyLoaded : profileLoaded
+  const networkSettled = networkStatus === 'ready' || networkStatus === 'error'
+  const signalsReady = networkSettled && interestsReady
+
   // Перезагружаем ленту при смене аккаунта: resetStores чистит стор, но компонент
   // может не перемонтироваться (остаёмся на «/») — поэтому завязываемся на myId.
   useEffect(() => {
     void dispatch(loadFeed())
   }, [dispatch, myId])
+
+  // Гейт показа ранжированной ленты: открывается, когда сигналы готовы, либо по
+  // таймауту-подстраховке (чтобы скелетон не висел вечно при медленной сети).
+  // Открывшись — больше не закрывается (повторная загрузка сети не вернёт скелетон).
+  const [rankGateOpen, setRankGateOpen] = useState(!ranked)
+  useEffect(() => {
+    if (!ranked || signalsReady) {
+      setRankGateOpen(true)
+      return
+    }
+    const t = window.setTimeout(() => setRankGateOpen(true), 1500)
+    return () => window.clearTimeout(t)
+  }, [ranked, signalsReady])
 
   // Мои интересы: у компании — индустрия + направления; у человека — навыки + должность.
   const myInterests = useMemo(() => {
@@ -68,20 +94,44 @@ export function FeedList({
     return new Set(tokens.filter(Boolean).map((t) => t.trim().toLowerCase()))
   }, [accountType, companyIndustry, companyDirections, mySkills, myJobTitle])
 
-  const posts = useMemo(() => {
-    // Профиль — только посты автора; общая лента — все посты (включая свои).
-    const filtered = authorId ? allPosts.filter((p) => p.authorId === authorId) : allPosts
+  // Замороженный порядок ранжированной ленты — список id. Пересчитывается ТОЛЬКО при
+  // смене freezeKey: явная перезагрузка ленты (feedVersion), открытие гейта (сигналы
+  // готовы) или смена контекста (аккаунт). НЕ зависит от лайков/комментов → пост не
+  // «прыгает» при лайке, позиция меняется только после перезагрузки ленты/страницы.
+  const freezeKey = `${myId ?? ''}|${feedVersion}|${rankGateOpen ? 'open' : 'wait'}`
+  const frozenIds = useMemo(() => {
+    if (!ranked) return [] as string[]
     const ctx: RankContext = { myId, followingIds: new Set(followingIds), myInterests }
-    const ordered = ranked ? rankFeed(filtered, ctx) : filtered
-    // В общей ленте закрепляем свои только что опубликованные посты вверху —
-    // чтобы автор сразу увидел свой пост (до перезагрузки ленты, затем — в общем алгоритме).
-    if (authorId || !justPostedIds.length) return ordered
-    const pinnedRank = new Map(justPostedIds.map((id, i) => [id, i]))
-    const pinned = ordered.filter((p) => pinnedRank.has(p.id)).sort((a, b) => pinnedRank.get(a.id)! - pinnedRank.get(b.id)!)
-    if (!pinned.length) return ordered
-    const rest = ordered.filter((p) => !pinnedRank.has(p.id))
-    return [...pinned, ...rest]
-  }, [allPosts, authorId, myId, ranked, followingIds, myInterests, justPostedIds])
+    return rankFeed(allPosts, ctx).map((p) => p.id)
+    // Намеренно зависим ТОЛЬКО от freezeKey (порядок замораживаем); allPosts/сигналы
+    // читаются на момент пересчёта.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [freezeKey])
+
+  const posts = useMemo(() => {
+    // Профиль — только посты автора, живая хронология (без алгоритма/заморозки).
+    if (!ranked) {
+      return authorId ? allPosts.filter((p) => p.authorId === authorId) : allPosts
+    }
+    // Общая лента: материализуем замороженный порядок живыми объектами.
+    // Контент (лайки/комменты) — актуальный, позиция — стабильная.
+    const byId = new Map(allPosts.map((p) => [p.id, p]))
+    const seen = new Set<string>()
+    const out: FeedPost[] = []
+    const push = (p: FeedPost | undefined) => {
+      if (p && !seen.has(p.id)) {
+        out.push(p)
+        seen.add(p.id)
+      }
+    }
+    // 1. Свои только что опубликованные посты — закрепляем вверху (до перезагрузки).
+    for (const id of justPostedIds) push(byId.get(id))
+    // 2. Замороженный порядок (удалённые посты выпадают сами).
+    for (const id of frozenIds) push(byId.get(id))
+    // 3. Подстраховка: посты, появившиеся после заморозки и не вошедшие в порядок.
+    for (const p of allPosts) push(p)
+    return out
+  }, [allPosts, authorId, ranked, frozenIds, justPostedIds])
 
   // Рендерим ленту порциями по PAGE_SIZE: в DOM только видимое окно, остальное
   // подгружается по мере прокрутки (sentinel + IntersectionObserver).
@@ -128,7 +178,9 @@ export function FeedList({
     return () => io.disconnect()
   }, [hasMore, visible, posts.length])
 
-  if (!loaded) {
+  // Скелетон: пока лента не загружена, либо (для ранжированной ленты) пока не готовы
+  // сигналы ранжирования — чтобы посты появились сразу в финальном порядке.
+  if (!loaded || !rankGateOpen) {
     return <FeedSkeleton />
   }
 

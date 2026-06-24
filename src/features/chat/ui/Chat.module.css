@@ -967,12 +967,6 @@
   position: absolute;
   bottom: 56px;
   right: 0;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
-  padding: 10px;
-  width: 280px;
   z-index: 20;
 }
 .emojiPopTitle {
@@ -1475,6 +1469,13 @@
   gap: 10px;
   padding: 10px 12px;
 }
+.spHeadClickable {
+  cursor: pointer;
+  border-radius: 10px;
+}
+.spHeadClickable:hover {
+  background: var(--hover);
+}
 .spMeta {
   min-width: 0;
 }
@@ -1518,6 +1519,23 @@
 }
 .spText p:last-child {
   margin-bottom: 0;
+}
+.spTextClamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.spTextMore {
+  margin: -4px 0 8px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 /* ── Пересланный профиль (мини-карточка как во вкладке «Сеть») ── */

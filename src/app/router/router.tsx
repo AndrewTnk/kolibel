@@ -11,6 +11,15 @@ import { MyVacanciesPage } from '../../pages/MyVacanciesPage/MyVacanciesPage.tsx
 import { PublicProfilePage } from '../../pages/PublicProfilePage/PublicProfilePage.tsx'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RootLayout } from './RootLayout'
+import { AdminRoute, RequireAdmin } from '../../features/admin/ui/AdminRoute'
+import { AdminLayout } from '../../features/admin/ui/AdminLayout'
+import { DashboardPage } from '../../pages/admin/DashboardPage'
+import { UsersPage } from '../../pages/admin/UsersPage'
+import { CompaniesPage } from '../../pages/admin/CompaniesPage'
+import { VacanciesPage as AdminVacanciesPage } from '../../pages/admin/VacanciesPage'
+import { ContentPage } from '../../pages/admin/ContentPage'
+import { ReportsPage } from '../../pages/admin/ReportsPage'
+import { AnalyticsPage } from '../../pages/admin/AnalyticsPage'
 
 export const router = createBrowserRouter([
   {
@@ -96,6 +105,37 @@ export const router = createBrowserRouter([
     path: '*',
     element: <Navigate to="/" replace />,
   },
+    ],
+  },
+  {
+    path: '/admin',
+    element: (
+      <AdminRoute>
+        <AdminLayout />
+      </AdminRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: (
+          <RequireAdmin>
+            <DashboardPage />
+          </RequireAdmin>
+        ),
+      },
+      { path: 'users', element: <UsersPage /> },
+      { path: 'companies', element: <CompaniesPage /> },
+      { path: 'vacancies', element: <AdminVacanciesPage /> },
+      { path: 'content', element: <ContentPage /> },
+      { path: 'reports', element: <ReportsPage /> },
+      {
+        path: 'analytics',
+        element: (
+          <RequireAdmin>
+            <AnalyticsPage />
+          </RequireAdmin>
+        ),
+      },
     ],
   },
 ])

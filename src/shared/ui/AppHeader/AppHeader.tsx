@@ -47,6 +47,7 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
   const company = useAppSelector((s) => s.company.profile);
   const accountType = useAppSelector((s) => s.account.type);
   const isCompany = accountType === "company";
+  const adminRole = useAppSelector((s) => s.admin.role);
 
   const links = [
     { to: "/", label: "Главная" },
@@ -480,6 +481,33 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
                       Можно войти максимум в {MAX_ACCOUNTS} аккаунта
                     </div>
                   )}
+                  {adminRole ? (
+                    <button
+                      className={styles.acctAct}
+                      role="menuitem"
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        nav("/admin");
+                      }}
+                    >
+                      <span className={styles.acctActIco} aria-hidden>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z" />
+                        </svg>
+                      </span>{" "}
+                      Админ-панель
+                    </button>
+                  ) : null}
                   <button
                     className={styles.acctAct}
                     role="menuitem"

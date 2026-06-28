@@ -14,6 +14,7 @@ import { notificationsReducer } from '../../features/notifications/model/notific
 import { analyticsReducer } from '../../features/analytics/model/analyticsSlice'
 import { presenceReducer } from '../../features/presence/model/presenceSlice'
 import { blocksReducer } from '../../features/blocks/model/blocksSlice'
+import { adminReducer } from '../../features/admin/model/adminSlice'
 
 const combinedReducer = combineReducers({
   auth: authReducer,
@@ -30,6 +31,7 @@ const combinedReducer = combineReducers({
   analytics: analyticsReducer,
   presence: presenceReducer,
   blocks: blocksReducer,
+  admin: adminReducer,
 })
 
 export type RootState = ReturnType<typeof combinedReducer>

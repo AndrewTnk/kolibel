@@ -6,6 +6,7 @@ import { getSavedAccounts, removeSavedAccount } from '../lib/accountsStore'
 import { loadProfile } from '../../profile/model/profileThunks'
 import { loadMyApplications } from '../../vacancies/model/vacancyThunks'
 import { loadBlocks } from '../../blocks/model/blocksThunks'
+import { loadAdminRole } from '../../admin/model/adminThunks'
 import type { AuthSession } from './types'
 
 /** Переводит частые сообщения Supabase на русский. */
@@ -102,6 +103,7 @@ export const switchAccount = createAsyncThunk<string, string>(
     await dispatch(loadProfile())
     void dispatch(loadMyApplications())
     void dispatch(loadBlocks())
+    void dispatch(loadAdminRole())
     return accountId
   },
 )

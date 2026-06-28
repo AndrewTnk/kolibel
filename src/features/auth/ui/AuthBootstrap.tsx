@@ -8,6 +8,7 @@ import { setAccountIdentity, upsertAccount } from '../lib/accountsStore'
 import { loadProfile } from '../../profile/model/profileThunks'
 import { loadMyApplications } from '../../vacancies/model/vacancyThunks'
 import { loadBlocks } from '../../blocks/model/blocksThunks'
+import { loadAdminRole } from '../../admin/model/adminThunks'
 
 const CAPTURE_EVENTS = ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED', 'USER_UPDATED']
 
@@ -60,6 +61,8 @@ export function AuthBootstrap() {
         void dispatch(loadMyApplications())
         // Чёрный список (для скрытия в поиске/рекомендациях/чате).
         void dispatch(loadBlocks())
+        // Роль в админ-панели (показ ссылки в меню + гейт маршрута /admin).
+        void dispatch(loadAdminRole())
       }
     })
 

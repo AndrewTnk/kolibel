@@ -1,9 +1,11 @@
-import type { EmploymentType, Vacancy, WorkFormat } from '../model/types'
+import type { EmploymentType, Vacancy, WorkFormat, WorkSchedule } from '../model/types'
 
 export const workFormatLabels: Record<WorkFormat, string> = {
   remote: 'Удалёнка',
   hybrid: 'Гибрид',
   office: 'Офис',
+  shift: 'Вахта',
+  travel: 'Разъездной',
 }
 
 export const employmentLabels: Record<EmploymentType, string> = {
@@ -11,6 +13,15 @@ export const employmentLabels: Record<EmploymentType, string> = {
   part: 'Частичная',
   contract: 'Контракт',
   internship: 'Стажировка',
+}
+
+export const scheduleLabels: Record<WorkSchedule, string> = {
+  '5/2': '5/2',
+  '2/2': '2/2',
+  '6/1': '6/1',
+  shift: 'Сменный',
+  flex: 'Гибкий',
+  free: 'Свободный',
 }
 
 /** Склонение «год / года / лет». */
@@ -42,11 +53,12 @@ export function formatExperienceYears(from?: number, to?: number): string | null
  * Грейд (Junior/Senior) НЕ показываем — только формат, занятость и опыт в годах.
  */
 export function vacancyMetaLine(
-  v: Pick<Vacancy, 'workFormats' | 'employmentTypes' | 'experienceFrom' | 'experienceTo'>,
+  v: Pick<Vacancy, 'workFormats' | 'employmentTypes' | 'experienceFrom' | 'experienceTo' | 'schedule'>,
 ): string {
   return [
     v.workFormats.map((f) => workFormatLabels[f]).join('/'),
     v.employmentTypes.map((e) => employmentLabels[e]).join('/'),
+    v.schedule ? scheduleLabels[v.schedule] : null,
     formatExperienceYears(v.experienceFrom, v.experienceTo),
   ]
     .filter((x): x is string => Boolean(x))

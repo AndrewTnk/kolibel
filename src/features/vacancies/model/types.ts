@@ -1,5 +1,7 @@
-export type WorkFormat = 'remote' | 'hybrid' | 'office'
+export type WorkFormat = 'remote' | 'hybrid' | 'office' | 'shift' | 'travel'
 export type EmploymentType = 'full' | 'part' | 'contract' | 'internship'
+/** График работы (классический набор). */
+export type WorkSchedule = '5/2' | '2/2' | '6/1' | 'shift' | 'flex' | 'free'
 export type PostedWithin = 'any' | '3d' | '7d' | '30d'
 export type VacancySort = 'date' | 'salary' | 'relevance'
 
@@ -77,6 +79,8 @@ export type Vacancy = {
   city: string
   workFormats: WorkFormat[]
   employmentTypes: EmploymentType[]
+  /** График работы (классический: 5/2, 2/2, сменный и т.п.). */
+  schedule?: WorkSchedule
   /** Требуемый опыт в годах (диапазон от/до). */
   experienceFrom?: number
   experienceTo?: number
@@ -101,6 +105,7 @@ export type VacancyFilters = {
   city: string
   workFormat: WorkFormat | 'all'
   employmentType: EmploymentType | 'all'
+  schedule: WorkSchedule | 'all'
   salaryMin: string
   salaryMax: string
   company: string
@@ -114,6 +119,7 @@ export const defaultFilters: VacancyFilters = {
   city: '',
   workFormat: 'all',
   employmentType: 'all',
+  schedule: 'all',
   salaryMin: '',
   salaryMax: '',
   company: '',

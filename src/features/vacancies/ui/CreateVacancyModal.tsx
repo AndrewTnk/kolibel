@@ -2,14 +2,15 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useAppDispatch } from '../../../app/store/hooks'
 import { createVacancy, updateVacancy } from '../model/vacancyThunks'
-import type { EmploymentType, Vacancy, WorkFormat } from '../model/types'
-import { employmentLabels, workFormatLabels } from '../lib/labels'
+import type { EmploymentType, Vacancy, WorkFormat, WorkSchedule } from '../model/types'
+import { employmentLabels, scheduleLabels, workFormatLabels } from '../lib/labels'
 import { SkillsEditor } from '../../profile/ui/SkillsEditor'
 import { MarkdownEditor } from '../../../shared/ui/MarkdownEditor/MarkdownEditor'
 import styles from './CreateVacancyModal.module.css'
 
 const workFormatOptions = Object.keys(workFormatLabels) as WorkFormat[]
 const employmentOptions = Object.keys(employmentLabels) as EmploymentType[]
+const scheduleOptions = Object.keys(scheduleLabels) as WorkSchedule[]
 
 function toggle<T>(arr: T[], val: T): T[] {
   return arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]
@@ -35,6 +36,7 @@ export function CreateVacancyModal({
   const [city, setCity] = useState(vacancy?.city ?? '')
   const [workFormats, setWorkFormats] = useState<WorkFormat[]>(vacancy?.workFormats ?? ['hybrid'])
   const [employmentTypes, setEmploymentTypes] = useState<EmploymentType[]>(vacancy?.employmentTypes ?? ['full'])
+  const [schedule, setSchedule] = useState<WorkSchedule | undefined>(vacancy?.schedule)
   const [expFrom, setExpFrom] = useState(vacancy?.experienceFrom != null ? String(vacancy.experienceFrom) : '')
   const [expTo, setExpTo] = useState(vacancy?.experienceTo != null ? String(vacancy.experienceTo) : '')
   const [salaryFrom, setSalaryFrom] = useState(vacancy?.salaryFrom != null ? String(vacancy.salaryFrom) : '')
@@ -83,6 +85,7 @@ export function CreateVacancyModal({
       city,
       workFormats,
       employmentTypes,
+      schedule,
       experienceFrom: numYears(expFrom),
       experienceTo: numYears(expTo),
       salaryFrom: num(salaryFrom),
@@ -176,6 +179,22 @@ export function CreateVacancyModal({
                     onClick={() => setEmploymentTypes(toggle(employmentTypes, k))}
                   >
                     {employmentLabels[k]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <span className={styles.label}>График работы</span>
+              <div className={styles.chips}>
+                {scheduleOptions.map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    className={[styles.chip, schedule === k ? styles.chipOn : ''].join(' ')}
+                    onClick={() => setSchedule((cur) => (cur === k ? undefined : k))}
+                  >
+                    {scheduleLabels[k]}
                   </button>
                 ))}
               </div>

@@ -4,7 +4,8 @@ import type { RootState } from '../../../app/store/store'
 import { fetchMyAppliedIds, fetchMyApplicationsDetailed } from '../lib/applicationsApi'
 import { rowToVacancy, type VacancyInsert, type VacancyRow } from '../lib/mapVacancy'
 import { nameInitials } from '../lib/initials'
-import type { EmploymentType, MyApplication, Vacancy, VacancyStatus, WorkFormat } from './types'
+import { markVacancySeen } from '../lib/vacancySeen'
+import type { EmploymentType, MyApplication, Vacancy, VacancyStatus, WorkFormat, WorkSchedule } from './types'
 
 /** Поля формы создания/редактирования вакансии. */
 export type NewVacancyInput = {
@@ -12,6 +13,8 @@ export type NewVacancyInput = {
   city: string
   workFormats: WorkFormat[]
   employmentTypes: EmploymentType[]
+  /** График работы (классический). */
+  schedule?: WorkSchedule
   /** Требуемый опыт в годах (диапазон). */
   experienceFrom?: number
   experienceTo?: number
@@ -95,6 +98,7 @@ export const createVacancy = createAsyncThunk<Vacancy, NewVacancyInput>(
       city: input.city.trim() || 'Удалённо',
       work_format: input.workFormats.join(',') || 'office',
       employment_type: input.employmentTypes.join(',') || 'full',
+      schedule: input.schedule ?? null,
       experience_from: input.experienceFrom ?? null,
       experience_to: input.experienceTo ?? null,
       salary_from: input.salaryFrom ?? null,
@@ -124,6 +128,10 @@ export const createVacancy = createAsyncThunk<Vacancy, NewVacancyInput>(
         const { status, ...rest } = payload
         void status
         payload = rest
+      } else if (/schedule/.test(error.message)) {
+        const { schedule, ...rest } = payload
+        void schedule
+        payload = rest
       } else break
     }
     if (error) throw new Error(error.message)
@@ -140,6 +148,7 @@ export const updateVacancy = createAsyncThunk<Vacancy, { id: string; input: NewV
       city: input.city.trim() || 'Удалённо',
       work_format: input.workFormats.join(',') || 'office',
       employment_type: input.employmentTypes.join(',') || 'full',
+      schedule: input.schedule ?? null,
       experience_from: input.experienceFrom ?? null,
       experience_to: input.experienceTo ?? null,
       salary_from: input.salaryFrom ?? null,
@@ -165,6 +174,10 @@ export const updateVacancy = createAsyncThunk<Vacancy, { id: string; input: NewV
       } else if (/status/.test(error.message)) {
         const { status, ...rest } = payload
         void status
+        payload = rest
+      } else if (/schedule/.test(error.message)) {
+        const { schedule, ...rest } = payload
+        void schedule
         payload = rest
       } else break
     }
@@ -270,6 +283,8 @@ export const incrementVacancyView = createAsyncThunk<string | null, string>(
     const myId = state.auth.user?.id
     const v = state.vacanciesList.items.find((x) => x.id === id)
     if (v?.companyId && v.companyId === myId) return null // свою не считаем
+    // Помечаем вакансию просмотренной локально (для чек-бокса «скрыть просмотренные»).
+    markVacancySeen(id)
     const { error } = await supabase.rpc('increment_vacancy_views', { p_id: id })
     if (error) throw new Error(error.message)
     return id

@@ -137,6 +137,13 @@
 /* ── Шапка выдачи ──────────────────────────────────────────── */
 .resultsHead {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Чек-бокс (слева) и табы сортировки (справа) — в одну ровную линию под счётчиком */
+.resultsControls {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -151,6 +158,64 @@
 .resultsCount b {
   color: var(--accent);
   font-weight: 900;
+}
+
+
+/* Чек-бокс «скрыть просмотренные мной» — пилюля в стиле сайта (вне фильтров) */
+.hideViewed {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field-bg);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.hideViewed:hover {
+  border-color: var(--primaryBorder);
+}
+/* Активное состояние — коралловый акцент */
+.hideViewed:has(input:checked) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primarySoftBg, rgba(255, 127, 80, 0.1));
+}
+/* Кастомный «бокс» вместо нативного чекбокса */
+.hideViewed input {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: var(--card);
+  cursor: pointer;
+  position: relative;
+  flex: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.hideViewed input:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+/* Галочка */
+.hideViewed input:checked::after {
+  content: '';
+  position: absolute;
+  left: 4.5px;
+  top: 1.5px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--onPrimary, #fff);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .sortTabs {

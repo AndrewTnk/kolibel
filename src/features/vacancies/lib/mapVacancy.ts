@@ -1,4 +1,4 @@
-import type { EmploymentType, Vacancy, VacancyStatus, WorkFormat } from '../model/types'
+import type { EmploymentType, Vacancy, VacancyStatus, WorkFormat, WorkSchedule } from '../model/types'
 
 /** Строка таблицы public.vacancies. */
 export type VacancyRow = {
@@ -11,6 +11,7 @@ export type VacancyRow = {
   city: string | null
   work_format: string | null
   employment_type: string | null
+  schedule: string | null
   experience_from: number | null
   experience_to: number | null
   salary_from: number | null
@@ -36,6 +37,7 @@ export type VacancyInsert = {
   city: string
   work_format: string
   employment_type: string
+  schedule?: string | null
   experience_from: number | null
   experience_to: number | null
   salary_from: number | null
@@ -60,6 +62,7 @@ export function rowToVacancy(row: VacancyRow): Vacancy {
     city: row.city ?? '',
     workFormats: ((row.work_format ?? 'office').split(',').filter(Boolean) as WorkFormat[]),
     employmentTypes: ((row.employment_type ?? 'full').split(',').filter(Boolean) as EmploymentType[]),
+    schedule: (row.schedule ?? undefined) as WorkSchedule | undefined,
     experienceFrom: row.experience_from ?? undefined,
     experienceTo: row.experience_to ?? undefined,
     salaryFrom: row.salary_from ?? undefined,

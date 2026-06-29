@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { vacanciesActions } from '../model/vacanciesSlice'
-import type { EmploymentType, PostedWithin, WorkFormat } from '../model/types'
-import { employmentLabels, workFormatLabels } from '../lib/labels'
+import type { EmploymentType, PostedWithin, WorkFormat, WorkSchedule } from '../model/types'
+import { employmentLabels, scheduleLabels, workFormatLabels } from '../lib/labels'
+import { Select, Combobox, SkillsInput } from './FilterControls'
 import s from './Vacancies.module.css'
 
 /** Форма фильтров (без «Поиск» и «Сортировка» — они в шапке выдачи). Живёт внутри FiltersModal. */
@@ -22,89 +23,78 @@ export function VacancyFilters() {
     <div className={s.fmGrid} aria-label="Фильтры вакансий">
       <label className={s.field}>
         <span className={s.fieldLabel}>Город</span>
-        <input
-          className={s.control}
-          list="vacancy-cities"
+        <Combobox
           value={f.city}
-          onChange={(e) => dispatch(vacanciesActions.setFilters({ city: e.target.value }))}
+          onChange={(city) => dispatch(vacanciesActions.setFilters({ city }))}
+          options={allCities}
           placeholder="Любой"
         />
-        <datalist id="vacancy-cities">
-          {allCities.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
       </label>
 
       <label className={s.field}>
         <span className={s.fieldLabel}>Компания</span>
-        <input
-          className={s.control}
-          list="vacancy-companies"
+        <Combobox
           value={f.company}
-          onChange={(e) => dispatch(vacanciesActions.setFilters({ company: e.target.value }))}
+          onChange={(company) => dispatch(vacanciesActions.setFilters({ company }))}
+          options={allCompanies}
           placeholder="Любая"
         />
-        <datalist id="vacancy-companies">
-          {allCompanies.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
       </label>
 
-      <label className={s.field}>
+      <div className={s.field}>
         <span className={s.fieldLabel}>Формат работы</span>
-        <select
-          className={s.control}
+        <Select
           value={f.workFormat}
-          onChange={(e) =>
-            dispatch(vacanciesActions.setFilters({ workFormat: e.target.value as WorkFormat | 'all' }))
-          }
-        >
-          <option value="all">Любой</option>
-          {(Object.keys(workFormatLabels) as WorkFormat[]).map((k) => (
-            <option key={k} value={k}>
-              {workFormatLabels[k]}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={(v) => dispatch(vacanciesActions.setFilters({ workFormat: v as WorkFormat | 'all' }))}
+          placeholder="Любой"
+          options={[
+            { value: 'all', label: 'Любой' },
+            ...(Object.keys(workFormatLabels) as WorkFormat[]).map((k) => ({ value: k, label: workFormatLabels[k] })),
+          ]}
+        />
+      </div>
 
-      <label className={s.field}>
+      <div className={s.field}>
+        <span className={s.fieldLabel}>График работы</span>
+        <Select
+          value={f.schedule}
+          onChange={(v) => dispatch(vacanciesActions.setFilters({ schedule: v as WorkSchedule | 'all' }))}
+          placeholder="Любой"
+          options={[
+            { value: 'all', label: 'Любой' },
+            ...(Object.keys(scheduleLabels) as WorkSchedule[]).map((k) => ({ value: k, label: scheduleLabels[k] })),
+          ]}
+        />
+      </div>
+
+      <div className={s.field}>
         <span className={s.fieldLabel}>Занятость</span>
-        <select
-          className={s.control}
+        <Select
           value={f.employmentType}
-          onChange={(e) =>
-            dispatch(
-              vacanciesActions.setFilters({ employmentType: e.target.value as EmploymentType | 'all' }),
-            )
+          onChange={(v) =>
+            dispatch(vacanciesActions.setFilters({ employmentType: v as EmploymentType | 'all' }))
           }
-        >
-          <option value="all">Любая</option>
-          {(Object.keys(employmentLabels) as EmploymentType[]).map((k) => (
-            <option key={k} value={k}>
-              {employmentLabels[k]}
-            </option>
-          ))}
-        </select>
-      </label>
+          placeholder="Любая"
+          options={[
+            { value: 'all', label: 'Любая' },
+            ...(Object.keys(employmentLabels) as EmploymentType[]).map((k) => ({ value: k, label: employmentLabels[k] })),
+          ]}
+        />
+      </div>
 
-      <label className={s.field}>
+      <div className={s.field}>
         <span className={s.fieldLabel}>Опубликовано</span>
-        <select
-          className={s.control}
+        <Select
           value={f.postedWithin}
-          onChange={(e) =>
-            dispatch(vacanciesActions.setFilters({ postedWithin: e.target.value as PostedWithin }))
-          }
-        >
-          <option value="any">За всё время</option>
-          <option value="3d">За 3 дня</option>
-          <option value="7d">За неделю</option>
-          <option value="30d">За месяц</option>
-        </select>
-      </label>
+          onChange={(v) => dispatch(vacanciesActions.setFilters({ postedWithin: v as PostedWithin }))}
+          options={[
+            { value: 'any', label: 'За всё время' },
+            { value: '3d', label: 'За 3 дня' },
+            { value: '7d', label: 'За неделю' },
+            { value: '30d', label: 'За месяц' },
+          ]}
+        />
+      </div>
 
       <label className={s.field}>
         <span className={s.fieldLabel}>Зарплата от, ₽</span>
@@ -130,21 +120,12 @@ export function VacancyFilters() {
 
       <div className={[s.field, s.fmSpan2].join(' ')}>
         <span className={s.fieldLabel}>Навыки</span>
-        <div className={s.skillChips}>
-          {allSkills.map((skill) => {
-            const active = f.skills.includes(skill)
-            return (
-              <button
-                key={skill}
-                type="button"
-                className={[s.skillChip, active ? s.skillChipActive : ''].filter(Boolean).join(' ')}
-                onClick={() => dispatch(vacanciesActions.toggleSkill(skill))}
-              >
-                {skill}
-              </button>
-            )
-          })}
-        </div>
+        <SkillsInput
+          values={f.skills}
+          options={allSkills}
+          onAdd={(skill) => dispatch(vacanciesActions.toggleSkill(skill))}
+          onRemove={(skill) => dispatch(vacanciesActions.toggleSkill(skill))}
+        />
       </div>
     </div>
   )

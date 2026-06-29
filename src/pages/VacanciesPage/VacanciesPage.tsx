@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AppHeader } from '../../shared/ui/AppHeader/AppHeader.tsx'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
 import { filterVacancies } from '../../features/vacancies/lib/filterVacancies'
+import { loadVacancySeen } from '../../features/vacancies/lib/vacancySeen'
 import { computeMatch, resumeToMatchProfile } from '../../features/vacancies/lib/useVacancyMatch'
 import { companyInitial } from '../../features/vacancies/lib/initials'
 import {
@@ -36,11 +37,24 @@ export function VacanciesPage() {
   const [sort, setSort] = useState<Sort>('match')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [hideViewed, setHideViewed] = useState(false)
+  const [seen, setSeen] = useState<Set<string>>(() => loadVacancySeen())
 
   useEffect(() => {
     void dispatch(loadVacancies())
     void dispatch(loadMyApplications())
   }, [dispatch])
+
+  // Список просмотренных вакансий (localStorage) — обновляется при открытии вакансии.
+  useEffect(() => {
+    const refresh = () => setSeen(loadVacancySeen())
+    window.addEventListener('kolibel:vacancySeen', refresh)
+    window.addEventListener('storage', refresh)
+    return () => {
+      window.removeEventListener('kolibel:vacancySeen', refresh)
+      window.removeEventListener('storage', refresh)
+    }
+  }, [])
 
   const query = filters.query ?? ''
 
@@ -49,6 +63,7 @@ export function VacanciesPage() {
     (filters.company ? 1 : 0) +
     (filters.workFormat !== 'all' ? 1 : 0) +
     (filters.employmentType !== 'all' ? 1 : 0) +
+    (filters.schedule !== 'all' ? 1 : 0) +
     (filters.salaryMin ? 1 : 0) +
     (filters.salaryMax ? 1 : 0) +
     (filters.postedWithin !== 'any' ? 1 : 0) +
@@ -75,9 +90,11 @@ export function VacanciesPage() {
     return arr
   }, [items, filters, sort, scoreOf])
 
-  // Лучшее совпадение — просто первая карточка выдачи (при сортировке по мэтчу),
-  // без отдельного выделенного блока. Спец-карточка TopMatchCard убрана.
-  const rest = filtered
+  // Чек-бокс «скрыть просмотренные мной» (вне фильтров) убирает вакансии из seen-набора.
+  const rest = useMemo(
+    () => (hideViewed ? filtered.filter((v) => !seen.has(v.id)) : filtered),
+    [filtered, hideViewed, seen],
+  )
   const visible = rest.slice(0, visibleCount)
 
   function openVacancy(id: string) {
@@ -135,27 +152,33 @@ export function VacanciesPage() {
 
       <div className={styles.resultsHead}>
         <div className={styles.resultsCount}>
-          Найдено <b>{filtered.length}</b> вакансий
+          Найдено <b>{rest.length}</b> вакансий
         </div>
-        <div className={styles.sortTabs} role="tablist">
-          {(
-            [
-              ['match', 'По совпадению'],
-              ['date', 'Новые'],
-              ['salary', 'По зарплате'],
-            ] as [Sort, string][]
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={sort === key}
-              className={[styles.sortTab, sort === key ? styles.sortTabOn : ''].filter(Boolean).join(' ')}
-              onClick={() => setSort(key)}
-            >
-              {label}
-            </button>
-          ))}
+        <div className={styles.resultsControls}>
+          <label className={styles.hideViewed}>
+            <input type="checkbox" checked={hideViewed} onChange={(e) => setHideViewed(e.target.checked)} />
+            Скрыть просмотренные мной
+          </label>
+          <div className={styles.sortTabs} role="tablist">
+            {(
+              [
+                ['match', 'По совпадению'],
+                ['date', 'Новые'],
+                ['salary', 'По зарплате'],
+              ] as [Sort, string][]
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={sort === key}
+                className={[styles.sortTab, sort === key ? styles.sortTabOn : ''].filter(Boolean).join(' ')}
+                onClick={() => setSort(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -165,7 +188,7 @@ export function VacanciesPage() {
             <BlockSkeleton key={i} height={150} />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : rest.length === 0 ? (
         <div className={styles.empty}>
           По запросу ничего не нашли. Попробуй убрать пару фильтров.
           <br />

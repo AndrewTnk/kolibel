@@ -36,6 +36,7 @@ export function filterVacancies(items: Vacancy[], filters: VacancyFilters): Vaca
     if (company && !v.company.toLowerCase().includes(company)) return false
     if (filters.workFormat !== 'all' && !v.workFormats.includes(filters.workFormat)) return false
     if (filters.employmentType !== 'all' && !v.employmentTypes.includes(filters.employmentType)) return false
+    if (filters.schedule !== 'all' && v.schedule !== filters.schedule) return false
     if (filters.skills.length && !filters.skills.every((s) => v.skills.includes(s))) return false
     if (cutoff && v.postedAt < cutoff) return false
 

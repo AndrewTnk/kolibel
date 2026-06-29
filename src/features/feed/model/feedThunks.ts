@@ -19,6 +19,7 @@ type CommentRow = {
   content: string
   created_at: string
   parent_id?: string | null
+  removed_at?: string | null
   post_comment_likes?: LikeRow[]
 }
 type PostRow = {
@@ -64,12 +65,13 @@ function mapPost(row: PostRow, myId: string | null): FeedPost {
     likedByMe: !!myId && (row.post_likes ?? []).some((l) => l.user_id === myId),
     likerIds: (row.post_likes ?? []).map((l) => l.user_id),
     // Храним плоским списком; дерево (корни/ответы) и порядок строит UI.
-    comments: (row.post_comments ?? []).map((c) => mapComment(c, myId)),
+    // Удалённые модерацией комменты прячем (у staff RLS их всё равно отдаёт).
+    comments: (row.post_comments ?? []).filter((c) => !c.removed_at).map((c) => mapComment(c, myId)),
   }
 }
 
 const SELECT =
-  'id, author_id, author_name, author_meta, author_avatar, author_kind, content, created_at, post_likes(user_id), post_comments(id, author_id, author_name, author_avatar, author_kind, content, created_at, parent_id, post_comment_likes(user_id))'
+  'id, author_id, author_name, author_meta, author_avatar, author_kind, content, created_at, post_likes(user_id), post_comments(id, author_id, author_name, author_avatar, author_kind, content, created_at, parent_id, removed_at, post_comment_likes(user_id))'
 const COMMENT_SELECT =
   'id, author_id, author_name, author_avatar, author_kind, content, created_at, parent_id, post_comment_likes(user_id)'
 // Запасной select без денормализованных колонок аватара/типа автора —
@@ -80,9 +82,12 @@ const SELECT_LEGACY =
 /** Загрузка ленты. */
 export const loadFeed = createAsyncThunk<FeedPost[], void>('feed/load', async () => {
   const myId = await currentUserId()
+  // Удалённые модерацией посты в ленте не показываем НИКОМУ (включая staff —
+  // ими управляют в админ-панели). Deep-link fetchPostById оставляет их видимыми staff.
   const primary = await supabase
     .from('posts')
     .select(SELECT)
+    .is('removed_at', null)
     .order('created_at', { ascending: false })
   let rows: unknown = primary.data
   if (primary.error) {
@@ -90,6 +95,7 @@ export const loadFeed = createAsyncThunk<FeedPost[], void>('feed/load', async ()
     const legacy = await supabase
       .from('posts')
       .select(SELECT_LEGACY)
+      .is('removed_at', null)
       .order('created_at', { ascending: false })
     if (legacy.error) throw new Error(legacy.error.message)
     rows = legacy.data

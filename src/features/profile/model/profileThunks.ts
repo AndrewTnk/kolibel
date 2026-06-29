@@ -1,6 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { supabase } from '../../../shared/lib/supabase'
 import { accountActions } from '../../account/model/accountSlice'
+import { authActions } from '../../auth/model/authSlice'
 import { loadCompany } from '../../company/model/companyThunks'
 import { rowToResume, resumeToRow, type ProfileRow } from '../lib/mapProfile'
 import { profileActions } from './profileSlice'
@@ -26,6 +27,14 @@ export const loadProfile = createAsyncThunk<Resume | null, void>(
     const row = data as ProfileRow
     // Тип аккаунта (user/company) синхронизируем из БД
     if (row.account_type) dispatch(accountActions.setAccountType(row.account_type))
+    // Статус модерации: если аккаунт заблокирован — покажем экран блокировки.
+    dispatch(
+      authActions.setModeration(
+        row.status === 'blocked'
+          ? { blocked: true, reason: row.block_reason ?? '', message: row.block_message ?? '' }
+          : null,
+      ),
+    )
     // Флаг онбординга
     dispatch(profileActions.setOnboarded(row.onboarded ?? true))
     // Для компаний подтягиваем профиль компании

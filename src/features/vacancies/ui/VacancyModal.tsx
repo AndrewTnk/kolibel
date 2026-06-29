@@ -11,8 +11,17 @@ import { CompanyAvatar } from './CompanyAvatar'
 import { Button } from '../../../shared/ui/Button/Button'
 import { Markdown } from '../../../shared/ui/Markdown/Markdown'
 import { ShareToChatModal } from '../../chat/ui/ShareToChatModal'
+import { reportUiActions } from '../../reports/model/reportUiSlice'
 import { IcArrow, IcBriefcase, IcChat, IcCheck, IcClose, IcDoc, IcMail, IcTelegram } from './icons'
 import s from './Vacancies.module.css'
+
+function IcFlag() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
+    </svg>
+  )
+}
 
 function IcShare() {
   return (
@@ -274,6 +283,17 @@ export function VacancyModal() {
         </div>
 
         <div className={s.mFoot}>
+          <Button
+            type="button"
+            variant="secondary"
+            aria-label="Пожаловаться"
+            title="Пожаловаться"
+            onClick={() =>
+              dispatch(reportUiActions.openReport({ type: 'vacancy', id: vacancy.id, title: vacancy.title }))
+            }
+          >
+            <IcFlag />
+          </Button>
           <Button
             type="button"
             variant="secondary"

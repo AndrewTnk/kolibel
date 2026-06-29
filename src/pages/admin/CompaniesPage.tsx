@@ -8,6 +8,8 @@ import { adminApi } from '../../features/admin/lib/adminApi'
 import { fmtDate, fmtNum } from '../../features/admin/lib/format'
 import { accountStatus } from '../../features/admin/lib/labels'
 import type { AccountStatus } from '../../features/admin/model/types'
+import { ModerationReasonModal } from '../../features/admin/ui/ModerationReasonModal'
+import { ACCOUNT_BLOCK_REASONS } from '../../features/admin/lib/moderationReasons'
 
 const PAGE_SIZE = 12
 
@@ -15,6 +17,8 @@ export function CompaniesPage() {
   const [searchRaw, setSearchRaw] = useState('')
   const [status, setStatus] = useState<AccountStatus | ''>('')
   const [page, setPage] = useState(0)
+  const [blockTarget, setBlockTarget] = useState<{ id: string; name: string } | null>(null)
+  const [busy, setBusy] = useState(false)
   const search = useDebounced(searchRaw, 300)
 
   const { data, loading, error, reload } = useAsync(
@@ -25,6 +29,17 @@ export function CompaniesPage() {
   const setStatusFor = async (id: string, next: AccountStatus) => {
     await adminApi.setAccountStatus(id, next)
     reload()
+  }
+  const confirmBlock = async (reason: string, message: string) => {
+    if (!blockTarget) return
+    setBusy(true)
+    try {
+      await adminApi.setAccountStatus(blockTarget.id, 'blocked', reason, message)
+      setBlockTarget(null)
+      reload()
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -121,7 +136,7 @@ export function CompaniesPage() {
                           <button
                             className={`${s.btn} ${s.btnIcon} ${s.btnDanger}`}
                             title="Заблокировать"
-                            onClick={() => confirm(`Заблокировать «${c.name}»?`) && setStatusFor(c.id, 'blocked')}
+                            onClick={() => setBlockTarget({ id: c.id, name: c.name })}
                           >
                             <Ic.ban />
                           </button>
@@ -145,6 +160,18 @@ export function CompaniesPage() {
           <Pager page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPage={setPage} />
         </div>
       </div>
+
+      {blockTarget && (
+        <ModerationReasonModal
+          title="Блокировка компании"
+          subtitle={blockTarget.name}
+          confirmLabel="Заблокировать"
+          reasons={ACCOUNT_BLOCK_REASONS}
+          busy={busy}
+          onCancel={() => setBlockTarget(null)}
+          onConfirm={confirmBlock}
+        />
+      )}
     </>
   )
 }

@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { deletePost } from '../model/feedThunks'
 import { feedActions } from '../model/feedSlice'
+import { reportUiActions } from '../../reports/model/reportUiSlice'
 import type { FeedPost } from '../model/types'
 import { MoreMenu, type MoreMenuItem } from '../../../shared/ui/MoreMenu/MoreMenu'
 import { emojify } from '../../../shared/ui/Emoji/emojify'
@@ -66,7 +67,12 @@ export function PostCard({ post }: { post: FeedPost }) {
           },
         },
       ]
-    : [{ label: 'Пожаловаться' }]
+    : [
+        {
+          label: 'Пожаловаться',
+          onClick: () => dispatch(reportUiActions.openReport({ type: 'post', id: post.id, title: post.authorName })),
+        },
+      ]
 
   if (pending) {
     const ringC = 2 * Math.PI * 20

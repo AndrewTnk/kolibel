@@ -6,6 +6,8 @@ import { Avatar, Badge, Pager } from '../../features/admin/ui/components'
 import { useAsync, useDebounced } from '../../features/admin/lib/useAsync'
 import { adminApi } from '../../features/admin/lib/adminApi'
 import { fmtDate, fmtNum } from '../../features/admin/lib/format'
+import { ModerationReasonModal } from '../../features/admin/ui/ModerationReasonModal'
+import { CONTENT_REMOVE_REASONS } from '../../features/admin/lib/moderationReasons'
 
 const PAGE_SIZE = 12
 type Tab = 'posts' | 'comments'
@@ -13,15 +15,28 @@ type Tab = 'posts' | 'comments'
 function PostsTable() {
   const [searchRaw, setSearchRaw] = useState('')
   const [page, setPage] = useState(0)
+  const [delTarget, setDelTarget] = useState<{ id: string; author: string } | null>(null)
+  const [busy, setBusy] = useState(false)
   const search = useDebounced(searchRaw, 300)
   const { data, loading, error, reload } = useAsync(
     () => adminApi.posts({ search, limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
     [search, page],
   )
-  const toggle = async (id: string, removed: boolean) => {
-    if (!removed && !confirm('Удалить публикацию?')) return
-    await adminApi.setPostRemoved(id, !removed)
+  // Восстановление — без причины; удаление — через модалку с причиной + уведомлением автору.
+  const restore = async (id: string) => {
+    await adminApi.setPostRemoved(id, false)
     reload()
+  }
+  const confirmDelete = async (reason: string, message: string) => {
+    if (!delTarget) return
+    setBusy(true)
+    try {
+      await adminApi.removeContent('post', delTarget.id, reason, message)
+      setDelTarget(null)
+      reload()
+    } finally {
+      setBusy(false)
+    }
   }
   return (
     <div className={s.tableCard}>
@@ -29,7 +44,7 @@ function PostsTable() {
         <div className={s.search}>
           <Ic.search />
           <input
-            placeholder="Поиск по автору…"
+            placeholder="Поиск по автору или ID поста…"
             value={searchRaw}
             onChange={(e) => {
               setSearchRaw(e.target.value)
@@ -86,11 +101,15 @@ function PostsTable() {
               <td>
                 <div className={s.rowActions}>
                   {p.removed ? (
-                    <button className={`${s.btn} ${s.btnIcon} ${s.btnSuccess}`} title="Восстановить" onClick={() => toggle(p.id, true)}>
+                    <button className={`${s.btn} ${s.btnIcon} ${s.btnSuccess}`} title="Восстановить" onClick={() => restore(p.id)}>
                       <Ic.restore />
                     </button>
                   ) : (
-                    <button className={`${s.btn} ${s.btnIcon} ${s.btnDanger}`} title="Удалить" onClick={() => toggle(p.id, false)}>
+                    <button
+                      className={`${s.btn} ${s.btnIcon} ${s.btnDanger}`}
+                      title="Удалить"
+                      onClick={() => setDelTarget({ id: p.id, author: p.authorName })}
+                    >
                       <Ic.trash />
                     </button>
                   )}
@@ -101,6 +120,17 @@ function PostsTable() {
         </tbody>
       </table>
       <Pager page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPage={setPage} />
+      {delTarget && (
+        <ModerationReasonModal
+          title="Удаление публикации"
+          subtitle={`Автор: ${delTarget.author}`}
+          confirmLabel="Удалить"
+          reasons={CONTENT_REMOVE_REASONS}
+          busy={busy}
+          onCancel={() => setDelTarget(null)}
+          onConfirm={confirmDelete}
+        />
+      )}
     </div>
   )
 }
@@ -108,15 +138,27 @@ function PostsTable() {
 function CommentsTable() {
   const [searchRaw, setSearchRaw] = useState('')
   const [page, setPage] = useState(0)
+  const [delTarget, setDelTarget] = useState<{ id: string; author: string } | null>(null)
+  const [busy, setBusy] = useState(false)
   const search = useDebounced(searchRaw, 300)
   const { data, loading, error, reload } = useAsync(
     () => adminApi.comments({ search, limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
     [search, page],
   )
-  const toggle = async (id: string, removed: boolean) => {
-    if (!removed && !confirm('Удалить комментарий?')) return
-    await adminApi.setCommentRemoved(id, !removed)
+  const restore = async (id: string) => {
+    await adminApi.setCommentRemoved(id, false)
     reload()
+  }
+  const confirmDelete = async (reason: string, message: string) => {
+    if (!delTarget) return
+    setBusy(true)
+    try {
+      await adminApi.removeContent('comment', delTarget.id, reason, message)
+      setDelTarget(null)
+      reload()
+    } finally {
+      setBusy(false)
+    }
   }
   return (
     <div className={s.tableCard}>
@@ -124,7 +166,7 @@ function CommentsTable() {
         <div className={s.search}>
           <Ic.search />
           <input
-            placeholder="Поиск по автору или тексту…"
+            placeholder="Поиск по автору, тексту или ID…"
             value={searchRaw}
             onChange={(e) => {
               setSearchRaw(e.target.value)
@@ -177,11 +219,15 @@ function CommentsTable() {
               <td>
                 <div className={s.rowActions}>
                   {c.removed ? (
-                    <button className={`${s.btn} ${s.btnIcon} ${s.btnSuccess}`} title="Восстановить" onClick={() => toggle(c.id, true)}>
+                    <button className={`${s.btn} ${s.btnIcon} ${s.btnSuccess}`} title="Восстановить" onClick={() => restore(c.id)}>
                       <Ic.restore />
                     </button>
                   ) : (
-                    <button className={`${s.btn} ${s.btnIcon} ${s.btnDanger}`} title="Удалить" onClick={() => toggle(c.id, false)}>
+                    <button
+                      className={`${s.btn} ${s.btnIcon} ${s.btnDanger}`}
+                      title="Удалить"
+                      onClick={() => setDelTarget({ id: c.id, author: c.authorName })}
+                    >
                       <Ic.trash />
                     </button>
                   )}
@@ -192,6 +238,17 @@ function CommentsTable() {
         </tbody>
       </table>
       <Pager page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPage={setPage} />
+      {delTarget && (
+        <ModerationReasonModal
+          title="Удаление комментария"
+          subtitle={`Автор: ${delTarget.author}`}
+          confirmLabel="Удалить"
+          reasons={CONTENT_REMOVE_REASONS}
+          busy={busy}
+          onCancel={() => setDelTarget(null)}
+          onConfirm={confirmDelete}
+        />
+      )}
     </div>
   )
 }

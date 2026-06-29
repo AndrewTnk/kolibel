@@ -7,6 +7,7 @@ type ProfileEmbed = {
   avatar_url: string | null
   account_type?: 'user' | 'company' | null
   job_status?: { company?: string; companyLogo?: string } | null
+  status?: 'active' | 'blocked' | 'deleted' | null
 } | null
 
 export type ParticipantRow = {
@@ -88,6 +89,7 @@ export function rowToConversation(row: ConversationRow, myId: string): ChatConve
     unreadCount,
     avatar: other?.profiles?.avatar_url?.trim() || undefined,
     otherId: other?.user_id,
+    otherBlocked: other?.profiles?.status === 'blocked',
     type: other?.profiles?.account_type === 'company' ? 'company' : 'person',
     company: other?.profiles?.job_status?.company || undefined,
     companyLogo: other?.profiles?.job_status?.companyLogo || undefined,

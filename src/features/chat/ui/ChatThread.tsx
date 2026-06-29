@@ -5,6 +5,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { supabase } from '../../../shared/lib/supabase'
 import { blockUser, unblockUser } from '../../blocks/model/blocksThunks'
+import { reportUiActions } from '../../reports/model/reportUiSlice'
 import type { ChatAttach, ChatConversation, ChatMessage } from '../model/types'
 import { dayKey, formatDaySeparator, formatMessageTime } from '../lib/format'
 import { useChatAttach } from '../lib/useChatAttach'
@@ -342,6 +343,27 @@ export function ChatThread({
                       <ChatIco.trash /> {blocked ? 'Разблокировать' : 'Заблокировать'}
                     </button>
                   ) : null}
+                  {otherId ? (
+                    <button
+                      type="button"
+                      className={styles.ctxRow}
+                      onClick={() => {
+                        dispatch(
+                          reportUiActions.openReport({
+                            type: conversation.type === 'company' ? 'company' : 'user',
+                            id: otherId,
+                            title: conversation.title,
+                          }),
+                        )
+                        setHeadMenu(false)
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
+                      </svg>{' '}
+                      Пожаловаться
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -464,7 +486,11 @@ export function ChatThread({
         </div>
       ) : null}
 
-      {blocked ? (
+      {conversation.otherBlocked ? (
+        <div className={styles.composerBlocked}>
+          <span>Аккаунт собеседника заблокирован — сообщения недоступны.</span>
+        </div>
+      ) : blocked ? (
         <div className={styles.composerBlocked}>
           <span>Собеседник в чёрном списке — сообщения недоступны.</span>
           {otherId ? (

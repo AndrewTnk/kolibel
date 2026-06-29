@@ -693,6 +693,16 @@
 .rowSelected td {
   background: var(--a-primary-soft) !important;
 }
+/* Обработанная (закрытая) жалоба — приглушаем строку. */
+.rowMuted td {
+  opacity: 0.55;
+}
+.rowMuted:hover td {
+  opacity: 0.8;
+}
+.rowSelected.rowMuted td {
+  opacity: 1;
+}
 .cellMain {
   display: flex;
   align-items: center;
@@ -806,6 +816,94 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
+.actionSelected {
+  outline: 2px solid var(--a-primary);
+  outline-offset: 1px;
+}
+.decidedNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: var(--a-green-soft);
+  color: var(--a-text-2);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+/* строка ID объекта жалобы (для быстрого поиска в «Публикациях») */
+.idRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.idLabel {
+  font-size: 12.5px;
+  color: var(--a-muted);
+  flex: none;
+}
+.idValue {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--a-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.copyBtn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--a-border);
+  border-radius: 8px;
+  background: var(--a-card);
+  color: var(--a-text-2);
+  cursor: pointer;
+}
+.copyBtn:hover {
+  background: var(--a-card-2);
+  color: var(--a-text);
+}
+.copyBtn svg {
+  width: 15px;
+  height: 15px;
+}
+.evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.evidenceThumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--a-border);
+  background: var(--a-bg);
+  cursor: pointer;
+  padding: 0;
+}
+.evidenceThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.evidenceMore {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  border: 1px solid var(--a-border);
+  background: var(--a-card-2);
+  color: var(--a-text-2);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
 .history {
   display: flex;
   flex-direction: column;
@@ -872,6 +970,56 @@
   font-weight: 600;
   z-index: 3000;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Модалка причины модерации ─────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 3500;
+  padding: 20px;
+}
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--a-card);
+  border: 1px solid var(--a-border);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--a-border);
+}
+.modalTitle {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--a-text);
+}
+.modalSub {
+  font-size: 12.5px;
+  color: var(--a-muted);
+  margin-top: 2px;
+}
+.modalBody {
+  padding: 16px 18px;
+  display: grid;
+  gap: 12px;
+}
+.modalFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--a-border);
 }
 
 /* ============================================================

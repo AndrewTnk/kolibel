@@ -47,6 +47,12 @@ const slice = createSlice({
       state.posts = state.posts.filter((p) => p.id !== action.payload)
       if (state.openPostId === action.payload) state.openPostId = null
     },
+    /** Добавить/обновить один пост в сторе (для deep-link на пост, которого нет в ленте). */
+    upsertPost(state, action: PayloadAction<FeedPost>) {
+      const i = state.posts.findIndex((p) => p.id === action.payload.id)
+      if (i >= 0) state.posts[i] = action.payload
+      else state.posts.unshift(action.payload)
+    },
     /** Открыть модалку поста (веб). */
     openPost(state, action: PayloadAction<string>) {
       state.openPostId = action.payload

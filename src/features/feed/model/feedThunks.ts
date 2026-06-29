@@ -244,6 +244,29 @@ export const createPost = createAsyncThunk<
   return mapPost(row as PostRow, uid)
 })
 
+/**
+ * Загрузка ОДНОГО поста по id и добавление его в стор (для deep-link `/?post=:id`,
+ * когда поста нет в текущей ленте — напр. переход из админки/уведомления).
+ * Удалённые модерацией посты видны staff (RLS posts_select).
+ */
+export const fetchPostById = createAsyncThunk<void, string>('feed/fetchById', async (postId, { dispatch }) => {
+  const myId = await currentUserId()
+  let row: unknown = null
+  const primary = await supabase.from('posts').select(SELECT).eq('id', postId).maybeSingle()
+  if (primary.error) {
+    const legacy = await supabase.from('posts').select(SELECT_LEGACY).eq('id', postId).maybeSingle()
+    if (legacy.error) throw new Error(legacy.error.message)
+    row = legacy.data
+  } else {
+    row = primary.data
+  }
+  if (!row) return
+  const post = mapPost(row as PostRow, myId)
+  await enrichAuthors([post])
+  await attachFollowerCounts([post])
+  dispatch(feedActions.upsertPost(post))
+})
+
 /** Удаление своего поста (RLS posts_delete_own). Оптимистично убираем из ленты. */
 export const deletePost = createAsyncThunk<string, string>(
   'feed/delete',

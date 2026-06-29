@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
 import { fetchPublicProfile, type PublicProfile } from '../../features/profile/lib/publicProfileApi'
 import { loadNetwork, toggleFollow } from '../../features/network/model/networkThunks'
 import { blockUser, unblockUser } from '../../features/blocks/model/blocksThunks'
+import { reportUiActions } from '../../features/reports/model/reportUiSlice'
 import { networkActions } from '../../features/network/model/networkSlice'
 import { loadFeed } from '../../features/feed/model/feedThunks'
 import { loadVacancies } from '../../features/vacancies/model/vacancyThunks'
@@ -59,11 +60,17 @@ export function PublicProfilePage() {
   const [notFound, setNotFound] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
-  function report() {
-    const msg = 'Спасибо! Передадим команде.'
-    setToast(msg)
-    window.setTimeout(() => setToast((cur) => (cur === msg ? null : cur)), 2400)
+  function complain() {
+    if (!id || !data) return
+    dispatch(
+      reportUiActions.openReport({
+        type: data.kind === 'company' ? 'company' : 'user',
+        id,
+        title: data.kind === 'company' ? data.company.name : data.resume.fullName,
+      }),
+    )
   }
+
   const toastEl = toast ? (
     <div className={styles.toastWrap}>
       <div className={styles.toast}>{toast}</div>
@@ -158,16 +165,22 @@ export function PublicProfilePage() {
     data?.kind === 'company' ? data.company.name : data?.kind === 'user' ? data.resume.fullName : ''
   const networkTitle = networkName ? `Сеть «${networkName}»` : 'Сеть'
 
+  // Заблокированный модерацией аккаунт недоступен по прямой ссылке (всем).
+  const blockedAcc = !!data && data.blocked
   // Непубличный профиль виден только владельцу (прямой переход по ссылке закрыт).
   const hidden = !!data && !data.isPublic && id !== me
-  if (!loading && hidden) {
+  if (!loading && (hidden || blockedAcc)) {
     return (
       <div className={styles.page}>
         <AppHeader />
         <main className={styles.main}>
           <div className={styles.inner}>
             <div className={styles.soloColumn}>
-              <div className={styles.state}>Этот профиль скрыт настройками приватности.</div>
+              <div className={styles.state}>
+                {blockedAcc
+                  ? 'Этот аккаунт заблокирован.'
+                  : 'Этот профиль скрыт настройками приватности.'}
+              </div>
             </div>
           </div>
         </main>
@@ -190,7 +203,7 @@ export function PublicProfilePage() {
               <MoreMenu
                 cls={styles}
                 selfGuest={selfGuest}
-                onReport={report}
+                onComplain={complain}
                 blocked={isBlocked}
                 blockLabel={blockLabel}
                 onToggleBlock={toggleBlock}
@@ -250,7 +263,7 @@ export function PublicProfilePage() {
                   actions={actions}
                   posts={authorPosts}
                   selfGuest={selfGuest}
-                  onReport={report}
+                  onComplain={complain}
                   blocked={isBlocked}
                   blockLabel={blockLabel}
                   onToggleBlock={toggleBlock}
@@ -287,14 +300,14 @@ export function PublicProfilePage() {
 function MoreMenu({
   cls,
   selfGuest,
-  onReport,
+  onComplain,
   blocked,
   blockLabel,
   onToggleBlock,
 }: {
   cls: Record<string, string>
   selfGuest?: boolean
-  onReport?: () => void
+  onComplain?: () => void
   blocked?: boolean
   blockLabel?: string
   onToggleBlock?: () => void
@@ -317,6 +330,9 @@ function MoreMenu({
     }
   }, [])
 
+  // В режиме своего гостевого превью действий нет — меню не показываем.
+  if (selfGuest) return null
+
   return (
     <div className={cls.moreWrap} ref={ref}>
       <button
@@ -335,38 +351,31 @@ function MoreMenu({
       </button>
       {open ? (
         <div className={cls.moreMenu} role="menu">
-          {selfGuest ? (
+          <button
+            type="button"
+            className={cls.moreItem}
+            role="menuitem"
+            onClick={() => {
+              setOpen(false)
+              onComplain?.()
+            }}
+          >
+            <span className={cls.moreIco}><Ic.flag /></span>Пожаловаться
+          </button>
+          {onToggleBlock ? (
             <button
               type="button"
-              className={[cls.moreItem, cls.moreDanger].filter(Boolean).join(' ')}
+              className={[cls.moreItem, blocked ? '' : cls.moreDanger].filter(Boolean).join(' ')}
               role="menuitem"
               onClick={() => {
                 setOpen(false)
-                onReport?.()
+                onToggleBlock()
               }}
             >
-              <span className={cls.moreIco}><Ic.flag /></span>Сообщить об ошибке
+              <span className={cls.moreIco}><Ic.ban /></span>
+              {blocked ? `Разблокировать ${blockLabel ?? ''}`.trim() : `Заблокировать ${blockLabel ?? ''}`.trim()}
             </button>
-          ) : (
-            <>
-              <button type="button" className={cls.moreItem} role="menuitem" onClick={() => setOpen(false)}>
-                Пожаловаться
-              </button>
-              {onToggleBlock ? (
-                <button
-                  type="button"
-                  className={[cls.moreItem, blocked ? '' : cls.moreDanger].filter(Boolean).join(' ')}
-                  role="menuitem"
-                  onClick={() => {
-                    setOpen(false)
-                    onToggleBlock()
-                  }}
-                >
-                  {blocked ? `Разблокировать ${blockLabel ?? ''}`.trim() : `Заблокировать ${blockLabel ?? ''}`.trim()}
-                </button>
-              ) : null}
-            </>
-          )}
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -398,7 +407,7 @@ function CompanyView({
   actions,
   posts,
   selfGuest,
-  onReport,
+  onComplain,
   blocked,
   blockLabel,
   onToggleBlock,
@@ -408,7 +417,7 @@ function CompanyView({
   actions: React.ReactNode
   posts: FeedPost[]
   selfGuest?: boolean
-  onReport?: () => void
+  onComplain?: () => void
   blocked?: boolean
   blockLabel?: string
   onToggleBlock?: () => void
@@ -481,7 +490,7 @@ function CompanyView({
               <MoreMenu
                 cls={brand}
                 selfGuest={selfGuest}
-                onReport={onReport}
+                onComplain={onComplain}
                 blocked={blocked}
                 blockLabel={blockLabel}
                 onToggleBlock={onToggleBlock}

@@ -142,19 +142,28 @@ export type AdminReportDetail = {
   description: string
   targetType: ReportTargetType
   target: EntityRef
+  /** Профиль виновника (для кнопки «Перейти»): автор поста/коммента, компания вакансии, либо сам юзер/компания. */
+  targetProfileId: string | null
   reporter: EntityRef | null
   assigned: EntityRef | null
   priority: ReportPriority
   status: ReportStatus
   moderatorComment: string
-  evidence: unknown[]
+  evidence: string[]
   createdAt: string
   updatedAt: string
-  content: { kind: 'post' | 'comment'; text: string; createdAt: string; removed: boolean } | null
+  content: {
+    kind: 'post' | 'comment'
+    text: string
+    postId?: string
+    commentId?: string
+    createdAt: string
+    removed: boolean
+  } | null
   history: ReportHistoryItem[]
 }
-/** Резолюция жалобы (кнопки действий модератора). */
-export type ReportResolution = 'measures' | 'warn' | 'block' | 'reject'
+/** Резолюция жалобы: «принять меры» (авто по типу цели) или «отклонить». */
+export type ReportResolution = 'measures' | 'reject'
 
 // ── Аналитика ──────────────────────────────────────────────
 export type AdminAnalytics = {

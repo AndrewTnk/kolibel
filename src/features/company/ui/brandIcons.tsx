@@ -140,4 +140,10 @@ export const Ic = {
       <line x1="4" y1="22" x2="4" y2="15" />
     </svg>
   ),
+  ban: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...s} aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <line x1="5.6" y1="5.6" x2="18.4" y2="18.4" />
+    </svg>
+  ),
 }

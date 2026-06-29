@@ -356,7 +356,8 @@ begin
       'createdAt', created_at, 'removed', removed_at is not null)
       into v_content from public.posts where id = r.target_id;
   elsif r.target_type = 'comment' then
-    select jsonb_build_object('kind', 'comment', 'text', content, 'createdAt', created_at, 'removed', removed_at is not null)
+    select jsonb_build_object('kind', 'comment', 'text', content, 'postId', post_id,
+                             'createdAt', created_at, 'removed', removed_at is not null)
       into v_content from public.post_comments where id = r.target_id;
   end if;
 

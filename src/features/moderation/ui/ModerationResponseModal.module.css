@@ -1,0 +1,122 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay, rgba(15, 18, 26, 0.55));
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 2500;
+  padding: 16px;
+}
+.modal {
+  width: min(480px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: var(--card, #fff);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 6px;
+}
+.eyebrow {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.title {
+  font-size: 19px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+.close {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 6px;
+  line-height: 0;
+}
+.close:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.body {
+  padding: 8px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.verdictOk {
+  background: rgba(52, 199, 89, 0.14);
+  color: #2fae5a;
+}
+.verdictReject {
+  background: var(--hover);
+  color: var(--text-2, var(--muted));
+}
+.verdict svg {
+  flex: none;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.text {
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.comment {
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  padding: 12px 14px;
+  background: var(--field-bg, #f4f6fa);
+  border-radius: 12px;
+}
+.foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+.btn {
+  padding: 11px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--onPrimary, #2a1206);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}

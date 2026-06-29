@@ -36,7 +36,7 @@ type Props = {
   onBack?: () => void
 }
 
-export function Hero({ open, showToast, resume: propResume, readOnly = false, actions, viewedId, onBack }: Props) {
+export function Hero({ open, resume: propResume, readOnly = false, actions, viewedId, onBack }: Props) {
   const navigate = useNavigate()
   const storeResume = useAppSelector((st) => st.profile.resume)
   const resume = propResume ?? storeResume
@@ -63,11 +63,10 @@ export function Hero({ open, showToast, resume: propResume, readOnly = false, ac
     }
   }, [])
 
-  const moreItems = [
+  const moreItems: { id: string; t?: string; ico?: ReactNode; run?: () => unknown; danger?: boolean }[] = [
     { id: 'guest', t: 'Открыть как гость', ico: <Ic.eye />, run: () => myId && navigate(`/u/${myId}?guest=1`) },
     { id: 'sep' },
     { id: 'privacy', t: 'Настройки приватности', ico: <Ic.settings />, run: () => navigate('/settings') },
-    { id: 'report', t: 'Сообщить об ошибке', ico: <Ic.flag />, danger: true, run: () => showToast('Спасибо! Передадим команде.') },
   ]
 
   return (

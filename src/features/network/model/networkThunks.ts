@@ -125,6 +125,7 @@ async function filterPublicProfileIds(ids: string[]): Promise<Set<string>> {
     .select('id')
     .in('id', ids)
     .eq('is_public', true)
+    .neq('status', 'blocked')
   if (error) return new Set(ids)
   return new Set((data ?? []).map((r) => (r as { id: string }).id))
 }
@@ -217,12 +218,13 @@ export const loadNetwork = createAsyncThunk<NetworkPayload, void>('network/load'
   }
   if (!me) return empty
 
-  // 1) Рекомендованные люди — другие пользователи (только публичные профили)
+  // 1) Рекомендованные люди — другие пользователи (публичные и не заблокированные)
   const recRes = await supabase
     .from('profiles')
     .select(PERSON_COLS)
     .eq('account_type', 'user')
     .eq('is_public', true)
+    .neq('status', 'blocked')
     .neq('id', me)
     .limit(60)
   if (recRes.error) throw new Error(recRes.error.message)

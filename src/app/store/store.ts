@@ -15,6 +15,8 @@ import { analyticsReducer } from '../../features/analytics/model/analyticsSlice'
 import { presenceReducer } from '../../features/presence/model/presenceSlice'
 import { blocksReducer } from '../../features/blocks/model/blocksSlice'
 import { adminReducer } from '../../features/admin/model/adminSlice'
+import { reportUiReducer } from '../../features/reports/model/reportUiSlice'
+import { moderationUiReducer } from '../../features/moderation/model/moderationUiSlice'
 
 const combinedReducer = combineReducers({
   auth: authReducer,
@@ -32,6 +34,8 @@ const combinedReducer = combineReducers({
   presence: presenceReducer,
   blocks: blocksReducer,
   admin: adminReducer,
+  reportUi: reportUiReducer,
+  moderationUi: moderationUiReducer,
 })
 
 export type RootState = ReturnType<typeof combinedReducer>

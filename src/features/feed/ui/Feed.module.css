@@ -1513,11 +1513,21 @@
   overflow: hidden;
 }
 
-.pmClose {
+/* Верхний правый кластер: меню «три точки» + крестик в один ряд */
+.pmTopBar {
   position: absolute;
   top: 12px;
   right: 12px;
-  z-index: 2;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.pmMore {
+  position: static;
+}
+
+.pmClose {
   width: 34px;
   height: 34px;
   border: 0;

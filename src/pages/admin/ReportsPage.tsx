@@ -7,6 +7,7 @@ import { useAsync, useDebounced } from '../../features/admin/lib/useAsync'
 import { adminApi } from '../../features/admin/lib/adminApi'
 import { fmtDateTime, fmtRelative } from '../../features/admin/lib/format'
 import { reportStatus, reportPriority, targetType } from '../../features/admin/lib/labels'
+import { reasonsForTarget } from '../../features/admin/lib/moderationReasons'
 import type {
   ReportBucket,
   ReportTargetType,
@@ -36,11 +37,13 @@ const ACTION_LABEL: Record<string, string> = {
   status: 'Изменён статус',
 }
 
-function openEntity(type: ReportTargetType, id: string) {
-  if (type === 'user' || type === 'company') window.open(`/u/${id}`, '_blank')
-  else if (type === 'post') window.open(`/?post=${id}`, '_blank')
-  else if (type === 'vacancy') window.open('/vacancies', '_blank')
-}
+// Варианты решения (выбор → подтверждение «Сохранить»).
+// «Принять меры» применяет действие автоматически по типу цели:
+// пост/коммент → удалить, юзер/компания → заблокировать, вакансия → снять.
+const RESOLUTIONS: { res: ReportResolution; label: string; icon: keyof typeof Ic; cls: string }[] = [
+  { res: 'measures', label: 'Принять меры', icon: 'check', cls: 'btnSuccess' },
+  { res: 'reject', label: 'Отклонить', icon: 'xCircle', cls: 'btn' },
+]
 
 // ── Детальная панель жалобы ────────────────────────────────
 function ReportDetail({
@@ -60,17 +63,55 @@ function ReportDetail({
 }) {
   const { data: r, loading, reload } = useAsync(() => adminApi.report(id), [id])
   const [comment, setComment] = useState('')
+  const [selected, setSelected] = useState<ReportResolution | null>(null)
+  const [reasonKey, setReasonKey] = useState('')
   const [busy, setBusy] = useState(false)
+
+  // Причины зависят от типа цели жалобы (контент → удаление, аккаунт → блокировка).
+  const reasons = reasonsForTarget(r?.targetType ?? 'post')
 
   useEffect(() => {
     setComment('')
+    setSelected(null)
+    setReasonKey('')
   }, [id])
 
-  const act = async (fn: () => Promise<void>, msg: string) => {
+  const copyId = (value: string) => {
+    void navigator.clipboard?.writeText(value)
+    toast('ID скопирован')
+  }
+
+  // Выбор решения. При «Принять меры» подставляем первую причину и её шаблон.
+  const pickResolution = (res: ReportResolution) => {
+    if (selected === res) {
+      setSelected(null)
+      return
+    }
+    setSelected(res)
+    if (res === 'measures') {
+      const first = reasons[0]
+      setReasonKey(first?.key ?? '')
+      setComment(first?.message ?? '')
+    } else {
+      setReasonKey('')
+      setComment('')
+    }
+  }
+
+  const pickReason = (key: string) => {
+    setReasonKey(key)
+    const found = reasons.find((x) => x.key === key)
+    if (found) setComment(found.message)
+  }
+
+  // Применить выбранное решение (+ причину/комментарий), уведомить обе стороны.
+  const saveDecision = async () => {
+    if (!selected) return
+    const reasonLabel = selected === 'measures' ? reasons.find((x) => x.key === reasonKey)?.label ?? '' : ''
     setBusy(true)
     try {
-      await fn()
-      toast(msg)
+      await adminApi.resolveReport(id, selected, comment, reasonLabel)
+      toast('Решение сохранено, уведомления отправлены')
       reload()
       onChanged()
     } catch (e) {
@@ -79,8 +120,6 @@ function ReportDetail({
       setBusy(false)
     }
   }
-
-  const resolve = (res: ReportResolution, msg: string) => act(() => adminApi.resolveReport(id, res, comment), msg)
 
   if (loading || !r)
     return (
@@ -91,6 +130,8 @@ function ReportDetail({
 
   const stt = reportStatus[r.status]
   const TargetIcon = Ic[TARGET_ICON[r.targetType]]
+  // Решение уже принято — повторно отвечать нельзя.
+  const decided = r.status === 'resolved' || r.status === 'rejected'
 
   return (
     <div className={s.detail}>
@@ -125,9 +166,11 @@ function ReportDetail({
           <div>
             <div className={s.detailLabel}>На кого подана</div>
             <EntityCell e={r.target} />
-            <button className={s.detailLink} onClick={() => openEntity(r.targetType, r.target.id)}>
-              Перейти <Ic.external style={{ width: 13, height: 13 }} />
-            </button>
+            {r.targetProfileId && (
+              <button className={s.detailLink} onClick={() => window.open(`/u/${r.targetProfileId}`, '_blank')}>
+                Перейти в профиль <Ic.external style={{ width: 13, height: 13 }} />
+              </button>
+            )}
           </div>
           <div>
             <div className={s.detailLabel}>Кем подана</div>
@@ -149,17 +192,56 @@ function ReportDetail({
 
         {r.content && (
           <div>
-            <div className={s.detailLabel}>Контент</div>
+            <div className={s.detailLabel}>Объект жалобы</div>
             <div className={s.contentBox}>
               <div className={s.contentMeta}>
                 <TargetIcon style={{ width: 14, height: 14 }} />
                 {r.content.kind === 'post' ? 'Публикация' : 'Комментарий'} от {fmtDateTime(r.content.createdAt)}
                 {r.content.removed && ' · удалён'}
               </div>
-              <div className={s.contentText}>{r.content.text || '(без текста)'}</div>
-              {r.targetType === 'post' && (
-                <button className={s.detailLink} onClick={() => openEntity('post', r.target.id)}>
+              {r.content.kind === 'comment' && r.content.commentId && (
+                <div className={s.idRow}>
+                  <span className={s.idLabel}>ID коммента</span>
+                  <span className={s.idValue}>{r.content.commentId}</span>
+                  <button className={s.copyBtn} title="Скопировать" onClick={() => copyId(r.content!.commentId!)}>
+                    <Ic.copy />
+                  </button>
+                </div>
+              )}
+              {r.content.postId && (
+                <div className={s.idRow}>
+                  <span className={s.idLabel}>ID поста</span>
+                  <span className={s.idValue}>{r.content.postId}</span>
+                  <button className={s.copyBtn} title="Скопировать" onClick={() => copyId(r.content!.postId!)}>
+                    <Ic.copy />
+                  </button>
+                </div>
+              )}
+              {r.content.postId && (
+                <button
+                  className={s.detailLink}
+                  style={{ marginTop: 10 }}
+                  onClick={() => window.open(`/?post=${r.content?.postId}`, '_blank')}
+                >
                   Открыть публикацию <Ic.external style={{ width: 13, height: 13 }} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {r.evidence.length > 0 && (
+          <div>
+            <div className={s.detailLabel}>Доказательства</div>
+            <div className={s.evidence}>
+              {r.evidence.slice(0, 4).map((url, i) => (
+                <button key={i} className={s.evidenceThumb} onClick={() => window.open(url, '_blank')} title="Открыть">
+                  <img src={url} alt="" />
+                </button>
+              ))}
+              {r.evidence.length > 4 && (
+                <button className={s.evidenceMore} onClick={() => window.open(r.evidence[4], '_blank')}>
+                  +{r.evidence.length - 4}
                 </button>
               )}
             </div>
@@ -168,24 +250,66 @@ function ReportDetail({
 
         <div>
           <div className={s.detailLabel}>Действия модератора</div>
-          <div className={s.actionGrid}>
-            <button className={`${s.btn} ${s.btnSuccess}`} disabled={busy} onClick={() => resolve('measures', 'Меры приняты')}>
-              <Ic.check /> Принять меры
-            </button>
-            <button className={`${s.btn} ${s.btnWarn}`} disabled={busy} onClick={() => resolve('warn', 'Предупреждение вынесено')}>
-              <Ic.warning /> Предупредить
-            </button>
-            <button
-              className={`${s.btn} ${s.btnDanger}`}
-              disabled={busy}
-              onClick={() => confirm('Заблокировать объект жалобы?') && resolve('block', 'Объект заблокирован')}
-            >
-              <Ic.ban /> Заблокировать
-            </button>
-            <button className={`${s.btn}`} disabled={busy} onClick={() => resolve('reject', 'Жалоба отклонена')}>
-              <Ic.xCircle /> Отклонить
-            </button>
-          </div>
+          {decided ? (
+            <div className={s.decidedNote}>
+              <Ic.checkCircle style={{ width: 18, height: 18, color: 'var(--a-green)' }} />
+              Решение по жалобе уже принято — ответ отправлен автору.
+            </div>
+          ) : (
+            <>
+              <div className={s.actionGrid}>
+                {RESOLUTIONS.map(({ res, label, icon, cls }) => {
+                  const ResIcon = Ic[icon]
+                  return (
+                    <button
+                      key={res}
+                      className={`${s.btn} ${s[cls]} ${selected === res ? s.actionSelected : ''}`}
+                      disabled={busy}
+                      onClick={() => pickResolution(res)}
+                    >
+                      <ResIcon /> {label}
+                    </button>
+                  )
+                })}
+              </div>
+              {selected === 'measures' && (
+                <>
+                  <div className={s.detailLabel} style={{ marginTop: 12 }}>
+                    Причина (
+                    {r.targetType === 'user' || r.targetType === 'company' ? 'блокировка аккаунта' : 'удаление контента'})
+                  </div>
+                  <select
+                    className={s.select}
+                    style={{ width: '100%' }}
+                    value={reasonKey}
+                    onChange={(e) => pickReason(e.target.value)}
+                  >
+                    {reasons.map((r2) => (
+                      <option key={r2.key} value={r2.key}>
+                        {r2.label}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
+              <textarea
+                className={s.commentArea}
+                style={{ marginTop: 10 }}
+                placeholder={
+                  selected === 'measures'
+                    ? 'Сообщение нарушителю и автору жалобы…'
+                    : 'Комментарий модерации (виден автору жалобы)…'
+                }
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+                <button className={`${s.btn} ${s.btnPrimary}`} disabled={busy || !selected} onClick={saveDecision}>
+                  Сохранить
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         <div>
@@ -218,25 +342,6 @@ function ReportDetail({
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        <div>
-          <div className={s.detailLabel}>Комментарий модератора</div>
-          <textarea
-            className={s.commentArea}
-            placeholder="Добавьте комментарий…"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          />
-          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              className={`${s.btn} ${s.btnPrimary}`}
-              disabled={busy || !comment.trim()}
-              onClick={() => act(() => adminApi.addReportComment(id, comment), 'Комментарий сохранён')}
-            >
-              Сохранить
-            </button>
           </div>
         </div>
       </div>
@@ -412,10 +517,13 @@ export function ReportsPage() {
                   const stt = reportStatus[r.status]
                   const pr = reportPriority[r.priority]
                   const Icon = Ic[TARGET_ICON[r.targetType]]
+                  const closed = r.status === 'resolved' || r.status === 'rejected'
                   return (
                     <tr
                       key={r.id}
-                      className={selId === r.id ? s.rowSelected : ''}
+                      className={[selId === r.id ? s.rowSelected : '', closed ? s.rowMuted : '']
+                        .filter(Boolean)
+                        .join(' ')}
                       style={{ cursor: 'pointer' }}
                       onClick={() => setSelId(r.id)}
                     >

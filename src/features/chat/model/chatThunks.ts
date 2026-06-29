@@ -45,9 +45,9 @@ async function enrichCompanyTitles(convos: ChatConversation[]): Promise<void> {
 
 // Полный SELECT (после миграции 0019) и базовый (на случай непримененной миграции).
 const SELECT_FULL =
-  'id, last_message_at, conversation_participants ( user_id, last_read_at, pinned, muted, profiles ( full_name, job_title, avatar_url, account_type, job_status ) ), messages ( id, sender_id, body, created_at, reply_to, attach, reactions )'
+  'id, last_message_at, conversation_participants ( user_id, last_read_at, pinned, muted, profiles ( full_name, job_title, avatar_url, account_type, job_status, status ) ), messages ( id, sender_id, body, created_at, reply_to, attach, reactions )'
 const SELECT_BASE =
-  'id, last_message_at, conversation_participants ( user_id, last_read_at, profiles ( full_name, job_title, avatar_url, account_type, job_status ) ), messages ( id, sender_id, body, created_at )'
+  'id, last_message_at, conversation_participants ( user_id, last_read_at, profiles ( full_name, job_title, avatar_url, account_type, job_status, status ) ), messages ( id, sender_id, body, created_at )'
 
 /** Загрузка всех бесед текущего пользователя (с участниками и сообщениями). */
 export const loadConversations = createAsyncThunk<ChatConversation[], void>(

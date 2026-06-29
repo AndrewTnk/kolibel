@@ -111,7 +111,6 @@ export function CompanyMainContent() {
                 <Hero
                   c={c}
                   onOpen={open}
-                  onToast={showToast}
                   onGuest={() => myId && nav(`/u/${myId}?guest=1`)}
                   onSettings={() => nav('/settings')}
                 />
@@ -164,11 +163,10 @@ export function CompanyMainContent() {
 
 // ── Hero ──────────────────────────────────────
 function Hero({
-  c, onOpen, onToast, onGuest, onSettings,
+  c, onOpen, onGuest, onSettings,
 }: {
   c: CompanyProfile
   onOpen: (m: ModalKind) => void
-  onToast: (m: string) => void
   onGuest: () => void
   onSettings: () => void
 }) {
@@ -253,13 +251,6 @@ function Hero({
                   <button type="button" className={styles.moreItem} onClick={more(onSettings)}>
                     <span className={styles.moreIco}><Ic.settings /></span>
                     <span>Настройки<br />приватности</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={[styles.moreItem, styles.moreDanger].join(' ')}
-                    onClick={more(() => onToast('Спасибо! Передадим команде.'))}
-                  >
-                    <span className={styles.moreIco}><Ic.flag /></span>Сообщить об ошибке
                   </button>
                 </div>
               ) : null}

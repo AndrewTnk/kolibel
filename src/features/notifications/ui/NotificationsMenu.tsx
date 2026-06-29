@@ -11,6 +11,7 @@ import type { AppNotification } from '../model/types'
 import { groupNotifications, isGrouped, type NotifGroup } from '../lib/groupNotifications'
 import { notifTarget, isPostKind } from '../lib/notificationLink'
 import { feedActions } from '../../feed/model/feedSlice'
+import { moderationUiActions } from '../../moderation/model/moderationUiSlice'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { formatChatTime } from '../../chat/lib/format'
 import styles from './NotificationsMenu.module.css'
@@ -93,6 +94,14 @@ function ChevronIcon({ open }: { open: boolean }) {
 
 /** Аватар одного уведомления (фото или инициалы; квадрат — компания/вакансия). */
 function NotifAvatar({ n }: { n: AppNotification }) {
+  // Ответ модерации — стандартный бейдж: лого на синем фоне.
+  if (n.kind === 'moderation') {
+    return (
+      <span className={[styles.itemAv, styles.itemAvSquare, styles.itemAvMod].join(' ')} aria-hidden>
+        <img className={styles.itemAvMark} src="/logo/kolibel-mark.png" alt="" />
+      </span>
+    )
+  }
   const square = n.actorKind === 'company' || n.kind === 'vacancy'
   return (
     <span className={[styles.itemAv, square ? styles.itemAvSquare : ''].filter(Boolean).join(' ')} aria-hidden>
@@ -178,6 +187,13 @@ export function NotificationsMenu() {
 
   /** Открыть цель уведомления: пост-типы → модалка поста (веб); прочее → маршрут. */
   function go(n: AppNotification) {
+    if (n.kind === 'moderation') {
+      if (n.entityId) {
+        dispatch(moderationUiActions.openModerationResponse(n.entityId))
+        setOpen(false)
+      }
+      return
+    }
     if (isPostKind(n.kind)) {
       // На мобилке модалки поста нет — клик ничего не открывает (пока).
       if (!isMobile && n.entityId) {

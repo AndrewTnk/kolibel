@@ -6,6 +6,7 @@ import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { notificationsActions } from '../model/notificationsSlice'
 import { notifTarget, isPostKind } from '../lib/notificationLink'
 import { feedActions } from '../../feed/model/feedSlice'
+import { moderationUiActions } from '../../moderation/model/moderationUiSlice'
 import styles from './NotificationToast.module.css'
 
 function initials(title: string): string {
@@ -48,7 +49,9 @@ export function NotificationToast() {
         className={styles.toast}
         role="alert"
         onClick={() => {
-          if (isPostKind(toast.kind)) {
+          if (toast.kind === 'moderation') {
+            if (toast.entityId) dispatch(moderationUiActions.openModerationResponse(toast.entityId))
+          } else if (isPostKind(toast.kind)) {
             if (!isMobile && toast.entityId) dispatch(feedActions.openPost(toast.entityId))
           } else {
             const target = notifTarget(toast)
@@ -57,9 +60,15 @@ export function NotificationToast() {
           dispatch(notificationsActions.dismissToast())
         }}
       >
-        <span className={[styles.av, square ? styles.avSquare : ''].filter(Boolean).join(' ')} aria-hidden>
-          {toast.avatar ? <img className={styles.avImg} src={toast.avatar} alt="" /> : initials(toast.title)}
-        </span>
+        {toast.kind === 'moderation' ? (
+          <span className={[styles.av, styles.avSquare, styles.avMod].join(' ')} aria-hidden>
+            <img className={styles.avMark} src="/logo/kolibel-mark.png" alt="" />
+          </span>
+        ) : (
+          <span className={[styles.av, square ? styles.avSquare : ''].filter(Boolean).join(' ')} aria-hidden>
+            {toast.avatar ? <img className={styles.avImg} src={toast.avatar} alt="" /> : initials(toast.title)}
+          </span>
+        )}
         <span className={styles.body}>
           <span className={styles.text}>
             {toast.title ? <b>{toast.title}</b> : null}

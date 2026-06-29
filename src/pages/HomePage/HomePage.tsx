@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../../shared/ui/AppHeader/AppHeader.tsx'
-import { useAppSelector } from '../../app/store/hooks'
+import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
+import { feedActions } from '../../features/feed/model/feedSlice'
 import { useIsMobile } from '../../shared/lib/useMediaQuery'
 import { PostComposer } from '../../features/feed/ui/PostComposer'
 import { FeedList } from '../../features/feed/ui/FeedList'
@@ -18,9 +20,15 @@ import styles from './HomePage.module.css'
 export function HomePage() {
   const isCompany = useAppSelector((s) => s.account.type === 'company')
   const isMobile = useIsMobile()
+  const dispatch = useAppDispatch()
   const [searchParams] = useSearchParams()
   // Якорь к посту из уведомления (/?post=:id) — прокрутка + подсветка в ленте.
   const focusPostId = searchParams.get('post') ?? undefined
+
+  // Deep-link `/?post=:id` (из админки/уведомлений) — открываем модалку поста (веб).
+  useEffect(() => {
+    if (focusPostId && !isMobile) dispatch(feedActions.openPost(focusPostId))
+  }, [focusPostId, isMobile, dispatch])
 
   return (
     <div className={styles.page}>

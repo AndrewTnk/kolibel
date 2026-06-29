@@ -260,6 +260,16 @@
   border-radius: 9px;
 }
 
+/* Бейдж ответа модерации: лого на синем фоне. */
+.itemAvMod {
+  background: #2563eb;
+}
+.itemAvMark {
+  width: 66%;
+  height: 66%;
+  object-fit: contain;
+}
+
 .itemBody {
   min-width: 0;
   flex: 1;

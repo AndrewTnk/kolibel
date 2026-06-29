@@ -2,8 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import s from './admin.module.css'
 import { Ic } from './icons'
 import { Avatar } from './components'
-import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
-import { signOut } from '../../auth/model/authThunks'
+import { useAppSelector } from '../../../app/store/hooks'
 
 type NavDef = { to: string; label: string; icon: keyof typeof Ic; end?: boolean; adminOnly?: boolean }
 
@@ -19,16 +18,15 @@ const NAV: NavDef[] = [
 ]
 
 export function AdminLayout() {
-  const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const role = useAppSelector((st) => st.admin.role)
   const name = useAppSelector((st) => st.profile.resume.fullName)
   const avatar = useAppSelector((st) => st.profile.resume.avatar)
   const email = useAppSelector((st) => st.auth.user?.email)
 
-  const onLogout = async () => {
-    await dispatch(signOut())
-    navigate('/auth', { replace: true })
+  // Не разлогиниваем аккаунт — просто выходим из админки на главную Kolibel.
+  const onLogout = () => {
+    navigate('/', { replace: true })
   }
 
   return (
@@ -69,7 +67,7 @@ export function AdminLayout() {
           </div>
           <button className={s.logout} onClick={onLogout}>
             <Ic.logout className={s.navIcon} />
-            <span>Выйти</span>
+            <span>Выйти из админки</span>
           </button>
         </div>
       </aside>

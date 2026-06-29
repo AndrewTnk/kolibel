@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { feedActions } from '../model/feedSlice'
-import { addComment, loadFeed } from '../model/feedThunks'
+import { addComment, loadFeed, fetchPostById } from '../model/feedThunks'
 import type { FeedPost } from '../model/types'
 import { useAuthorIdentity } from '../lib/useAuthorIdentity'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
@@ -14,6 +14,8 @@ import { CommentList } from './CommentList'
 import { CommentComposer } from './CommentComposer'
 import { emojify } from '../../../shared/ui/Emoji/emojify'
 import { formatPostTime } from './PostCard'
+import { MoreMenu } from '../../../shared/ui/MoreMenu/MoreMenu'
+import { reportUiActions } from '../../reports/model/reportUiSlice'
 import styles from './Feed.module.css'
 
 /**
@@ -34,6 +36,15 @@ export function PostModal() {
     if (openPostId && !loaded && status === 'idle') void dispatch(loadFeed())
   }, [openPostId, loaded, status, dispatch])
 
+  // Лента загружена, а поста в ней нет (старый/из админки/уведомления) — тянем по id.
+  const fetchedRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (openPostId && loaded && !post && fetchedRef.current !== openPostId) {
+      fetchedRef.current = openPostId
+      void dispatch(fetchPostById(openPostId))
+    }
+  }, [openPostId, loaded, post, dispatch])
+
   // На мобилке модалку не показываем (там читают пост в ленте через «Показать ещё»).
   if (isMobile || !openPostId) return null
   return <PostModalInner post={post} loading={!loaded} onClose={() => dispatch(feedActions.closePost())} />
@@ -50,6 +61,7 @@ function PostModalInner({
 }) {
   const dispatch = useAppDispatch()
   const me = useAuthorIdentity()
+  const myId = useAppSelector((s) => s.auth.user?.id)
   const [lightbox, setLightbox] = useState<number | null>(null)
   const inputRef = useRef<{ focus: () => void } | null>(null)
 
@@ -81,9 +93,23 @@ function PostModalInner({
   return createPortal(
     <div className={styles.pmOverlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Публикация">
       <div className={styles.pmPanel} onClick={(e) => e.stopPropagation()}>
-        <button type="button" className={styles.pmClose} onClick={onClose} aria-label="Закрыть">
-          ✕
-        </button>
+        <div className={styles.pmTopBar}>
+          {post && myId && myId !== post.authorId ? (
+            <MoreMenu
+              className={styles.pmMore}
+              items={[
+                {
+                  label: 'Пожаловаться',
+                  onClick: () =>
+                    dispatch(reportUiActions.openReport({ type: 'post', id: post.id, title: post.authorName })),
+                },
+              ]}
+            />
+          ) : null}
+          <button type="button" className={styles.pmClose} onClick={onClose} aria-label="Закрыть">
+            ✕
+          </button>
+        </div>
 
         <div className={styles.pmScroll}>
           {!post ? (

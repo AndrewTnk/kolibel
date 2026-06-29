@@ -57,6 +57,14 @@
   height: 100%;
   object-fit: cover;
 }
+.avMod {
+  background: #2563eb;
+}
+.avMark {
+  width: 66%;
+  height: 66%;
+  object-fit: contain;
+}
 
 .body {
   min-width: 0;

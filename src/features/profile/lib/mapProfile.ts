@@ -33,6 +33,9 @@ export type ProfileRow = {
   is_public: boolean | null
   show_activity: boolean | null
   last_seen_at: string | null
+  status: 'active' | 'blocked' | 'deleted' | null
+  block_reason: string | null
+  block_message: string | null
 }
 
 /**

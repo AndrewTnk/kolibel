@@ -128,6 +128,7 @@ export function ConversationList({
                     <div className={styles.lName}>
                       <span className={styles.lNameText}>{c.title}</span>
                       <CompanyBadge logo={c.companyLogo} title={c.company} size={13} />
+                      {c.otherBlocked ? <span className={styles.blockedTag}>Заблокирован</span> : null}
                       {c.pinned ? (
                         <span className={styles.pinIc} title="Закреплён">
                           <ChatIco.pin width={12} height={12} />

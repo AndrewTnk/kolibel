@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { addComment, deleteComment, toggleCommentLike } from '../model/feedThunks'
+import { reportUiActions } from '../../reports/model/reportUiSlice'
 import type { FeedComment, FeedPost } from '../model/types'
 import { useAuthorIdentity } from '../lib/useAuthorIdentity'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
@@ -103,7 +104,15 @@ function CommentItem({
             >
               Удалить
             </button>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              className={styles.commentAct}
+              onClick={() => dispatch(reportUiActions.openReport({ type: 'comment', id: c.id, title: c.authorName }))}
+            >
+              Пожаловаться
+            </button>
+          )}
         </div>
       </div>
       <button

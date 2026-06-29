@@ -2,12 +2,21 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { AuthSession } from './types'
 import { bootstrapAuth, signIn, signOut, signUp } from './authThunks.ts'
 
+/** Статус модерации текущего аккаунта (для экрана блокировки при входе). */
+export type AccountModeration = {
+  blocked: boolean
+  reason: string
+  message: string
+}
+
 type AuthState = {
   bootstrapped: boolean
   session: AuthSession | null
   user: AuthSession['user'] | null
   status: 'idle' | 'loading'
   error: string | null
+  /** Заполняется loadProfile: если аккаунт заблокирован — показываем экран блокировки. */
+  moderation: AccountModeration | null
 }
 
 const initialState: AuthState = {
@@ -16,6 +25,7 @@ const initialState: AuthState = {
   user: null,
   status: 'idle',
   error: null,
+  moderation: null,
 }
 
 const slice = createSlice({
@@ -28,6 +38,9 @@ const slice = createSlice({
     },
     setBootstrapped(state, action: { payload: boolean }) {
       state.bootstrapped = action.payload
+    },
+    setModeration(state, action: { payload: AccountModeration | null }) {
+      state.moderation = action.payload
     },
     clearError(state) {
       state.error = null
@@ -53,6 +66,7 @@ const slice = createSlice({
     b.addCase(signIn.pending, (s) => {
       s.status = 'loading'
       s.error = null
+      s.moderation = null
     })
     b.addCase(signIn.fulfilled, (s, a) => {
       s.status = 'idle'
@@ -86,6 +100,7 @@ const slice = createSlice({
       s.status = 'idle'
       s.session = null
       s.user = null
+      s.moderation = null
     })
     b.addCase(signOut.rejected, (s, a) => {
       s.status = 'idle'

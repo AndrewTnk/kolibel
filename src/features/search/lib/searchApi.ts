@@ -55,12 +55,13 @@ export async function searchEntities(query: string): Promise<SearchResults> {
   const pattern = `%${escapeLike(q)}%`
   const lim = q ? LIMIT : SUGGEST_LIMIT
 
-  // Люди (только публичные профили)
+  // Люди (только публичные и не заблокированные модерацией профили)
   let peopleQ = supabase
     .from('profiles')
     .select('id, full_name, job_title, avatar_url, job_status')
     .eq('account_type', 'user')
     .eq('is_public', true)
+    .neq('status', 'blocked')
     .neq('id', me)
     .order('full_name', { ascending: true })
     .limit(lim)
@@ -137,6 +138,7 @@ async function filterPublicIds(ids: string[]): Promise<Set<string>> {
     .select('id')
     .in('id', ids)
     .eq('is_public', true)
+    .neq('status', 'blocked')
   if (error) return new Set(ids) // мягкая деградация: не прячем, если запрос упал
   return new Set((data ?? []).map((r) => (r as { id: string }).id))
 }

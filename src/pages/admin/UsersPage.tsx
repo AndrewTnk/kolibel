@@ -9,6 +9,8 @@ import { fmtDate, fmtRelative } from '../../features/admin/lib/format'
 import { accountStatus } from '../../features/admin/lib/labels'
 import { useAppSelector } from '../../app/store/hooks'
 import type { AccountStatus } from '../../features/admin/model/types'
+import { ModerationReasonModal } from '../../features/admin/ui/ModerationReasonModal'
+import { ACCOUNT_BLOCK_REASONS } from '../../features/admin/lib/moderationReasons'
 
 const PAGE_SIZE = 12
 
@@ -17,6 +19,9 @@ export function UsersPage() {
   const [searchRaw, setSearchRaw] = useState('')
   const [status, setStatus] = useState<AccountStatus | ''>('')
   const [page, setPage] = useState(0)
+  // Цель блокировки (открывает модалку выбора причины).
+  const [blockTarget, setBlockTarget] = useState<{ id: string; name: string } | null>(null)
+  const [busy, setBusy] = useState(false)
   const search = useDebounced(searchRaw, 300)
 
   const { data, loading, error, reload } = useAsync(
@@ -36,6 +41,18 @@ export function UsersPage() {
   const setUserStatus = async (id: string, next: AccountStatus) => {
     await adminApi.setAccountStatus(id, next)
     reload()
+  }
+  // Блокировка с причиной (из модалки).
+  const confirmBlock = async (reason: string, message: string) => {
+    if (!blockTarget) return
+    setBusy(true)
+    try {
+      await adminApi.setAccountStatus(blockTarget.id, 'blocked', reason, message)
+      setBlockTarget(null)
+      reload()
+    } finally {
+      setBusy(false)
+    }
   }
   const toggleRole = async (id: string, hasRole: boolean) => {
     if (hasRole) {
@@ -148,7 +165,7 @@ export function UsersPage() {
                           <button
                             className={`${s.btn} ${s.btnIcon} ${s.btnDanger}`}
                             title="Заблокировать"
-                            onClick={() => confirm(`Заблокировать «${u.name}»?`) && setUserStatus(u.id, 'blocked')}
+                            onClick={() => setBlockTarget({ id: u.id, name: u.name })}
                           >
                             <Ic.ban />
                           </button>
@@ -172,6 +189,18 @@ export function UsersPage() {
           <Pager page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPage={setPage} />
         </div>
       </div>
+
+      {blockTarget && (
+        <ModerationReasonModal
+          title="Блокировка аккаунта"
+          subtitle={blockTarget.name}
+          confirmLabel="Заблокировать"
+          reasons={ACCOUNT_BLOCK_REASONS}
+          busy={busy}
+          onCancel={() => setBlockTarget(null)}
+          onConfirm={confirmBlock}
+        />
+      )}
     </>
   )
 }

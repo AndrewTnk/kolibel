@@ -7,6 +7,8 @@ import { ContactToast } from '../../features/vacancies/ui/ContactToast'
 import { PullToRefresh } from '../../shared/ui/PullToRefresh/PullToRefresh'
 import { NotificationToast } from '../../features/notifications/ui/NotificationToast'
 import { PostModal } from '../../features/feed/ui/PostModal'
+import { ReportModal } from '../../features/reports/ui/ReportModal'
+import { ModerationResponseModal } from '../../features/moderation/ui/ModerationResponseModal'
 import { ProfileAnalyticsModal } from '../../widgets/ProfileAnalyticsModal/ProfileAnalyticsModal'
 import { CompanyAnalyticsModal } from '../../features/company/ui/CompanyAnalyticsModal/CompanyAnalyticsModal'
 import { profileActions } from '../../features/profile/model/profileSlice'
@@ -27,6 +29,8 @@ export function RootLayout() {
       <NotificationToast />
       <ChatOverlay />
       <PostModal />
+      <ReportModal />
+      <ModerationResponseModal />
       <VacancyModal />
       <VacancyModals />
       <ContactToast />

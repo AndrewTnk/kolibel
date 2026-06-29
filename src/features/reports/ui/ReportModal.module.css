@@ -1,0 +1,197 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay, rgba(15, 18, 26, 0.55));
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 2500;
+  padding: 16px;
+}
+.modal {
+  width: min(520px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: var(--card, #fff);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 12px;
+}
+.title {
+  font-size: 19px;
+  font-weight: 800;
+}
+.sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.close {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 6px;
+  line-height: 0;
+}
+.close:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.body {
+  padding: 6px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.label {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field-bg, #f4f6fa);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14.5px;
+  padding: 12px 13px;
+  outline: none;
+}
+.textarea:focus {
+  border-color: var(--primary);
+}
+.textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+.counter {
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Скриншоты-доказательства */
+.evi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.thumb {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 11px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.thumbDel {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.addEvi {
+  width: 72px;
+  height: 72px;
+  border-radius: 11px;
+  border: 1.5px dashed var(--border);
+  background: var(--field-bg, #f4f6fa);
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 300;
+}
+.addEvi:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.hint {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.error {
+  font-size: 13px;
+  color: #e0483a;
+  font-weight: 600;
+}
+.foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+.btn {
+  padding: 11px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--field-bg, #f4f6fa);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btnPrimary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--onPrimary, #2a1206);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.success {
+  padding: 40px 20px;
+  text-align: center;
+}
+.successMark {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: rgba(52, 199, 89, 0.16);
+  color: #2fae5a;
+  display: grid;
+  place-items: center;
+}
+.successTitle {
+  font-size: 18px;
+  font-weight: 800;
+}
+.successSub {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-top: 6px;
+}

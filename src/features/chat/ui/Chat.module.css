@@ -209,6 +209,17 @@
   font-weight: 700;
   flex-shrink: 0;
 }
+.blockedTag {
+  flex-shrink: 0;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(225, 75, 75, 0.12);
+  color: #e14b4b;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
 .lBottom {
   display: flex;
   align-items: center;

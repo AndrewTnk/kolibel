@@ -89,8 +89,17 @@ export const adminApi = {
   analytics: () => rpc<AdminAnalytics>('get_admin_analytics'),
 
   // ── Действия ────────────────────────────────────────────
-  setAccountStatus: (id: string, status: AccountStatus) =>
-    rpc<void>('admin_set_account_status', { p_id: id, p_status: status }),
+  setAccountStatus: (id: string, status: AccountStatus, reason = '', message = '') =>
+    rpc<void>('admin_set_account_status', {
+      p_id: id,
+      p_status: status,
+      p_reason: reason,
+      p_message: message,
+    }),
+
+  /** Удалить контент (пост/коммент/вакансию) + уведомить автора с причиной. */
+  removeContent: (type: 'post' | 'comment' | 'vacancy', id: string, reason: string, message: string) =>
+    rpc<void>('admin_remove_content', { p_type: type, p_id: id, p_reason: reason, p_message: message }),
 
   setVacancyModeration: (id: string, moderation: VacancyModeration) =>
     rpc<void>('admin_set_vacancy_moderation', { p_id: id, p_moderation: moderation }),
@@ -106,8 +115,13 @@ export const adminApi = {
   addReportComment: (id: string, note: string) =>
     rpc<void>('admin_add_report_comment', { p_id: id, p_note: note }),
 
-  resolveReport: (id: string, resolution: ReportResolution, note = '') =>
-    rpc<void>('admin_resolve_report', { p_id: id, p_resolution: resolution, p_note: note }),
+  resolveReport: (id: string, resolution: ReportResolution, note = '', reason = '') =>
+    rpc<void>('admin_resolve_report', {
+      p_id: id,
+      p_resolution: resolution,
+      p_note: note,
+      p_reason: reason,
+    }),
 
   // ── Роли (admin only) ───────────────────────────────────
   grantRole: (userId: string, role: AdminRole) =>

@@ -58,6 +58,46 @@ export const CONTENT_REMOVE_REASONS: ModReason[] = [
   },
 ]
 
+/** Причины снятия вакансии с публикации. */
+export const VACANCY_REMOVE_REASONS: ModReason[] = [
+  {
+    key: 'fake',
+    label: 'Недостоверная вакансия',
+    message:
+      'Ваша вакансия снята с публикации как недостоверная или вводящая в заблуждение. Проверьте корректность условий и описания.',
+  },
+  {
+    key: 'discrimination',
+    label: 'Дискриминация в требованиях',
+    message:
+      'Ваша вакансия снята за дискриминационные требования (пол/возраст/национальность и т.п.). Это нарушает правила платформы.',
+  },
+  {
+    key: 'spam',
+    label: 'Спам/дубликат',
+    message:
+      'Ваша вакансия снята как спам или дубликат. Не размещайте повторяющиеся объявления.',
+  },
+  {
+    key: 'fraud',
+    label: 'Мошенничество',
+    message:
+      'Ваша вакансия снята за признаки мошенничества (предоплаты, сомнительные схемы). Это серьёзное нарушение правил.',
+  },
+  {
+    key: 'illegal',
+    label: 'Запрещённая деятельность',
+    message:
+      'Ваша вакансия снята за предложение запрещённой или незаконной деятельности.',
+  },
+  {
+    key: 'other',
+    label: 'Иное нарушение правил',
+    message:
+      'Ваша вакансия снята с публикации за нарушение правил платформы. При вопросах обратитесь в поддержку.',
+  },
+]
+
 /** Причины блокировки аккаунта (пользователя/компании). */
 export const ACCOUNT_BLOCK_REASONS: ModReason[] = [
   {
@@ -106,7 +146,7 @@ export const ACCOUNT_BLOCK_REASONS: ModReason[] = [
 
 /** Причины по типу цели жалобы (для кнопки «Принять меры»). */
 export function reasonsForTarget(targetType: string): ModReason[] {
-  return targetType === 'user' || targetType === 'company'
-    ? ACCOUNT_BLOCK_REASONS
-    : CONTENT_REMOVE_REASONS
+  if (targetType === 'user' || targetType === 'company') return ACCOUNT_BLOCK_REASONS
+  if (targetType === 'vacancy') return VACANCY_REMOVE_REASONS
+  return CONTENT_REMOVE_REASONS
 }

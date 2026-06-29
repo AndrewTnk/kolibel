@@ -117,6 +117,8 @@ export function UsersPage() {
               )}
               {data?.rows.map((u) => {
                 const st = accountStatus[u.status]
+                // Админа блокировать нельзя никому; модератора — только админу.
+                const canBlock = u.role !== 'admin' && (isAdmin || u.role !== 'moderator')
                 return (
                   <tr key={u.id}>
                     <td>
@@ -161,7 +163,7 @@ export function UsersPage() {
                             <Ic.shield />
                           </button>
                         )}
-                        {u.status === 'active' ? (
+                        {!canBlock ? null : u.status === 'active' ? (
                           <button
                             className={`${s.btn} ${s.btnIcon} ${s.btnDanger}`}
                             title="Заблокировать"

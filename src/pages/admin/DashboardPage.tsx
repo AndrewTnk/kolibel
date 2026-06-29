@@ -137,7 +137,7 @@ export function DashboardPage() {
             <div className={s.cardHead}>
               <div className={s.cardTitle}>Рост пользователей</div>
             </div>
-            <LineChart data={data.userGrowth.map((p) => p.total)} />
+            <LineChart data={data.userGrowth} />
           </div>
 
           <div className={s.card}>

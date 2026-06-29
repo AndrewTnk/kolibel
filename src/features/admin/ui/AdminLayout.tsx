@@ -8,7 +8,7 @@ type NavDef = { to: string; label: string; icon: keyof typeof Ic; end?: boolean;
 
 // adminOnly — раздел виден только роли admin. Остальное доступно и модератору.
 const NAV: NavDef[] = [
-  { to: '/admin', label: 'Главная', icon: 'home', end: true, adminOnly: true },
+  { to: '/admin', label: 'Главная', icon: 'home', end: true },
   { to: '/admin/users', label: 'Пользователи', icon: 'users' },
   { to: '/admin/companies', label: 'Компании', icon: 'company' },
   { to: '/admin/vacancies', label: 'Вакансии', icon: 'briefcase' },

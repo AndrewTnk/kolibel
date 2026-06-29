@@ -34,9 +34,12 @@ async function currentUser() {
 
 /** Загрузка всех вакансий. */
 export const loadVacancies = createAsyncThunk<Vacancy[], void>('vacancies/load', async () => {
+  // Снятые модерацией (moderation='removed') не показываем нигде в приложении —
+  // ими управляют в админ-панели (RLS отдаёт их staff/владельцу, поэтому фильтруем явно).
   const { data, error } = await supabase
     .from('vacancies')
     .select('*')
+    .neq('moderation', 'removed')
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   const vacancies = (data as VacancyRow[]).map(rowToVacancy)

@@ -8,6 +8,8 @@ import { adminApi } from '../../features/admin/lib/adminApi'
 import { fmtDate, fmtNum } from '../../features/admin/lib/format'
 import { vacancyModeration } from '../../features/admin/lib/labels'
 import type { VacancyModeration } from '../../features/admin/model/types'
+import { ModerationReasonModal } from '../../features/admin/ui/ModerationReasonModal'
+import { VACANCY_REMOVE_REASONS } from '../../features/admin/lib/moderationReasons'
 
 const PAGE_SIZE = 12
 
@@ -15,6 +17,8 @@ export function VacanciesPage() {
   const [searchRaw, setSearchRaw] = useState('')
   const [mod, setMod] = useState<VacancyModeration | ''>('')
   const [page, setPage] = useState(0)
+  const [delTarget, setDelTarget] = useState<{ id: string; title: string; company: string } | null>(null)
+  const [busy, setBusy] = useState(false)
   const search = useDebounced(searchRaw, 300)
 
   const { data, loading, error, reload } = useAsync(
@@ -22,9 +26,22 @@ export function VacanciesPage() {
     [search, mod, page],
   )
 
+  // Скрыть/показать/восстановить — без причины (мягкое переключение видимости).
   const setMode = async (id: string, next: VacancyModeration) => {
     await adminApi.setVacancyModeration(id, next)
     reload()
+  }
+  // Удаление — через модалку причины + уведомление компании.
+  const confirmDelete = async (reason: string, message: string) => {
+    if (!delTarget) return
+    setBusy(true)
+    try {
+      await adminApi.removeContent('vacancy', delTarget.id, reason, message)
+      setDelTarget(null)
+      reload()
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -138,7 +155,7 @@ export function VacanciesPage() {
                           <button
                             className={`${s.btn} ${s.btnIcon} ${s.btnDanger}`}
                             title="Удалить"
-                            onClick={() => confirm(`Удалить вакансию «${v.title}»?`) && setMode(v.id, 'removed')}
+                            onClick={() => setDelTarget({ id: v.id, title: v.title, company: v.company })}
                           >
                             <Ic.trash />
                           </button>
@@ -154,6 +171,18 @@ export function VacanciesPage() {
           <Pager page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPage={setPage} />
         </div>
       </div>
+
+      {delTarget && (
+        <ModerationReasonModal
+          title="Удаление вакансии"
+          subtitle={`${delTarget.title} · ${delTarget.company}`}
+          confirmLabel="Удалить"
+          reasons={VACANCY_REMOVE_REASONS}
+          busy={busy}
+          onCancel={() => setDelTarget(null)}
+          onConfirm={confirmDelete}
+        />
+      )}
     </>
   )
 }

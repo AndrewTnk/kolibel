@@ -115,14 +115,7 @@ export const router = createBrowserRouter([
       </AdminRoute>
     ),
     children: [
-      {
-        index: true,
-        element: (
-          <RequireAdmin>
-            <DashboardPage />
-          </RequireAdmin>
-        ),
-      },
+      { index: true, element: <DashboardPage /> },
       { path: 'users', element: <UsersPage /> },
       { path: 'companies', element: <CompaniesPage /> },
       { path: 'vacancies', element: <AdminVacanciesPage /> },

@@ -187,20 +187,6 @@
   color: var(--soft);
   font-weight: 600;
 }
-.langBar {
-  display: block;
-  height: 1.6mm;
-  border-radius: 1mm;
-  background: var(--hair);
-  overflow: hidden;
-}
-.langBar i {
-  display: block;
-  height: 100%;
-  border-radius: 1mm;
-  background: var(--accent);
-}
-
 /* О себе */
 .about p {
   margin: 0 0 2.4mm;

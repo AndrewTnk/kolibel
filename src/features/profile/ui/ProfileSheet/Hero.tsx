@@ -5,8 +5,6 @@ import type { JobStatus, Resume } from '../../model/types'
 import type { ProfileModalState } from './ProfileModals'
 import { CompanyBadge } from '../../../../shared/ui/CompanyBadge/CompanyBadge'
 import { OnlineDot } from '../../../presence/ui/OnlineDot'
-import { useIsOnline } from '../../../presence/lib/useIsOnline'
-import { formatLastSeen } from '../../../presence/lib/formatLastSeen'
 import { Ic } from './icons'
 import s from './ProfileSheet.module.css'
 
@@ -41,10 +39,6 @@ export function Hero({ open, resume: propResume, readOnly = false, actions, view
   const storeResume = useAppSelector((st) => st.profile.resume)
   const resume = propResume ?? storeResume
   const myId = useAppSelector((st) => st.auth.user?.id)
-  const online = useIsOnline(viewedId ?? myId)
-  const activityText = resume.showActivity
-    ? formatLastSeen(resume.lastSeenAt, online)
-    : ''
   const [moreOpen, setMoreOpen] = useState(false)
   const moreRef = useRef<HTMLDivElement | null>(null)
 
@@ -146,11 +140,6 @@ export function Hero({ open, resume: propResume, readOnly = false, actions, view
                 <span className={s.heroMetaItem}>
                   <Ic.mapPin /> {resume.location}
                   {resume.country ? `, ${resume.country}` : ''}
-                </span>
-              ) : null}
-              {activityText ? (
-                <span className={s.heroMetaItem} style={online ? { color: 'var(--green)' } : undefined}>
-                  {activityText}
                 </span>
               ) : null}
             </div>

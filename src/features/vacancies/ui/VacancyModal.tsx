@@ -101,7 +101,7 @@ export function VacancyModal() {
             <IcClose />
           </button>
           <div className={s.vdTopLine}>
-            <CompanyAvatar initial={companyInitial(vacancy.company)} className={s.vdAva} />
+            <CompanyAvatar initial={companyInitial(vacancy.company)} logo={vacancy.companyLogo} className={s.vdAva} />
             <div className={s.vdTitleArea}>
               <div id="vacancy-modal-title" className={s.vdTitle}>
                 {vacancy.title}
@@ -286,6 +286,7 @@ export function VacancyModal() {
           <Button
             type="button"
             variant="secondary"
+            className={s.vdFootIcon}
             aria-label="Пожаловаться"
             title="Пожаловаться"
             onClick={() =>
@@ -297,6 +298,7 @@ export function VacancyModal() {
           <Button
             type="button"
             variant="secondary"
+            className={s.vdFootIcon}
             aria-label="Поделиться"
             title="Поделиться"
             onClick={() => setShareOpen(true)}
@@ -306,12 +308,15 @@ export function VacancyModal() {
           <Button
             type="button"
             variant="secondary"
+            className={s.vdFootIcon}
+            aria-label="Связаться"
+            title="Связаться"
             onClick={() => {
               close()
               dispatch(vacanciesActions.openContact(vacancy.id))
             }}
           >
-            <IcChat /> Связаться
+            <IcChat /> <span className="hideOnMobile">Связаться</span>
           </Button>
           {applied ? (
             <Button type="button" variant="secondary" disabled>

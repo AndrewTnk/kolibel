@@ -1,6 +1,7 @@
 import { useAppSelector } from '../../../../app/store/hooks'
 import type { ContactLink, ExperienceItem, Resume } from '../../model/types'
 import type { ProfileModalState } from './ProfileModals'
+import { contactHref } from '../../lib/contactHref'
 import { Ic } from './icons'
 import s from './ProfileSheet.module.css'
 
@@ -23,21 +24,10 @@ function initials(name: string): string {
   )
 }
 
-/** Грубая оценка уровня языка → проценту для прогресс-бара. */
-function levelPct(level: string): number {
-  const l = level.toLowerCase()
-  if (l.includes('родной') || l.includes('native') || l.startsWith('c2')) return 100
-  if (l.startsWith('c1')) return 88
-  if (l.startsWith('b2')) return 72
-  if (l.startsWith('b1')) return 55
-  if (l.startsWith('a2')) return 35
-  if (l.startsWith('a1')) return 18
-  return 60
-}
-
 function contactIcon(label: string) {
   const l = label.toLowerCase()
   if (l.includes('mail') || l.includes('почт') || l.includes('email')) return <Ic.mail />
+  if (l.includes('телефон') || l.includes('phone') || l.includes('тел')) return <Ic.phone />
   if (l.includes('tg') || l.includes('telegram') || l.includes('телеграм')) return <Ic.tg />
   if (l.includes('git')) return <Ic.github />
   if (l.includes('сайт') || l.includes('site') || l.includes('портфол') || l.includes('web')) return <Ic.globe />
@@ -93,15 +83,27 @@ export function ResumeView({ expanded, onToggle, layout, open, resume: propResum
             <SecHead title="Контакты" onEdit={edit && (() => open({ kind: 'contacts' }))} />
             {resume.contacts.length ? (
               <div className={s.contactsList}>
-                {resume.contacts.map((c: ContactLink, i) => (
-                  <a key={i} href={c.href || undefined} className={s.contactRow} target="_blank" rel="noreferrer">
-                    <span className={s.contactIco}>{contactIcon(c.label)}</span>
-                    <span className={s.contactStack}>
-                      <span className={s.contactLab}>{c.label}</span>
-                      <span className={s.contactVal}>{c.value}</span>
+                {resume.contacts.map((c: ContactLink, i) => {
+                  const href = contactHref(c.label, c.value)
+                  const inner = (
+                    <>
+                      <span className={s.contactIco}>{contactIcon(c.label)}</span>
+                      <span className={s.contactStack}>
+                        <span className={s.contactLab}>{c.label}</span>
+                        <span className={s.contactVal}>{c.value}</span>
+                      </span>
+                    </>
+                  )
+                  return href ? (
+                    <a key={i} href={href} className={s.contactRow} target="_blank" rel="noreferrer">
+                      {inner}
+                    </a>
+                  ) : (
+                    <span key={i} className={s.contactRow}>
+                      {inner}
                     </span>
-                  </a>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <button type="button" className={s.emptyAdd} onClick={() => open({ kind: 'contacts' })}>
@@ -121,9 +123,6 @@ export function ResumeView({ expanded, onToggle, layout, open, resume: propResum
                   <div key={i} className={s.langRow}>
                     <span className={s.langName}>{l.name}</span>
                     <span className={s.langLevel}>{l.level}</span>
-                    <span className={s.langBar}>
-                      <i style={{ width: `${levelPct(l.level)}%` }} />
-                    </span>
                   </div>
                 ))}
               </div>

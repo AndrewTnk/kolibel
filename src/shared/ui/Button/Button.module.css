@@ -1,12 +1,23 @@
 .btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   height: 46px;
   border-radius: 12px;
   border: 1px solid transparent;
   padding: 0 16px;
   font-size: var(--text-base);
   font-weight: 600;
+  line-height: 1;
   cursor: pointer;
   transition: background .12s ease, border-color .12s ease, box-shadow .12s ease, transform .03s ease;
+}
+
+/* Иконки внутри кнопки не должны влиять на вертикальную центровку (svg = inline baseline). */
+.btn > svg{
+  display: block;
+  flex: none;
 }
 
 .btn:active{

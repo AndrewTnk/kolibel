@@ -1,18 +1,6 @@
 import type { Resume } from '../../model/types'
 import d from './ResumeDocument.module.css'
 
-/** Грубая оценка уровня языка → проценту для прогресс-бара (как в ResumeView). */
-function levelPct(level: string): number {
-  const l = level.toLowerCase()
-  if (l.includes('родной') || l.includes('native') || l.startsWith('c2')) return 100
-  if (l.startsWith('c1')) return 88
-  if (l.startsWith('b2')) return 72
-  if (l.startsWith('b1')) return 55
-  if (l.startsWith('a2')) return 35
-  if (l.startsWith('a1')) return 18
-  return 60
-}
-
 function initials(name: string): string {
   return (
     name
@@ -116,9 +104,6 @@ export function ResumeDocument({ resume: r, accent }: Props) {
                       <span className={d.langName}>{l.name}</span>
                       <span className={d.langLevel}>{l.level}</span>
                     </div>
-                    <span className={d.langBar}>
-                      <i style={{ width: `${levelPct(l.level)}%` }} />
-                    </span>
                   </li>
                 ))}
               </ul>

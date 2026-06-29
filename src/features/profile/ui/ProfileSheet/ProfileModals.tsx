@@ -15,6 +15,7 @@ import type {
   Resume,
 } from '../../model/types'
 import { useProfilePulse, buildSparkline, formatDelta } from '../../lib/useProfilePulse'
+import { contactHref } from '../../lib/contactHref'
 import { findCompanyLogoByName } from '../../../company/lib/findCompanyLogo'
 import { CompanyAutocomplete } from '../../../company/ui/CompanyAutocomplete'
 import { ImageUploadField } from '../../../../shared/ui/ImageUploadField/ImageUploadField'
@@ -552,30 +553,6 @@ function LanguagesModal({ onClose, showToast }: ModalProps) {
 // ── 12. Контакты ────────────────────────────────────────────
 const CONTACT_TYPES = ['Telegram', 'Email', 'VK', 'MAX', 'Телефон', 'Сайт']
 
-/** Ссылка по типу контакта и введённому значению. */
-function deriveHref(label: string, value: string): string {
-  const v = value.trim()
-  if (!v) return ''
-  if (/^https?:\/\//i.test(v)) return v
-  const handle = v.replace(/^@/, '')
-  switch (label) {
-    case 'Email':
-      return `mailto:${v}`
-    case 'Телефон':
-      return `tel:${v.replace(/[^\d+]/g, '')}`
-    case 'Telegram':
-      return `https://t.me/${handle}`
-    case 'VK':
-      return v.includes('vk.com') ? `https://${v.replace(/^https?:\/\//, '')}` : `https://vk.com/${handle}`
-    case 'MAX':
-      return v.includes('.') ? `https://${v.replace(/^https?:\/\//, '')}` : v
-    case 'Сайт':
-      return v.includes('.') ? `https://${v.replace(/^https?:\/\//, '')}` : v
-    default:
-      return v
-  }
-}
-
 function ContactsModal({ onClose, showToast }: ModalProps) {
   const { resume, persist } = useSaveResume(showToast, onClose)
   const [list, setList] = useState<ContactLink[]>(resume.contacts)
@@ -583,7 +560,7 @@ function ContactsModal({ onClose, showToast }: ModalProps) {
   const [value, setValue] = useState('')
   function add() {
     if (!value.trim()) return
-    const next = [...list, { label, value: value.trim(), href: deriveHref(label, value.trim()) }]
+    const next = [...list, { label, value: value.trim(), href: contactHref(label, value.trim()) }]
     setList(next)
     setValue('')
     void persist({ contacts: next })

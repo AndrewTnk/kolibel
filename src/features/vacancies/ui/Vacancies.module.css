@@ -2146,6 +2146,14 @@
   flex-shrink: 0;
 }
 
+/* Тёмная тема: кремовый старт градиента делал светлый текст шапки (--accent) нечитаемым.
+   Заменяем на тёплый тинт поверх тёмной карточки — заголовок/зарплата снова видны. */
+:global([data-theme='dark']) .vdHead {
+  background:
+    radial-gradient(70% 140% at 90% 0%, rgba(255, 127, 80, 0.2), transparent 55%),
+    linear-gradient(180deg, rgba(255, 127, 80, 0.08), var(--card));
+}
+
 .vdClose {
   position: absolute;
   right: 14px;
@@ -2507,5 +2515,16 @@
   .vdRightMatch {
     grid-column: 1 / -1;
     justify-self: start;
+  }
+  /* Футер модалки вакансии: иконочные кнопки — компактные квадраты,
+     текст остаётся только у кнопки отклика (иначе кнопки уезжают за край). */
+  .mFoot {
+    padding: 12px 14px;
+    gap: 6px;
+  }
+  .vdFootIcon {
+    padding: 0;
+    width: 44px;
+    flex: none;
   }
 }

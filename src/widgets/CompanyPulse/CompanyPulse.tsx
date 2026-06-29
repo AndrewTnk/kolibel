@@ -28,9 +28,10 @@ export function CompanyPulse() {
           }
         }}
       >
+        <div className={styles.cardLabel}>Профиль за 7 дней</div>
         <div className={styles.head}>
-          <div className={styles.title}>Пульс страницы</div>
-          <div className={styles.delta}>{formatDelta(pulse.pageViews.deltaPct)} / 7 дн.</div>
+          <div className={styles.title}>Просмотры профиля</div>
+          <div className={styles.delta}>{formatDelta(pulse.pageViews.deltaPct)}</div>
         </div>
 
         <div className={styles.sparkBox}>

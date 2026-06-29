@@ -4,6 +4,8 @@ import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { feedActions } from '../model/feedSlice'
 import { addComment, loadFeed, fetchPostById } from '../model/feedThunks'
+import { vacanciesActions } from '../../vacancies/model/vacanciesSlice'
+import { incrementVacancyView, loadVacancies } from '../../vacancies/model/vacancyThunks'
 import type { FeedPost } from '../model/types'
 import { useAuthorIdentity } from '../lib/useAuthorIdentity'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
@@ -62,8 +64,17 @@ function PostModalInner({
   const dispatch = useAppDispatch()
   const me = useAuthorIdentity()
   const myId = useAppSelector((s) => s.auth.user?.id)
+  const vacanciesLoaded = useAppSelector((s) => s.vacanciesList.items.length > 0)
   const [lightbox, setLightbox] = useState<number | null>(null)
   const inputRef = useRef<{ focus: () => void } | null>(null)
+
+  // Открыть модалку прикреплённой вакансии (закрыв модалку поста).
+  const openVacancy = (vacancyId: string) => {
+    if (!vacanciesLoaded) void dispatch(loadVacancies())
+    onClose()
+    dispatch(vacanciesActions.openVacancy(vacancyId))
+    void dispatch(incrementVacancyView(vacancyId))
+  }
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -157,14 +168,35 @@ function PostModalInner({
                       )
                     if (c.kind === 'vacancy')
                       return (
-                        <div key={idx} className={styles.vacancyCard}>
-                          <div className={styles.vacancyCardLabel}>Вакансия</div>
-                          <div className={styles.vacancyCardTitle}>{c.title}</div>
-                          <div className={styles.vacancyCardMeta}>
-                            {c.salary} · {c.city}
+                        <div
+                          key={idx}
+                          className={styles.vacancyCard}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => openVacancy(c.vacancyId)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              openVacancy(c.vacancyId)
+                            }
+                          }}
+                        >
+                          <div className={styles.vacancyInfo}>
+                            <div className={styles.vacancyCardLabel}>Вакансия</div>
+                            <div className={styles.vacancyCardTitle}>{c.title}</div>
+                            <div className={styles.vacancyCardMeta}>
+                              {c.salary} · {c.city}
+                            </div>
                           </div>
-                          <button type="button" className={styles.vacancyCardBtn}>
-                            Откликнуться
+                          <button
+                            type="button"
+                            className={styles.vacancyCardBtn}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openVacancy(c.vacancyId)
+                            }}
+                          >
+                            Перейти к вакансии
                           </button>
                         </div>
                       )

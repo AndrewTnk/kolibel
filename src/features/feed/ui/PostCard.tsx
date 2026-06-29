@@ -4,6 +4,8 @@ import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { deletePost } from '../model/feedThunks'
 import { feedActions } from '../model/feedSlice'
 import { reportUiActions } from '../../reports/model/reportUiSlice'
+import { vacanciesActions } from '../../vacancies/model/vacanciesSlice'
+import { incrementVacancyView, loadVacancies } from '../../vacancies/model/vacancyThunks'
 import type { FeedPost } from '../model/types'
 import { MoreMenu, type MoreMenuItem } from '../../../shared/ui/MoreMenu/MoreMenu'
 import { emojify } from '../../../shared/ui/Emoji/emojify'
@@ -37,6 +39,14 @@ export function PostCard({ post }: { post: FeedPost }) {
   const isMobile = useIsMobile()
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [textExpanded, setTextExpanded] = useState(false)
+
+  const vacanciesLoaded = useAppSelector((s) => s.vacanciesList.items.length > 0)
+  // Открыть модалку прикреплённой вакансии (подгружаем список, если ещё пуст).
+  const openVacancy = (vacancyId: string) => {
+    if (!vacanciesLoaded) void dispatch(loadVacancies())
+    dispatch(vacanciesActions.openVacancy(vacancyId))
+    void dispatch(incrementVacancyView(vacancyId))
+  }
 
   // Веб: открываем модалку поста (текст + комментарии). Мобилка: комментарии модалкой.
   const openPost = () => dispatch(feedActions.openPost(post.id))
@@ -177,14 +187,35 @@ export function PostCard({ post }: { post: FeedPost }) {
             )
           if (c.kind === 'vacancy')
             return (
-              <div key={idx} className={styles.vacancyCard}>
-                <div className={styles.vacancyCardLabel}>Вакансия</div>
-                <div className={styles.vacancyCardTitle}>{c.title}</div>
-                <div className={styles.vacancyCardMeta}>
-                  {c.salary} · {c.city}
+              <div
+                key={idx}
+                className={styles.vacancyCard}
+                role="button"
+                tabIndex={0}
+                onClick={() => openVacancy(c.vacancyId)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    openVacancy(c.vacancyId)
+                  }
+                }}
+              >
+                <div className={styles.vacancyInfo}>
+                  <div className={styles.vacancyCardLabel}>Вакансия</div>
+                  <div className={styles.vacancyCardTitle}>{c.title}</div>
+                  <div className={styles.vacancyCardMeta}>
+                    {c.salary} · {c.city}
+                  </div>
                 </div>
-                <button type="button" className={styles.vacancyCardBtn}>
-                  Откликнуться
+                <button
+                  type="button"
+                  className={styles.vacancyCardBtn}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openVacancy(c.vacancyId)
+                  }}
+                >
+                  Перейти к вакансии
                 </button>
               </div>
             )

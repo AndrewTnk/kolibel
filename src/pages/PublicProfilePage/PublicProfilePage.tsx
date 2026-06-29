@@ -28,6 +28,7 @@ import { CompanyContacts } from '../../features/company/ui/CompanyContacts'
 import { fetchCompanyEmployees, type CompanyEmployee } from '../../features/company/lib/companyTeamApi'
 import { Ic } from '../../features/company/ui/brandIcons'
 import { ConnectionsGraph } from '../../features/network/ui/ConnectionsGraph'
+import { ArticlesBlock } from '../../features/articles/ui/ArticlesBlock'
 import { RecommendedCompanies } from '../../shared/ui/Recommendations/RecommendedCompanies'
 import { RecommendedPeople } from '../../shared/ui/Recommendations/RecommendedPeople'
 import { SupportLinks } from '../../shared/ui/Recommendations/SupportLinks'
@@ -164,6 +165,7 @@ export function PublicProfilePage() {
   const networkName =
     data?.kind === 'company' ? data.company.name : data?.kind === 'user' ? data.resume.fullName : ''
   const networkTitle = networkName ? `Сеть «${networkName}»` : 'Сеть'
+  const articlesTitle = networkName ? `Статьи «${networkName}»` : 'Статьи'
 
   // Заблокированный модерацией аккаунт недоступен по прямой ссылке (всем).
   const blockedAcc = !!data && data.blocked
@@ -222,6 +224,9 @@ export function PublicProfilePage() {
                 />
               </div>
               <div className="hideOnMobile">
+                <ArticlesBlock authorId={id} title={articlesTitle} />
+              </div>
+              <div className="hideOnMobile">
                 <RecommendedPeople title="Похожие пользователи" />
               </div>
               <div className="hideOnMobile">
@@ -278,6 +283,9 @@ export function PublicProfilePage() {
                     forceOpen={publicGraphOpen}
                     onForceClose={() => dispatch(networkActions.closePublicGraph())}
                   />
+                </div>
+                <div className="hideOnMobile">
+                  <ArticlesBlock authorId={id!} title={articlesTitle} />
                 </div>
                 {data.company.contacts.length ? <CompanyContacts contacts={data.company.contacts} /> : null}
                 <div className="hideOnMobile">

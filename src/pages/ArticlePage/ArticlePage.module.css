@@ -1,0 +1,510 @@
+.page {
+  min-height: 100dvh;
+  background: var(--app-bg, var(--bg));
+  padding-bottom: 80px;
+}
+
+/* ── Топ-бар ── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px clamp(16px, 4vw, 40px);
+  background: var(--header-bg, rgba(255, 255, 255, 0.8));
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.topLeft,
+.topRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+.back:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.brand {
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+.brandAccent {
+  color: var(--primary);
+}
+.topBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+.topBtn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ── Шапка статьи ── */
+.hero {
+  padding: clamp(40px, 7vw, 80px) 0;
+  background:
+    radial-gradient(80% 120% at 85% 0%, rgba(255, 127, 80, 0.22), transparent 55%),
+    linear-gradient(180deg, #fdeadf, var(--bg));
+}
+.hero[data-cover] {
+  background-size: cover;
+  background-position: center;
+}
+/* Тот же контейнер, что у .layout — заголовок/подзаголовок/категория встают по левому краю контента. */
+.heroInner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 40px);
+  text-align: left;
+}
+.hero[data-cover] .heroInner {
+  color: #fff;
+}
+.cat {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--primary);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.hero[data-cover] .cat {
+  background: rgba(255, 255, 255, 0.92);
+}
+.title {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(30px, 4.6vw, 50px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+.hero[data-cover] .title {
+  color: #fff;
+}
+.subtitle {
+  margin: 20px 0 0;
+  max-width: 620px;
+  font-size: clamp(15px, 1.8vw, 18px);
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.hero[data-cover] .subtitle {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.authorRow {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+}
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2b2b2b, #555);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  flex: none;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.authorMeta {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin-right: 6px;
+}
+.authorName {
+  font-weight: 800;
+  color: var(--text);
+}
+.hero[data-cover] .authorName {
+  color: #fff;
+}
+.authorRole {
+  font-size: 12px;
+  color: var(--muted);
+}
+.hero[data-cover] .authorRole {
+  color: rgba(255, 255, 255, 0.85);
+}
+.dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.metaItem {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.hero[data-cover] .metaItem {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Контент + рейл ── */
+.layout {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 56px) clamp(16px, 4vw, 40px) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: clamp(28px, 5vw, 64px);
+  align-items: start;
+}
+.content {
+  min-width: 0;
+}
+.md {
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+/* ── Карточка автора (в конце статьи) ── */
+.authorCard {
+  margin-top: 48px;
+  display: flex;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 18px;
+  background:
+    radial-gradient(70% 140% at 90% 0%, rgba(255, 127, 80, 0.16), transparent 60%),
+    linear-gradient(180deg, #fdeadf, var(--card));
+  border: 1px solid var(--border);
+}
+.authorCardAva {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2b2b2b, #555);
+  color: #fff;
+  font-weight: 800;
+  flex: none;
+}
+.authorCardAva img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.authorCardBody {
+  min-width: 0;
+}
+.authorCardName {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--accent);
+}
+.authorCardRole {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+.authorCardBio {
+  margin: 10px 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.authorCardActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.acPrimary,
+.acGhost {
+  border-radius: 10px;
+  padding: 9px 16px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 13.5px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.acPrimary {
+  background: var(--primary);
+  color: var(--onPrimary, #fff);
+}
+.acPrimary:hover {
+  background: var(--primaryHover, #f06a3a);
+}
+.acGhost {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--text);
+}
+.acGhost:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.acGhostOn {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ── Рейл: оглавление + прогресс ── */
+.rail {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tocCard,
+.progressCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 16px;
+}
+.tocLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.tocNav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tocItem {
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+.tocItem:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+.tocItemOn {
+  color: var(--primary);
+  font-weight: 800;
+  border-left-color: var(--primary);
+}
+.progressTop {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  margin-bottom: 10px;
+}
+.progressPct {
+  color: var(--primary);
+  font-weight: 800;
+}
+.progressBar {
+  height: 4px;
+  border-radius: 3px;
+  background: var(--hover);
+  overflow: hidden;
+}
+.progressBar i {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+/* ── Другие статьи ── */
+.moreWrap {
+  max-width: 1080px;
+  margin: 56px auto 0;
+  padding: 40px clamp(16px, 4vw, 40px) 0;
+  border-top: 1px solid var(--border);
+}
+.moreLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.moreGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.moreCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.06s;
+}
+.moreCard:hover {
+  border-color: var(--primary);
+}
+.moreCat {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.moreTitle {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--text);
+}
+.moreMeta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: auto;
+}
+
+.loading {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: var(--card);
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13.5px;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Тёмная тема: кремовые градиенты → тёплый тинт ── */
+:global([data-theme='dark']) .hero {
+  background:
+    radial-gradient(80% 120% at 85% 0%, rgba(255, 127, 80, 0.18), transparent 55%),
+    linear-gradient(180deg, rgba(255, 127, 80, 0.08), var(--bg));
+}
+:global([data-theme='dark']) .authorCard {
+  background:
+    radial-gradient(70% 140% at 90% 0%, rgba(255, 127, 80, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(255, 127, 80, 0.06), var(--card));
+}
+
+/* ── Адаптив ── */
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* На мобилке убираем «Содержание» и «Прочитано». */
+  .rail {
+    display: none;
+  }
+  .moreGrid {
+    grid-template-columns: 1fr;
+  }
+  .brand {
+    display: none;
+  }
+  /* Кнопки топбара — иконки (текст скрыт через .hideOnMobile), делаем компактными квадратами. */
+  .back,
+  .topBtn {
+    padding: 9px;
+  }
+  /* Автор · время чтения · дата — в одну строку. */
+  .authorRow {
+    flex-wrap: nowrap;
+    gap: 7px;
+    font-size: 12px;
+  }
+  .avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 12.5px;
+  }
+  .authorMeta {
+    flex: 1;
+    min-width: 0;
+    margin-right: 0;
+  }
+  .authorRole {
+    display: none;
+  }
+  .authorName {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .metaItem {
+    flex: none;
+    white-space: nowrap;
+  }
+}

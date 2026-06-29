@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../../shared/ui/AppHeader/AppHeader.tsx'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
@@ -6,9 +6,12 @@ import { feedActions } from '../../features/feed/model/feedSlice'
 import { useIsMobile } from '../../shared/lib/useMediaQuery'
 import { PostComposer } from '../../features/feed/ui/PostComposer'
 import { FeedList } from '../../features/feed/ui/FeedList'
-import { ConnectionsGraph } from '../../features/network/ui/ConnectionsGraph'
+import { FeedSortSelect } from '../../features/feed/ui/FeedSortSelect'
+import type { FeedSortMode } from '../../features/feed/lib/feedSort'
+import { ArticlesDiscovery } from '../../features/articles/ui/ArticlesDiscovery'
 import { SupportLinks } from '../../shared/ui/Recommendations/SupportLinks'
 import { RecommendedPeople } from '../../shared/ui/Recommendations/RecommendedPeople'
+import { RecommendedVacancies } from '../../shared/ui/Recommendations/RecommendedVacancies'
 import { RecommendedCompanies } from '../../shared/ui/Recommendations/RecommendedCompanies'
 import { TodayRow } from '../../widgets/TodayRow/TodayRow'
 import { ProfilePulse } from '../../widgets/ProfilePulse/ProfilePulse'
@@ -22,6 +25,7 @@ export function HomePage() {
   const isMobile = useIsMobile()
   const dispatch = useAppDispatch()
   const [searchParams] = useSearchParams()
+  const [sortMode, setSortMode] = useState<FeedSortMode>('recommended')
   // Якорь к посту из уведомления (/?post=:id) — прокрутка + подсветка в ленте.
   const focusPostId = searchParams.get('post') ?? undefined
 
@@ -29,6 +33,19 @@ export function HomePage() {
   useEffect(() => {
     if (focusPostId && !isMobile) dispatch(feedActions.openPost(focusPostId))
   }, [focusPostId, isMobile, dispatch])
+
+  // Карусели, чередуемые в ленте на мобилке (статьи — в общей ротации, как остальные рекомендации).
+  const recSlots = isCompany
+    ? [
+        <RecommendedCandidates key="cand" horizontal />,
+        <ArticlesDiscovery key="articles" variant="carousel" />,
+      ]
+    : [
+        <RecommendedPeople key="people" horizontal />,
+        <RecommendedVacancies key="vac" horizontal />,
+        <RecommendedCompanies key="comp" horizontal />,
+        <ArticlesDiscovery key="articles" variant="carousel" />,
+      ]
 
   return (
     <div className={styles.page}>
@@ -38,23 +55,22 @@ export function HomePage() {
           {isCompany ? <CompanyTodayRow /> : <TodayRow />}
           <div className={styles.layout}>
             <aside className={styles.sidebarLeft} aria-label="Боковая панель">
-              {isCompany ? (
-                <ConnectionsGraph withStats title="Сеть компании" />
-              ) : (
-                <ConnectionsGraph withStats />
-              )}
+              <ArticlesDiscovery />
               <SupportLinks />
             </aside>
 
             <div className={styles.center}>
               {/* На мобилке инлайн-композер убран — пост создаётся из иконки в шапке (модалка). */}
               {!isMobile ? <PostComposer /> : null}
-              {/* У компании в ленту вставляем только рекомендованных кандидатов (не юзер-рекомендации). */}
+              {/* Быстрая сортировка ленты (над постами). */}
+              <FeedSortSelect value={sortMode} onChange={setSortMode} />
+              {/* Статьи чередуются в ленте на мобилке вместе с остальными рекомендациями (recSlots). */}
               <FeedList
                 intersperse
                 ranked
+                sortMode={sortMode}
                 focusPostId={focusPostId}
-                recSlots={isCompany ? [<RecommendedCandidates key="cand" horizontal />] : undefined}
+                recSlots={recSlots}
               />
             </div>
 

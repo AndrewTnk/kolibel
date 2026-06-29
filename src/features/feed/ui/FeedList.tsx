@@ -4,6 +4,7 @@ import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { loadFeed } from '../model/feedThunks'
 import type { FeedPost } from '../model/types'
 import { rankFeed, type RankContext } from '../lib/rankFeed'
+import type { FeedSortMode } from '../lib/feedSort'
 import { PostCard } from './PostCard'
 import { FeedSkeleton } from './FeedSkeleton'
 import { RecommendedPeople } from '../../../shared/ui/Recommendations/RecommendedPeople'
@@ -17,9 +18,22 @@ const recCarousels = [
   <RecommendedVacancies horizontal />,
   <RecommendedCompanies horizontal />,
 ]
-const REC_EVERY = 5
+/** Разрыв между рекомендациями в ленте (постов): не чаще каждых MIN, не реже MAX. */
+const REC_MIN_GAP = 5
+const REC_MAX_GAP = 10
 /** Сколько постов рендерим в DOM за раз (следующая порция — по скроллу вниз). */
 const PAGE_SIZE = 20
+
+/** Детерминированный ГПСЧ (mulberry32) — стабильная раскладка рекомендаций в рамках визита. */
+function makeRng(seed: number): () => number {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
 
 export function FeedList({
   intersperse = false,
@@ -27,6 +41,7 @@ export function FeedList({
   ranked = false,
   recSlots,
   focusPostId,
+  sortMode = 'recommended',
 }: {
   intersperse?: boolean
   /** Показать только посты этого автора (режим профиля). */
@@ -38,6 +53,8 @@ export function FeedList({
   recSlots?: React.ReactNode[]
   /** Прокрутить к этому посту и подсветить (якорь из уведомлений: /?post=:id). */
   focusPostId?: string
+  /** Режим сортировки общей ленты (актуально только при `ranked`). */
+  sortMode?: FeedSortMode
 }) {
   const dispatch = useAppDispatch()
   const allPosts = useAppSelector((s) => s.feed.posts)
@@ -46,6 +63,8 @@ export function FeedList({
   const myId = useAppSelector((s) => s.auth.user?.id)
   const loaded = useAppSelector((s) => s.feed.loaded)
   const isMobile = useIsMobile()
+  // Seed раскладки рекомендаций — фиксируется на визит (новый при перемонтировании).
+  const [recSeed] = useState(() => Math.floor(Math.random() * 0x7fffffff))
 
   // Сигналы для ранжирования (берём из стора; если пусто — ранжирование мягко деградирует).
   const followingIds = useAppSelector((s) => s.network.followingIds)
@@ -113,7 +132,19 @@ export function FeedList({
     if (!ranked) {
       return authorId ? allPosts.filter((p) => p.authorId === authorId) : allPosts
     }
-    // Общая лента: материализуем замороженный порядок живыми объектами.
+    // Альтернативные режимы сортировки — живой пересчёт (без заморозки).
+    if (sortMode === 'connections') {
+      const set = new Set(followingIds)
+      return allPosts.filter((p) => set.has(p.authorId)).sort((a, b) => b.createdAt - a.createdAt)
+    }
+    if (sortMode === 'new') {
+      return [...allPosts].sort((a, b) => b.createdAt - a.createdAt)
+    }
+    if (sortMode === 'popular') {
+      const eng = (p: FeedPost) => p.likesCount + 2 * p.comments.length
+      return [...allPosts].sort((a, b) => eng(b) - eng(a) || b.createdAt - a.createdAt)
+    }
+    // Рекомендованные: материализуем замороженный порядок живыми объектами.
     // Контент (лайки/комменты) — актуальный, позиция — стабильная.
     const byId = new Map(allPosts.map((p) => [p.id, p]))
     const seen = new Set<string>()
@@ -131,7 +162,7 @@ export function FeedList({
     // 3. Подстраховка: посты, появившиеся после заморозки и не вошедшие в порядок.
     for (const p of allPosts) push(p)
     return out
-  }, [allPosts, authorId, ranked, frozenIds, justPostedIds])
+  }, [allPosts, authorId, ranked, frozenIds, justPostedIds, sortMode, followingIds])
 
   // Рендерим ленту порциями по PAGE_SIZE: в DOM только видимое окно, остальное
   // подгружается по мере прокрутки (sentinel + IntersectionObserver).
@@ -139,10 +170,10 @@ export function FeedList({
   const sentinelRef = useRef<HTMLDivElement | null>(null)
   const hasMore = visible < posts.length
 
-  // Сброс окна при смене контекста ленты (профиль/аккаунт) или уменьшении выборки.
+  // Сброс окна при смене контекста ленты (профиль/аккаунт/режим сортировки).
   useEffect(() => {
     setVisible(PAGE_SIZE)
-  }, [authorId, myId])
+  }, [authorId, myId, sortMode])
 
   // Якорь из уведомлений: гарантируем, что нужный пост попал в окно рендера,
   // затем прокручиваем к нему и кратко подсвечиваем.
@@ -178,6 +209,34 @@ export function FeedList({
     return () => io.disconnect()
   }, [hasMore, visible, posts.length])
 
+  const showRecs = intersperse && isMobile
+  const carousels = recSlots && recSlots.length ? recSlots : recCarousels
+
+  // Раскладка рекомендаций в ленте (мобилка): случайная стартовая позиция (может быть
+  // перед первым постом), разрыв REC_MIN..REC_MAX постов, случайный слот каждый раз.
+  // Карта «индекс поста → слот карусели» (рекомендация рендерится ПЕРЕД этим постом;
+  // индекс == posts.length → после последнего). Стабильна в рамках визита (seed).
+  const recByIndex = useMemo(() => {
+    const map = new Map<number, number>()
+    if (!showRecs || carousels.length === 0) return map
+    const rng = makeRng(recSeed)
+    let at = Math.floor(rng() * (REC_MAX_GAP + 1)) // 0..MAX (0 — перед первым постом)
+    let prev = -1
+    const total = posts.length
+    while (at <= total) {
+      let slot = Math.floor(rng() * carousels.length)
+      // Не повторяем подряд один и тот же слот (если есть из чего выбрать).
+      if (carousels.length > 1 && slot === prev) {
+        slot = (prev + 1 + Math.floor(rng() * (carousels.length - 1))) % carousels.length
+      }
+      map.set(at, slot)
+      prev = slot
+      at += REC_MIN_GAP + Math.floor(rng() * (REC_MAX_GAP - REC_MIN_GAP + 1)) // +MIN..+MAX
+    }
+    return map
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showRecs, carousels.length, posts.length, recSeed])
+
   // Скелетон: пока лента не загружена, либо (для ранжированной ленты) пока не готовы
   // сигналы ранжирования — чтобы посты появились сразу в финальном порядке.
   if (!loaded || !rankGateOpen) {
@@ -194,23 +253,25 @@ export function FeedList({
     )
   }
 
-  const showRecs = intersperse && isMobile
-  const carousels = recSlots && recSlots.length ? recSlots : recCarousels
+  const tailSlot = recByIndex.get(posts.length)
 
   return (
     <div className={styles.posts}>
       {posts.slice(0, visible).map((p, i) => {
-        const recIndex = Math.floor(i / REC_EVERY) % carousels.length
-        const insertRec = showRecs && (i + 1) % REC_EVERY === 0
+        const slot = recByIndex.get(i)
         return (
           <Fragment key={p.id}>
+            {slot !== undefined ? <div className={styles.feedRec}>{carousels[slot]}</div> : null}
             <div id={`post-${p.id}`} className={styles.postAnchor}>
               <PostCard post={p} />
             </div>
-            {insertRec ? <div className={styles.feedRec}>{carousels[recIndex]}</div> : null}
           </Fragment>
         )
       })}
+      {/* Рекомендация после последнего поста (если выпала на конец и конец виден). */}
+      {!hasMore && tailSlot !== undefined ? (
+        <div className={styles.feedRec}>{carousels[tailSlot]}</div>
+      ) : null}
       {hasMore ? <div ref={sentinelRef} className={styles.feedSentinel} aria-hidden /> : null}
     </div>
   )

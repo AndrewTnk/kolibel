@@ -5,7 +5,7 @@ import { createVacancy, updateVacancy } from '../model/vacancyThunks'
 import type { EmploymentType, Vacancy, WorkFormat, WorkSchedule } from '../model/types'
 import { employmentLabels, scheduleLabels, workFormatLabels } from '../lib/labels'
 import { SkillsEditor } from '../../profile/ui/SkillsEditor'
-import { MarkdownEditor } from '../../../shared/ui/MarkdownEditor/MarkdownEditor'
+import { RichEditor } from '../../../shared/ui/RichEditor/RichEditor'
 import styles from './CreateVacancyModal.module.css'
 
 const workFormatOptions = Object.keys(workFormatLabels) as WorkFormat[]
@@ -215,10 +215,10 @@ export function CreateVacancyModal({
 
             <div className={[styles.field, styles.span2].join(' ')}>
               <span className={styles.label}>Описание</span>
-              <MarkdownEditor
+              <RichEditor
                 value={description}
                 onChange={setDescription}
-                placeholder="Чем будет заниматься кандидат, про команду и продукт. Разметка: **жирный**, списки, заголовки…"
+                placeholder="Чем будет заниматься кандидат, про команду и продукт…"
               />
             </div>
 

@@ -1,7 +1,9 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { AppHeader } from '../../../../shared/ui/AppHeader/AppHeader'
-import { useAppSelector } from '../../../../app/store/hooks'
+import { useAppDispatch, useAppSelector } from '../../../../app/store/hooks'
 import { useIsMobile } from '../../../../shared/lib/useMediaQuery'
+import { ArticlesBlock } from '../../../articles/ui/ArticlesBlock'
+import { loadAuthorArticles } from '../../../articles/model/articleThunks'
 import { PostComposer } from '../../../feed/ui/PostComposer'
 import { FeedList } from '../../../feed/ui/FeedList'
 import { BlockSkeleton } from '../../../../shared/ui/Skeleton/Skeleton'
@@ -29,6 +31,7 @@ type Props = {
 }
 
 export function ProfileSheet({ resume, readOnly = false, heroActions, rail, postsAuthorId, onBack }: Props) {
+  const dispatch = useAppDispatch()
   const storeLoaded = useAppSelector((st) => st.profile.loaded)
   const loaded = resume ? true : storeLoaded
   const isMobile = useIsMobile()
@@ -38,7 +41,16 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
     (st) => st.feed.posts.filter((p) => p.authorId === authorId).length,
   )
 
-  const [tab, setTab] = useState<'resume' | 'posts'>('resume')
+  // Статьи автора — для счётчика на вкладке (мобилка) и чтобы вкладка была наполнена.
+  const articlesLoaded = useAppSelector((st) => st.articles.loadedAuthors.includes(authorId ?? ''))
+  const articleCount = useAppSelector(
+    (st) => (st.articles.byAuthor[authorId ?? ''] ?? []).filter((a) => !readOnly || a.status === 'published').length,
+  )
+  useEffect(() => {
+    if (authorId && !articlesLoaded) void dispatch(loadAuthorArticles(authorId))
+  }, [dispatch, authorId, articlesLoaded])
+
+  const [tab, setTab] = useState<'resume' | 'posts' | 'articles'>('resume')
   const [expanded, setExpanded] = useState(readOnly)
   const [modal, setModal] = useState<ProfileModalState>(null)
   const [layout, setLayout] = useState<SectionId[]>(DEFAULT_LAYOUT)
@@ -89,9 +101,31 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
                     <Ic.chart /> Посты
                     {postCount > 0 ? <span className={s.tabCount}>{postCount}</span> : null}
                   </button>
+                  {/* Статьи — отдельной вкладкой только на мобилке (на десктопе блок в сайдбаре). */}
+                  {isMobile && (!readOnly || articleCount > 0) ? (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={tab === 'articles'}
+                      className={[s.tab, tab === 'articles' ? s.tabOn : ''].filter(Boolean).join(' ')}
+                      onClick={() => setTab('articles')}
+                    >
+                      <Ic.pencil /> Статьи
+                      {articleCount > 0 ? <span className={s.tabCount}>{articleCount}</span> : null}
+                    </button>
+                  ) : null}
                 </div>
 
-                {tab === 'resume' ? (
+                {tab === 'articles' && isMobile ? (
+                  <div className={s.bodyPadPosts}>
+                    {authorId ? <ArticlesBlock authorId={authorId} canEdit={!readOnly} variant="page" /> : null}
+                  </div>
+                ) : tab === 'posts' ? (
+                  <div className={s.bodyPadPosts}>
+                    {readOnly || isMobile ? null : <PostComposer compact />}
+                    <FeedList authorId={authorId} />
+                  </div>
+                ) : (
                   <ResumeView
                     expanded={expanded}
                     onToggle={() => setExpanded((v) => !v)}
@@ -100,11 +134,6 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
                     resume={resume}
                     readOnly={readOnly}
                   />
-                ) : (
-                  <div className={s.bodyPadPosts}>
-                    {readOnly || isMobile ? null : <PostComposer compact />}
-                    <FeedList authorId={authorId} />
-                  </div>
                 )}
               </div>
             )}

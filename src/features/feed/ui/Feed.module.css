@@ -572,12 +572,26 @@
 
 /* Прикреплённая вакансия в опубликованном посте */
 .vacancyCard {
-  border: 1px solid var(--primaryBorder);
-  background: var(--primarySoftBg);
+  border: 1px solid var(--border);
+  background: transparent;
   border-radius: 12px;
   padding: 14px;
-  display: grid;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.vacancyCard:hover {
+  border-color: var(--primary);
+}
+
+.vacancyInfo {
+  display: flex;
+  flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .vacancyCardLabel {
@@ -601,8 +615,8 @@
 }
 
 .vacancyCardBtn {
-  justify-self: start;
-  margin-top: 6px;
+  flex: none;
+  white-space: nowrap;
   border: 1px solid var(--primary);
   background: transparent;
   color: var(--accent);

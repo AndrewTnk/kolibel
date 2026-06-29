@@ -4,6 +4,7 @@ import { useProfilePulse, buildSparkline, formatDelta } from '../../lib/useProfi
 import type { ProfileModalState } from './ProfileModals'
 import { Ic } from './icons'
 import { RecommendedPeople } from '../../../../shared/ui/Recommendations/RecommendedPeople'
+import { ArticlesBlock } from '../../../articles/ui/ArticlesBlock'
 import s from './ProfileSheet.module.css'
 
 type CompletionItem = { id: string; text: string; done: boolean; modal?: ProfileModalState }
@@ -15,6 +16,7 @@ type Props = {
 
 export function SideRail({ open }: Props) {
   const resume = useAppSelector((st) => st.profile.resume)
+  const myId = useAppSelector((st) => st.auth.user?.id)
   const pulse = useProfilePulse()
   const [compOpen, setCompOpen] = useState(false)
 
@@ -116,6 +118,13 @@ export function SideRail({ open }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Статьи автора (свой профиль — можно добавлять/редактировать). На мобилке — отдельной вкладкой в ProfileSheet. */}
+      {myId ? (
+        <div className="hideOnMobile">
+          <ArticlesBlock authorId={myId} canEdit />
+        </div>
+      ) : null}
 
       {/* Люди в сфере — единый стиль с главной (RecRow + «+ Связь»/«✓ Связь») */}
       <div className="hideOnMobile">

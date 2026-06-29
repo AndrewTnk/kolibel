@@ -21,6 +21,8 @@ import {
 import { CreateVacancyModal } from '../../vacancies/ui/CreateVacancyModal'
 import { CompanyAnalyticsModal } from './CompanyAnalyticsModal/CompanyAnalyticsModal'
 import { CompanyPulse } from '../../../widgets/CompanyPulse/CompanyPulse'
+import { ArticlesBlock } from '../../articles/ui/ArticlesBlock'
+import { loadAuthorArticles } from '../../articles/model/articleThunks'
 import { fetchCompanyEmployees, type CompanyEmployee } from '../lib/companyTeamApi'
 import { useCompanyCompletion } from '../lib/useCompanyCompletion'
 import {
@@ -39,7 +41,7 @@ import { Ic } from './brandIcons'
 import type { CompanyProfile } from '../model/companyData'
 import styles from './CompanyBrand.module.css'
 
-type Tab = 'about' | 'vacancies' | 'team' | 'posts'
+type Tab = 'about' | 'vacancies' | 'team' | 'posts' | 'articles'
 type ModalKind =
   | 'edit-header' | 'banner' | 'logo' | 'about' | 'directions' | 'values'
   | 'gallery' | 'contacts' | 'share' | 'analytics' | 'vacancy' | null
@@ -59,6 +61,9 @@ export function CompanyMainContent() {
     (v) => v.companyId && v.companyId === myId && isPublicVacancy(v),
   )
   const posts = useAppSelector((s) => s.feed.posts).filter((p) => p.authorId === myId)
+  // Статьи компании — для счётчика на мобильной вкладке (десктоп — блок в сайдрейле).
+  const articlesLoaded = useAppSelector((s) => s.articles.loadedAuthors.includes(myId ?? ''))
+  const articleCount = useAppSelector((s) => (s.articles.byAuthor[myId ?? ''] ?? []).length)
 
   const [tab, setTab] = useState<Tab>('about')
   const [modal, setModal] = useState<ModalKind>(null)
@@ -73,6 +78,13 @@ export function CompanyMainContent() {
   useEffect(() => {
     if (networkStatus === 'idle') void dispatch(loadNetwork())
   }, [networkStatus, dispatch])
+  useEffect(() => {
+    if (myId && !articlesLoaded) void dispatch(loadAuthorArticles(myId))
+  }, [myId, articlesLoaded, dispatch])
+  // На десктопе вкладки «Статьи» нет (блок в сайдрейле) — вернёмся на «О компании», если ушли с мобилки.
+  useEffect(() => {
+    if (!isMobile && tab === 'articles') setTab('about')
+  }, [isMobile, tab])
   useEffect(() => {
     if (!c.name) return
     fetchCompanyEmployees(c.name).then(setEmployees).catch(() => setEmployees([]))
@@ -128,12 +140,23 @@ export function CompanyMainContent() {
                   <button role="tab" className={[styles.tab, tab === 'posts' ? styles.tabOn : ''].join(' ')} onClick={() => setTab('posts')}>
                     <Ic.bubble /> Посты {posts.length ? <span className={styles.tabCount}>{posts.length}</span> : null}
                   </button>
+                  {/* Статьи — отдельной вкладкой только на мобилке (на десктопе блок в сайдрейле). */}
+                  {isMobile ? (
+                    <button role="tab" className={[styles.tab, tab === 'articles' ? styles.tabOn : ''].join(' ')} onClick={() => setTab('articles')}>
+                      <Ic.pencil /> Статьи {articleCount ? <span className={styles.tabCount}>{articleCount}</span> : null}
+                    </button>
+                  ) : null}
                 </div>
 
                 {tab === 'about' ? <AboutTab c={c} onOpen={open} /> : null}
                 {tab === 'vacancies' ? <VacanciesTab vacancies={vacancies} onOpen={open} /> : null}
                 {tab === 'team' ? <TeamTab employees={employees} companyName={c.name} onToast={showToast} onOpenPerson={(id) => nav(`/u/${id}`)} /> : null}
                 {tab === 'posts' ? <PostsTab posts={posts} isMobile={isMobile} /> : null}
+                {tab === 'articles' && isMobile && myId ? (
+                  <div className={styles.bodyPad}>
+                    <ArticlesBlock authorId={myId} canEdit variant="page" title="Статьи компании" />
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -468,6 +491,7 @@ function SideRail({ c, onOpen }: { c: CompanyProfile; onOpen: (m: ModalKind) => 
   const completion = useCompanyCompletion()
   const remaining = completion.items.filter((i) => !i.done).length
   const [expanded, setExpanded] = useState(false)
+  const myId = useAppSelector((s) => s.auth.user?.id)
 
   return (
     <>
@@ -509,6 +533,8 @@ function SideRail({ c, onOpen }: { c: CompanyProfile; onOpen: (m: ModalKind) => 
       )}
 
       <CompanyPulse />
+
+      {myId ? <ArticlesBlock authorId={myId} canEdit title="Статьи компании" /> : null}
 
       <div className={styles.card}>
         <div className={styles.contactsHead}>

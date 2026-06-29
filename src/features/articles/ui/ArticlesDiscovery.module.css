@@ -1,0 +1,181 @@
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 14px);
+  padding: 16px 16px 6px;
+}
+
+/* Карусель (мобилка): шапка + горизонтальный ряд плиток, без рамки-карточки.
+   Паддинг 14px — как у других рекомендаций (.sideCard), чтобы заголовок/плитки
+   не прилипали к левому краю; правый паддинг гасит .feedRec (карусель «выглядывает»). */
+.carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+}
+/* Заголовок в стиле других рекомендаций (.sideTitle). */
+.carousel .label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--muted);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Фиксированная высота — поле поиска (28px) не растит строку, интерфейс не дёргается. */
+  min-height: 28px;
+  margin-bottom: 6px;
+}
+.carousel .head {
+  margin-bottom: 0;
+}
+
+/* Плитка статьи в горизонтальной карусели. */
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 104px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.04s;
+}
+.tile:active {
+  transform: translateY(1px);
+}
+.tile:hover {
+  border-color: var(--primary);
+}
+.label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Поиск: иконка + раскрывающееся поле ── */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.searchInput {
+  width: 0;
+  min-width: 0;
+  height: 28px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--field-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1), padding 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.18s ease, border-color 0.18s ease;
+}
+.searchOpen .searchInput {
+  width: 150px;
+  padding: 0 10px;
+  border-color: var(--border);
+  opacity: 1;
+  pointer-events: auto;
+}
+.searchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.searchBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.searchBtn:hover {
+  background: var(--hover);
+  color: var(--primary);
+}
+.searchOn {
+  color: var(--primary);
+}
+
+/* Скролл-зона: показывает ~5 карточек (выше профильного блока). */
+.scroll {
+  max-height: 440px;
+  overflow-y: auto;
+  margin: 0 -16px;
+  padding: 0 16px;
+  scrollbar-width: none;
+}
+.scroll:hover {
+  scrollbar-width: thin;
+}
+.scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+.scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+/* Строка статьи — компактнее профильного блока (меньше вертикальный отступ). */
+.row {
+  display: flex;
+  align-items: center;
+  padding: 3px 0;
+}
+.row:first-child {
+  padding-top: 0;
+}
+
+/* Заголовок мельче профильного — 60 символов умещаются в 2 строки. */
+.title {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.12s;
+}
+.row:hover .title {
+  color: var(--primary);
+}
+
+.state {
+  padding: 14px 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}

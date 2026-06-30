@@ -28,6 +28,16 @@ function linkKeyOf(l: { source: unknown; target: unknown }): string {
   return [nodeId(l.source), nodeId(l.target)].sort().join('|')
 }
 
+/** Амплитуда лёгкого постоянного «дрейфа» узлов (в координатах симуляции). */
+const DRIFT = 0.02
+
+/** Детерминированная фаза дрейфа по id узла — чтобы узлы дышали вразнобой, но стабильно. */
+function phaseOf(id: string): number {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0
+  return ((Math.abs(h) % 1000) / 1000) * Math.PI * 2
+}
+
 function radiusFor(degree: 0 | 1 | 2): number {
   // Узлы первого уровня немного меньше (−15%), чтобы у центра не было «каши».
   return degree === 0 ? 9 : degree === 1 ? 5.1 : 4
@@ -136,6 +146,8 @@ export function RelationGraph({
 
   // Разносим узлы: сильнее отталкивание + прямые связи дальше от центра,
   // связи второго уровня жмутся к своему «родителю». Меньше «каши».
+  // + Лёгкое постоянное «дыхание»: кастомная сила дрейфа чуть колышет узлы (граф
+  //   никогда не замирает — симуляция идёт постоянно, см. пропсы cooldown/alphaMin).
   useEffect(() => {
     const fg = fgRef.current
     if (!fg) return
@@ -145,8 +157,43 @@ export function RelationGraph({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       link.distance((l: any) => (l.degree === 2 ? 26 : 82)).strength(0.65)
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let driftNodes: any[] = []
+    const t0 = performance.now()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const drift: any = () => {
+      const t = (performance.now() - t0) / 1000
+      for (const n of driftNodes) {
+        if (n.fx != null || n.fy != null) continue // перетаскиваемый узел не трогаем
+        const ph = phaseOf(n.id)
+        n.vx = (n.vx ?? 0) + Math.cos(t * 0.5 + ph) * DRIFT
+        n.vy = (n.vy ?? 0) + Math.sin(t * 0.42 + ph * 1.3) * DRIFT
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    drift.initialize = (nodes: any[]) => {
+      driftNodes = nodes
+    }
+    fg.d3Force('drift', drift)
     fg.d3ReheatSimulation?.()
-  }, [graphData])
+
+    // Авто-вписывание после оседания: onEngineStop теперь не срабатывает (симуляция
+    // идёт постоянно), поэтому вписываем один раз по таймеру.
+    const fitT = window.setTimeout(() => {
+      if (fittedRef.current) return
+      fittedRef.current = true
+      fg.zoomToFit?.(500, Math.max(8, Math.round(height * 0.06)))
+      window.setTimeout(() => {
+        baseZoomRef.current = fg.zoom?.() ?? null
+      }, 560)
+    }, 1100)
+
+    return () => {
+      window.clearTimeout(fitT)
+      fg.d3Force?.('drift', null) // снять силу дрейфа при пересоздании графа
+    }
+  }, [graphData, height])
 
   // Позиционируем тултип у наведённого узла каждый кадр (следует за зумом/симуляцией)
   function positionTip() {
@@ -172,7 +219,12 @@ export function RelationGraph({
         height={height}
         graphData={graphData}
         backgroundColor="rgba(0,0,0,0)"
-        cooldownTicks={120}
+        /* Симуляция не замирает (лёгкое постоянное «дыхание» + перетаскивание узлов):
+           alpha не уходит ниже min, время остывания бесконечно. */
+        cooldownTime={Infinity}
+        cooldownTicks={Infinity}
+        d3AlphaMin={0}
+        d3VelocityDecay={0.5}
         onEngineStop={() => {
           const fg = fgRef.current
           if (!fg || fittedRef.current) return

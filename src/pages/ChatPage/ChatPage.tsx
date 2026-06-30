@@ -140,11 +140,6 @@ export function ChatPage() {
       <main className={styles.main}>
         <div className={styles.inner}>
           <div className={styles.layout}>
-            <aside className={styles.sidebar} aria-label="Реклама и поддержка">
-              <SuggestedCompany />
-              <SupportLinks />
-            </aside>
-
             <section className={styles.chatPanel} aria-label="Чат">
               {/* Список — всегда в DOM (десктоп: левая колонка; мобилка: базовый экран) */}
               <ConversationList
@@ -190,6 +185,11 @@ export function ChatPage() {
                 </div>
               ) : null}
             </section>
+
+            <aside className={styles.sidebar} aria-label="Реклама и поддержка">
+              <SuggestedCompany />
+              <SupportLinks />
+            </aside>
           </div>
         </div>
       </main>

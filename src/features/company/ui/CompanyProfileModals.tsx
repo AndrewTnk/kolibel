@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { RecModal } from '../../../shared/ui/Recommendations/RecModal'
 import { ImageUploadField } from '../../../shared/ui/ImageUploadField/ImageUploadField'
 import { LocationField } from '../../../shared/ui/LocationField/LocationField'
+import { NameField } from './ContactsEditor'
 import { sanitizeCompanyName } from '../../../shared/lib/nameValidation'
 import { saveCompany } from '../model/companyThunks'
 import type {
@@ -244,6 +245,8 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
   const [items, setItems] = useState<CompanyContact[]>(base)
   const upd = (i: number, k: 'name' | 'position', v: string) =>
     setItems((arr) => arr.map((it, j) => (j === i ? { ...it, [k]: v } : it)))
+  const updPatch = (i: number, patch: Partial<CompanyContact>) =>
+    setItems((arr) => arr.map((it, j) => (j === i ? { ...it, ...patch } : it)))
   return (
     <RecModal title="Контакты компании" onClose={onClose} fullScreenMobile maxWidth={560}>
       <div className={styles.sub}>Кому писать по разным вопросам</div>
@@ -256,7 +259,7 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
             <div className={styles.grid2}>
               <label className={styles.field}>
                 <span className={styles.label}>Имя</span>
-                <input className={styles.input} value={c.name} onChange={(e) => upd(i, 'name', e.target.value)} />
+                <NameField contact={c} onPatch={(patch) => updPatch(i, patch)} />
               </label>
               <label className={styles.field}>
                 <span className={styles.label}>Должность</span>

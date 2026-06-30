@@ -20,7 +20,7 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 20px;
   align-items: stretch;
   height: 100%;

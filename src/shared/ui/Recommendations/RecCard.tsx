@@ -1,4 +1,4 @@
-import { type CSSProperties, type MouseEvent } from 'react'
+import { type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './RecCard.module.css'
 
@@ -17,15 +17,17 @@ type Props = {
   bg?: [string, string]
   /** Квадратный логотип (компания) вместо круглого фото */
   square?: boolean
+  /** Доп. строка над кнопкой (напр. «82% совпадение» для кандидатов). */
+  info?: ReactNode
   following: boolean
   onToggle: () => void
 }
 
 /**
  * Компактная карточка-рекомендация для ленты (мобилка): баннер + фото + имя +
- * должность + кнопка «Связь». Без города и доп. бейджей — урезанный вид карточки сети.
+ * должность + (опц. доп. инфа) + кнопка «Связь». Урезанный вид карточки сети.
  */
-export function RecCard({ to, name, sub, initial, avatar, banner, bg, square = false, following, onToggle }: Props) {
+export function RecCard({ to, name, sub, initial, avatar, banner, bg, square = false, info, following, onToggle }: Props) {
   function toggle(e: MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
@@ -47,6 +49,7 @@ export function RecCard({ to, name, sub, initial, avatar, banner, bg, square = f
         </div>
         <div className={styles.name}>{name}</div>
         <div className={styles.role}>{sub}</div>
+        {info ? <div className={styles.info}>{info}</div> : null}
         <button
           type="button"
           className={[styles.follow, following ? styles.followDone : styles.followSolid].join(' ')}

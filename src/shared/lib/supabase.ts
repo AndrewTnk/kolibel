@@ -5,14 +5,31 @@ import { createClient } from '@supabase/supabase-js'
  * Значения берутся из .env.local (см. .env.example).
  * Anon-ключ безопасно держать на фронте — доступ ограничивают RLS-политики в БД.
  */
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const directUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
-if (!url || !anonKey) {
+if (!directUrl || !anonKey) {
   throw new Error(
     'Не заданы VITE_SUPABASE_URL и/или VITE_SUPABASE_ANON_KEY. Скопируй .env.example в .env.local и впиши значения из дашборда Supabase (Project Settings → API).',
   )
 }
+
+/**
+ * В России домен `*.supabase.co` стоит за Cloudflare, который ТСПУ троттлит на
+ * границе → прямые запросы из браузера рвутся (ERR_CONNECTION_RESET) и сайт не
+ * грузит данные без VPN.
+ *
+ * Решение: в проде гоним все запросы через same-origin прокси `/sb` (rewrite в
+ * `vercel.json` → Supabase). Этот путь идёт через доступный из РФ Vercel, а хоп
+ * Vercel→Supabase уже вне российской границы и не троттлится.
+ *
+ * В dev (`npm run dev`) ходим в Supabase напрямую (rewrite'ов Vercel локально нет;
+ * под VPN всё работает).
+ */
+const url =
+  import.meta.env.PROD && typeof window !== 'undefined'
+    ? `${window.location.origin}/sb`
+    : directUrl
 
 export const supabase = createClient(url, anonKey, {
   auth: {

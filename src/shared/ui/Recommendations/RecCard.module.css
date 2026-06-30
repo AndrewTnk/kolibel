@@ -84,6 +84,13 @@
   overflow: hidden;
 }
 
+.info {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
 .follow {
   margin-top: 10px;
   width: 100%;

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
-import { loadNetwork } from '../../features/network/model/networkThunks'
+import { loadNetwork, toggleFollow } from '../../features/network/model/networkThunks'
+import { loadVacancies } from '../../features/vacancies/model/vacancyThunks'
+import { isPublicVacancy } from '../../features/vacancies/lib/vacancyVisibility'
+import type { NetworkPerson } from '../../features/network/model/types'
+import { RecCard } from '../../shared/ui/Recommendations/RecCard'
 import {
   CandidateProfileModal,
   personToCandidate,
@@ -24,14 +28,20 @@ function SendIcon() {
 
 /**
  * Рекомендованные кандидаты (правый сайдбар компании). Реальные люди из сети,
- * процент совпадения — мок (детерминирован по id). «Написать» → реальный чат.
+ * отфильтрованные по РЕАЛЬНОМУ совпадению (≥80%) с активными вакансиями компании
+ * (та же логика, что в карточке «Стоит позвать»). «Написать» → реальный чат.
  */
-export function RecommendedCandidates({ horizontal = false }: { horizontal?: boolean } = {}) {
+export function RecommendedCandidates({
+  horizontal = false,
+  cards = false,
+}: { horizontal?: boolean; cards?: boolean } = {}) {
   const dispatch = useAppDispatch()
   const people = useAppSelector((s) => s.network.recommendedPeople)
   const status = useAppSelector((s) => s.network.status)
   const myId = useAppSelector((s) => s.auth.user?.id)
   const vacancies = useAppSelector((s) => s.vacanciesList.items)
+  const vacanciesLoaded = useAppSelector((s) => s.vacanciesList.loaded)
+  const followingIds = useAppSelector((s) => s.network.followingIds)
 
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null)
   const [writeTo, setWriteTo] = useState<{ userId: string; name: string } | null>(null)
@@ -39,19 +49,52 @@ export function RecommendedCandidates({ horizontal = false }: { horizontal?: boo
   useEffect(() => {
     if (status === 'idle') void dispatch(loadNetwork())
   }, [status, dispatch])
+  useEffect(() => {
+    if (!vacancies.length && !vacanciesLoaded) void dispatch(loadVacancies())
+  }, [vacancies.length, vacanciesLoaded, dispatch])
 
-  // Вакансии компании — для матчинга и текста «зовём под вакансию».
-  const myVacancies = useMemo(
-    () => vacancies.filter((v) => v.companyId && v.companyId === myId),
+  // Активные вакансии компании — для матчинга (пауза/черновик/закрытая не считаются).
+  const activeVacancies = useMemo(
+    () => vacancies.filter((v) => v.companyId && v.companyId === myId && isPublicVacancy(v)),
     [vacancies, myId],
   )
-  const vacancyTitle = myVacancies[0]?.title
+  const vacancyTitle = activeVacancies[0]?.title
 
-  const top = useMemo(() => people.filter((p) => p.id !== myId).slice(0, 3), [people, myId])
-  const loading = status === 'idle' || status === 'loading'
+  // Только кандидаты с сильным совпадением (≥80%) под активные вакансии, по убыванию матча.
+  const MATCH_THRESHOLD = 80
+  const eligible = useMemo(() => {
+    const out: { person: NetworkPerson; score: number }[] = []
+    if (!activeVacancies.length) return out
+    for (const p of people) {
+      if (p.id === myId) continue
+      const score = candidateBestMatch(p, activeVacancies)
+      if (score != null && score >= MATCH_THRESHOLD) out.push({ person: p, score })
+    }
+    out.sort((a, b) => b.score - a.score)
+    return out.slice(0, 8)
+  }, [people, myId, activeVacancies])
 
-  const items = top.map((p) => {
-    const score = candidateBestMatch(p, myVacancies)
+  const loading = status === 'idle' || status === 'loading' || !vacanciesLoaded
+
+  const items = eligible.map(({ person: p, score }) => {
+    // Мобильная карусель — карточки в стиле пользователя (баннер+фото) + % совпадения над кнопкой.
+    if (cards) {
+      return (
+        <RecCard
+          key={p.id}
+          to={`/u/${p.id}`}
+          name={p.fullName}
+          sub={p.jobTitle || 'Специалист'}
+          initial={p.avatarInitials}
+          avatar={p.avatar}
+          banner={p.banner}
+          bg={p.bg}
+          info={`${score}% совпадение`}
+          following={followingIds.includes(p.id)}
+          onToggle={() => dispatch(toggleFollow(p.id))}
+        />
+      )
+    }
     return (
       <div
         key={p.id}
@@ -76,7 +119,7 @@ export function RecommendedCandidates({ horizontal = false }: { horizontal?: boo
           <div className={styles.role}>
             {[p.jobTitle, p.company].filter(Boolean).join(' · ') || 'Специалист'}
           </div>
-          {score != null ? <div className={styles.match}>{score}% совпадение</div> : null}
+          <div className={styles.match}>{score}% совпадение</div>
         </div>
         <button
           type="button"
@@ -104,20 +147,22 @@ export function RecommendedCandidates({ horizontal = false }: { horizontal?: boo
     <div className={styles.card}>
       <div className={styles.title}>Рекомендованные кандидаты</div>
 
-      {loading && !top.length ? (
+      {loading && !eligible.length ? (
         horizontal ? (
           <HScroll className={styles.hlist}>{skeletons}</HScroll>
         ) : (
           <div className={styles.list}>{skeletons}</div>
         )
-      ) : top.length ? (
+      ) : !activeVacancies.length ? (
+        <div className={styles.empty}>Опубликуй вакансию, чтобы увидеть подходящих кандидатов.</div>
+      ) : eligible.length ? (
         horizontal ? (
           <HScroll className={styles.hlist}>{items}</HScroll>
         ) : (
           <div className={styles.list}>{items}</div>
         )
       ) : (
-        <div className={styles.empty}>Пока некого рекомендовать.</div>
+        <div className={styles.empty}>Пока нет кандидатов с совпадением 80%+ под твои вакансии.</div>
       )}
 
       {candidate ? (

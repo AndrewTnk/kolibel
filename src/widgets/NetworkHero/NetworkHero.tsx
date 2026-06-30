@@ -44,19 +44,21 @@ export function NetworkHero({ onOpenConnections, audience = 'user' }: Props) {
 
   const onNodes = useCallback((ns: GraphNodeData[]) => setNodes(ns), [])
 
-  // Состав сети из графа: только прямые связи (1-й круг). Исходящие = на кого подписан я,
-  // входящие = кто подписан на меня (берём из стора, чтобы взаимные попали в обе вкладки).
+  // Состав сети для «Мои связи» — только ПРЯМЫЕ связи (degree 1). Вторичные (degree 2)
+  // рисуются на графе блёклым цветом, но в счётчик/списки связей не попадают.
+  // Исходящие = на кого подписан я, входящие = кто подписан на меня (из стора,
+  // чтобы взаимные попали в обе вкладки).
   const comp = useMemo(() => {
-    const links = nodes.filter((n) => n.degree > 0)
+    const direct = nodes.filter((n) => n.degree === 1)
     const followingSet = new Set(followingIds)
     const followerSet = new Set(followers.map((f) => f.id))
     return {
-      first: links,
-      people: links.filter((n) => n.kind === 'person'),
-      companies: links.filter((n) => n.kind === 'company'),
-      outgoing: links.filter((n) => followingSet.has(n.id)),
-      incoming: links.filter((n) => followerSet.has(n.id)),
-      total: links.length,
+      first: direct,
+      people: direct.filter((n) => n.kind === 'person'),
+      companies: direct.filter((n) => n.kind === 'company'),
+      outgoing: direct.filter((n) => followingSet.has(n.id)),
+      incoming: direct.filter((n) => followerSet.has(n.id)),
+      total: direct.length,
     }
   }, [nodes, followingIds, followers])
 

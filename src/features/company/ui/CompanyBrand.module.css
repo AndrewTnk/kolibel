@@ -473,6 +473,15 @@ button.statPill:hover {
   padding: 28px 36px 36px;
 }
 
+/* Вкладка постов/статей — вне карточки компании, на фоне страницы: посты выглядят
+   как лента на главной (отдельные карточки, без общего блока-обёртки). */
+.postsTab {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .sec {
   position: relative;
 }
@@ -1034,7 +1043,19 @@ button.statPill:hover {
   border-radius: 12px;
   background: var(--field-bg);
 }
+.contactRowClickable {
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.contactRowClickable:hover {
+  border-color: var(--primary);
+}
 .contactAva {
+  position: relative;
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -1044,7 +1065,15 @@ button.statPill:hover {
   font-weight: 900;
   font-size: 13px;
   flex-shrink: 0;
+  overflow: hidden;
   background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+}
+.contactAvaImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .contactMeta {
   min-width: 0;
@@ -1098,6 +1127,13 @@ button.statPill:hover {
     border-right: none;
     border-radius: 0;
     box-shadow: none;
+  }
+  /* На мобилке у компании `.main` без боковых полей (баннер edge-to-edge), поэтому
+     постам/статьям возвращаем боковой отступ страницы — тогда `.post` со своими
+     отрицательными полями дотягивается до краёв экрана (как лента на главной). */
+  .postsTab {
+    padding-left: var(--content-padding);
+    padding-right: var(--content-padding);
   }
   /* Кнопка смены обложки — иконкой */
   .bannerEditLabel {

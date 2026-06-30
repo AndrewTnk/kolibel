@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '../../../shared/ui/AppHeader/AppHeader'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { supabase } from '../../../shared/lib/supabase'
 import { useIsMobile } from '../../../shared/lib/useMediaQuery'
 import { PostCard } from '../../feed/ui/PostCard'
 import { PostComposer } from '../../feed/ui/PostComposer'
@@ -151,13 +152,15 @@ export function CompanyMainContent() {
                 {tab === 'about' ? <AboutTab c={c} onOpen={open} /> : null}
                 {tab === 'vacancies' ? <VacanciesTab vacancies={vacancies} onOpen={open} /> : null}
                 {tab === 'team' ? <TeamTab employees={employees} companyName={c.name} onToast={showToast} onOpenPerson={(id) => nav(`/u/${id}`)} /> : null}
-                {tab === 'posts' ? <PostsTab posts={posts} isMobile={isMobile} /> : null}
-                {tab === 'articles' && isMobile && myId ? (
-                  <div className={styles.bodyPad}>
-                    <ArticlesBlock authorId={myId} canEdit variant="page" title="Статьи компании" />
-                  </div>
-                ) : null}
               </div>
+
+              {/* Посты/статьи — вне карточки компании, на фоне страницы (как лента на главной). */}
+              {tab === 'posts' ? <PostsTab posts={posts} isMobile={isMobile} /> : null}
+              {tab === 'articles' && isMobile && myId ? (
+                <div className={styles.postsTab}>
+                  <ArticlesBlock authorId={myId} canEdit variant="page" title="Статьи компании" />
+                </div>
+              ) : null}
             </div>
 
             <div className={styles.colRail}>
@@ -469,29 +472,57 @@ function TeamTab({ employees, companyName, onToast, onOpenPerson }: {
 // ── Tab: Посты ────────────────────────────────
 function PostsTab({ posts, isMobile }: { posts: FeedPost[]; isMobile: boolean }) {
   return (
-    <div className={styles.bodyPad}>
-      <div className={styles.postsCol}>
-        {/* Композер нового поста — как в профиле пользователя (только веб;
-            на мобилке создание поста — из иконки «+» в шапке). */}
-        {!isMobile ? <PostComposer compact /> : null}
-        {posts.length ? (
-          <div className={styles.feed}>
-            {posts.map((p) => <PostCard key={p.id} post={p} />)}
-          </div>
-        ) : (
-          <p className={styles.emptyText}>Публикаций пока нет.</p>
-        )}
-      </div>
+    <div className={styles.postsTab}>
+      {/* Композер нового поста — как в профиле пользователя (только веб;
+          на мобилке создание поста — из иконки «+» в шапке). */}
+      {!isMobile ? <PostComposer compact /> : null}
+      {posts.length ? (
+        <div className={styles.feed}>
+          {posts.map((p) => <PostCard key={p.id} post={p} />)}
+        </div>
+      ) : (
+        <p className={styles.emptyText}>Публикаций пока нет.</p>
+      )}
     </div>
   )
 }
 
 // ── Side rail ─────────────────────────────────
 function SideRail({ c, onOpen }: { c: CompanyProfile; onOpen: (m: ModalKind) => void }) {
+  const nav = useNavigate()
   const completion = useCompanyCompletion()
   const remaining = completion.items.filter((i) => !i.done).length
   const [expanded, setExpanded] = useState(false)
   const myId = useAppSelector((s) => s.auth.user?.id)
+
+  // Контакты привязываются к реальному профилю (userId + аватар) при выборе в редакторе —
+  // фото и переход берутся прямо из контакта. Для СТАРЫХ контактов без userId оставляем
+  // фолбэк: резолвим имя → профиль по точному совпадению full_name.
+  const legacyNames = c.contacts.filter((ct) => !ct.userId).map((ct) => ct.name.trim()).filter(Boolean)
+  const contactsKey = legacyNames.join('|')
+  const [contactProfiles, setContactProfiles] = useState<Record<string, { id: string; avatar?: string }>>({})
+  useEffect(() => {
+    const names = Array.from(new Set(legacyNames))
+    if (!names.length) {
+      setContactProfiles({})
+      return
+    }
+    let alive = true
+    void (async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name, avatar_url').in('full_name', names)
+      if (!alive || !data) return
+      const map: Record<string, { id: string; avatar?: string }> = {}
+      for (const p of data as { id: string; full_name: string | null; avatar_url: string | null }[]) {
+        const key = (p.full_name ?? '').trim().toLowerCase()
+        if (key && !map[key]) map[key] = { id: p.id, avatar: p.avatar_url ?? undefined }
+      }
+      setContactProfiles(map)
+    })()
+    return () => {
+      alive = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contactsKey])
 
   return (
     <>
@@ -545,18 +576,43 @@ function SideRail({ c, onOpen }: { c: CompanyProfile; onOpen: (m: ModalKind) => 
         </div>
         {c.contacts.length ? (
           <div className={styles.contactsList}>
-            {c.contacts.map((ct) => (
-              <div key={ct.id} className={styles.contactRow}>
-                <span className={styles.contactAva}>{(ct.name || '?').slice(0, 2).toUpperCase()}</span>
-                <div className={styles.contactMeta}>
-                  <div className={styles.contactName}>{ct.name}</div>
-                  <div className={styles.contactRole}>
-                    {ct.kind === 'founder' ? 'Основатель' : 'Команда найма'}
-                    {ct.position ? ` · ${ct.position}` : ''}
+            {c.contacts.map((ct) => {
+              const prof = ct.userId
+                ? { id: ct.userId, avatar: ct.avatar }
+                : contactProfiles[ct.name.trim().toLowerCase()]
+              const inner = (
+                <>
+                  <span className={styles.contactAva}>
+                    {prof?.avatar ? (
+                      <img src={prof.avatar} alt="" className={styles.contactAvaImg} />
+                    ) : (
+                      (ct.name || '?').slice(0, 2).toUpperCase()
+                    )}
+                  </span>
+                  <div className={styles.contactMeta}>
+                    <div className={styles.contactName}>{ct.name}</div>
+                    <div className={styles.contactRole}>
+                      {ct.kind === 'founder' ? 'Основатель' : 'Команда найма'}
+                      {ct.position ? ` · ${ct.position}` : ''}
+                    </div>
                   </div>
+                </>
+              )
+              return prof ? (
+                <button
+                  key={ct.id}
+                  type="button"
+                  className={[styles.contactRow, styles.contactRowClickable].join(' ')}
+                  onClick={() => nav(`/u/${prof.id}`)}
+                >
+                  {inner}
+                </button>
+              ) : (
+                <div key={ct.id} className={styles.contactRow}>
+                  {inner}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <button type="button" className={styles.emptyAdd} onClick={() => onOpen('contacts')}>+ Добавить контакты</button>

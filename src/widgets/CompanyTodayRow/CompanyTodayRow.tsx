@@ -6,7 +6,8 @@ import { fetchOwnerApplications } from '../../features/vacancies/lib/application
 import { isPublicVacancy } from '../../features/vacancies/lib/vacancyVisibility'
 import type { Applicant } from '../../features/vacancies/model/types'
 import { loadNetwork } from '../../features/network/model/networkThunks'
-import { candidateBestMatch } from '../../features/company/lib/candidateMatch'
+import { computeMatch, personToMatchProfile } from '../../features/vacancies/lib/useVacancyMatch'
+import type { NetworkPerson } from '../../features/network/model/types'
 import {
   CandidateProfileModal,
   personToCandidate,
@@ -37,6 +38,15 @@ function SendIcon() {
       <polygon points="22 2 15 22 11 13 2 9 22 2" />
     </svg>
   )
+}
+
+/** Склонение слова «отклик» по числу: 1 — отклик, 2–4 — отклика, иначе — откликов. */
+function pluralResponses(n: number): string {
+  const m10 = n % 10
+  const m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return 'отклик'
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'отклика'
+  return 'откликов'
 }
 
 /** Полоса «Сегодня для компании» — три карточки (только company-режим). */
@@ -92,26 +102,56 @@ export function CompanyTodayRow() {
   const activeVacancies = useMemo(() => myVacancies.filter(isPublicVacancy), [myVacancies])
   const topVacancyTitle = activeVacancies[0]?.title
 
-  // Активная вакансия с наибольшим числом откликов (для карточки «Новые отклики»).
+  // Вакансия для карточки «Новые отклики». Приоритет — вакансии с НОВЫМИ (status==='new',
+  // ещё не просмотренными) откликами: показываем СЛУЧАЙНУЮ из них (новая при каждом заходе),
+  // чтобы постоянно «всплывали» разные вакансии, по которым есть новые отклики. Когда новые
+  // просмотрены и таких вакансий не осталось — показываем вакансию с наибольшим числом откликов.
   const topApplied = useMemo(() => {
-    const activeIds = new Set(activeVacancies.map((v) => v.id))
-    let best: { vacancyId: string; list: Applicant[] } | null = null
-    for (const [vacancyId, list] of Object.entries(applicantsByVacancy)) {
-      if (!activeIds.has(vacancyId)) continue
-      if (!best || list.length > best.list.length) best = { vacancyId, list }
+    const entries = activeVacancies
+      .map((v) => {
+        const list = applicantsByVacancy[v.id] ?? []
+        const newCount = list.filter((a) => a.status === 'new').length
+        return { vacancy: v, list, newCount }
+      })
+      .filter((e) => e.list.length > 0)
+    if (!entries.length) return null
+    const withNew = entries.filter((e) => e.newCount > 0)
+    if (withNew.length) {
+      const i = Math.min(Math.floor(pickSeed * withNew.length), withNew.length - 1)
+      return withNew[i]
     }
-    if (!best) return null
-    const vac = activeVacancies.find((v) => v.id === best!.vacancyId)
-    return { vacancy: vac, list: best.list }
-  }, [applicantsByVacancy, activeVacancies])
+    return entries.reduce((best, e) => (e.list.length > best.list.length ? e : best), entries[0])
+  }, [applicantsByVacancy, activeVacancies, pickSeed])
 
-  // Человек, которого «стоит позвать» (первый рекомендованный, не я).
-  const sourcing = useMemo(() => people.find((p) => p.id !== myId), [people, myId])
-  // Реальный матч кандидата по вакансиям компании (null — не с чем/не по чему).
-  const sourcingScore = useMemo(
-    () => (sourcing ? candidateBestMatch(sourcing, myVacancies) : null),
-    [sourcing, myVacancies],
-  )
+  // Подбор «Стоит позвать»: реальный лексический матч каждого рекомендованного человека
+  // против АКТИВНЫХ вакансий компании; берём только сильные совпадения (≥80%) и
+  // показываем СЛУЧАЙНОГО из них (новый при каждом заходе/обновлении — сид pickSeed).
+  const MATCH_THRESHOLD = 80
+  const eligibleCandidates = useMemo(() => {
+    const out: { person: NetworkPerson; score: number; vacancyTitle: string }[] = []
+    if (!activeVacancies.length) return out
+    for (const p of people) {
+      if (p.id === myId) continue
+      const profile = personToMatchProfile(p)
+      let best = -1
+      let bestTitle = ''
+      for (const v of activeVacancies) {
+        const m = computeMatch(v, profile)
+        if (m.score != null && m.score > best) {
+          best = m.score
+          bestTitle = v.title
+        }
+      }
+      if (best >= MATCH_THRESHOLD) out.push({ person: p, score: best, vacancyTitle: bestTitle })
+    }
+    return out
+  }, [people, myId, activeVacancies])
+
+  const picked = useMemo(() => {
+    if (!eligibleCandidates.length) return null
+    const i = Math.min(Math.floor(pickSeed * eligibleCandidates.length), eligibleCandidates.length - 1)
+    return eligibleCandidates[i]
+  }, [eligibleCandidates, pickSeed])
 
   const loading = appsLoading || (!vacanciesLoaded && !allVacancies.length) || networkStatus === 'idle' || networkStatus === 'loading'
 
@@ -144,61 +184,81 @@ export function CompanyTodayRow() {
 
             {/* 2. Стоит позвать */}
             {showCard('sourcing') ? (
-              sourcing ? (
-              <article
-                className={[styles.card, styles.person].join(' ')}
-                role="button"
-                tabIndex={0}
-                onClick={() => setCandidate(personToCandidate(sourcing, { score: sourcingScore }))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') setCandidate(personToCandidate(sourcing, { score: sourcingScore }))
-                }}
-              >
-                <div className={styles.kind}>Стоит позвать</div>
-                <div className={styles.body}>
-                  <div className={styles.name}>
-                    {sourcing.fullName}
-                    <CompanyBadge logo={sourcing.companyLogo} title={sourcing.company} size={14} />
-                  </div>
-                  <div className={styles.metaLine}>
-                    {[sourcing.jobTitle, sourcing.company, sourcing.location].filter(Boolean).join(' · ') || 'Специалист'}
-                  </div>
-                  <div className={styles.why}>
-                    {sourcingScore != null && topVacancyTitle
-                      ? `Совпадает с вакансией «${topVacancyTitle}» на ${sourcingScore}%.`
-                      : sourcingScore != null
-                        ? `Сильный профиль под твои задачи — совпадение ${sourcingScore}%.`
-                        : 'Подходящий специалист из твоей сети.'}
-                  </div>
-                </div>
-                <div className={styles.foot}>
-                  {sourcingScore != null ? (
-                    <div className={styles.matchRing} style={{ '--p': `${sourcingScore}%` } as React.CSSProperties}>
-                      <span>{sourcingScore}%</span>
+              !activeVacancies.length ? (
+                // Нет активных вакансий — не с чем матчить кандидатов, зовём создать вакансию.
+                <article
+                  className={[styles.card, styles.person].join(' ')}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => nav('/my-vacancies')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') nav('/my-vacancies')
+                  }}
+                >
+                  <div className={styles.kind}>Стоит позвать</div>
+                  <div className={styles.body}>
+                    <div className={styles.name}>Создай вакансию</div>
+                    <div className={styles.why}>
+                      Опубликуй вакансию — и здесь появятся подходящие кандидаты из твоей сети.
                     </div>
-                  ) : (
+                  </div>
+                  <div className={styles.foot}>
                     <div />
-                  )}
-                  <button
-                    type="button"
-                    className={styles.cta}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setWriteTo({ userId: sourcing.id, name: sourcing.fullName })
-                    }}
-                  >
-                    <SendIcon />&nbsp;Написать
-                  </button>
-                </div>
-              </article>
-            ) : (
-              <article className={[styles.card, styles.person].join(' ')}>
-                <div className={styles.kind}>Стоит позвать</div>
-                <div className={styles.body}>
-                  <div className={styles.name}>Пока некого рекомендовать</div>
-                  <div className={styles.why}>Подбор кандидатов появится, когда подрастёт сеть.</div>
-                </div>
-              </article>
+                    <button type="button" className={styles.cta} onClick={(e) => { e.stopPropagation(); nav('/my-vacancies') }}>
+                      Создать вакансию <ArrowIcon />
+                    </button>
+                  </div>
+                </article>
+              ) : picked ? (
+                <article
+                  className={[styles.card, styles.person].join(' ')}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setCandidate(personToCandidate(picked.person, { score: picked.score }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') setCandidate(personToCandidate(picked.person, { score: picked.score }))
+                  }}
+                >
+                  <div className={styles.kind}>Стоит позвать</div>
+                  <div className={styles.body}>
+                    <div className={styles.name}>
+                      {picked.person.fullName}
+                      <CompanyBadge logo={picked.person.companyLogo} title={picked.person.company} size={14} />
+                    </div>
+                    <div className={styles.metaLine}>
+                      {[picked.person.jobTitle, picked.person.company, picked.person.location].filter(Boolean).join(' · ') || 'Специалист'}
+                    </div>
+                    <div className={styles.why}>
+                      Совпадает с вакансией «{picked.vacancyTitle}» на {picked.score}%.
+                    </div>
+                  </div>
+                  <div className={styles.foot}>
+                    <div className={styles.matchRing} style={{ '--p': `${picked.score}%` } as React.CSSProperties}>
+                      <span>{picked.score}%</span>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.cta}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setWriteTo({ userId: picked.person.id, name: picked.person.fullName })
+                      }}
+                    >
+                      <SendIcon />&nbsp;Написать
+                    </button>
+                  </div>
+                </article>
+              ) : (
+                // Вакансии есть, но нет кандидатов с сильным совпадением (≥80%).
+                <article className={[styles.card, styles.person].join(' ')}>
+                  <div className={styles.kind}>Стоит позвать</div>
+                  <div className={styles.body}>
+                    <div className={styles.name}>Пока нет сильных совпадений</div>
+                    <div className={styles.why}>
+                      Кандидаты с совпадением 80%+ под твои вакансии появятся, когда подрастёт сеть.
+                    </div>
+                  </div>
+                </article>
               )
             ) : null}
 
@@ -295,7 +355,7 @@ export function CompanyTodayRow() {
     }
 
     const list = topApplied?.list ?? []
-    const newCount = list.filter((a) => a.status === 'new').length
+    const newCount = topApplied?.newCount ?? 0
     const vacTitle = topApplied?.vacancy?.title ?? topVacancyTitle ?? 'Вакансия'
 
     return (
@@ -309,13 +369,13 @@ export function CompanyTodayRow() {
         }}
       >
         <div className={styles.kind}>
-          Новые отклики{newCount > 0 ? <span className={styles.badge}>+{newCount} новых</span> : null}
+          Новые отклики{newCount > 0 ? <span className={styles.badge}>+{newCount} {newCount === 1 ? 'новый' : 'новых'}</span> : null}
         </div>
         <div className={styles.body}>
           <div className={styles.name}>{vacTitle}</div>
           <div className={styles.metaLine}>
-            {list.length} {list.length === 1 ? 'отклик' : 'откликов'} всего
-            {newCount > 0 ? ` · ${newCount} ещё не просмотрены` : ''}
+            {list.length} {pluralResponses(list.length)} всего
+            {newCount > 0 ? ` · ${newCount} ещё не ${newCount === 1 ? 'просмотрен' : 'просмотрены'}` : ''}
           </div>
           <div className={styles.why}>
             {list.length ? 'Загляни в воронку — кандидаты ждут ответа.' : 'Пока никто не откликнулся на эту вакансию.'}

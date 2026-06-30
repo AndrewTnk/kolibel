@@ -35,6 +35,10 @@ export type CompanyContact = {
   name: string
   /** Должность/подпись (необязательно) */
   position?: string
+  /** id привязанного реального профиля (для фото и перехода в профиль). */
+  userId?: string
+  /** Денормализованный аватар привязанного профиля (фолбэк, если не резолвим заново). */
+  avatar?: string
 }
 
 export type CompanyProfile = {

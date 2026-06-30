@@ -7,7 +7,18 @@ import { NetIco } from './netIcons'
 import styles from './NetworkPeekModals.module.css'
 
 /** Лёгкий каркас модалки (scrim + панель + Esc + блокировка скролла). */
-function Shell({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+function Shell({
+  onClose,
+  className,
+  fullScreenMobile,
+  children,
+}: {
+  onClose: () => void
+  className?: string
+  /** На мобилке (≤980px) развернуть модалку на весь экран. */
+  fullScreenMobile?: boolean
+  children: ReactNode
+}) {
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -21,8 +32,16 @@ function Shell({ onClose, children }: { onClose: () => void; children: ReactNode
     }
   }, [onClose])
   return (
-    <div className={styles.scrim} onClick={onClose} role="dialog" aria-modal>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={[styles.scrim, fullScreenMobile ? styles.scrimFull : ''].filter(Boolean).join(' ')}
+      onClick={onClose}
+      role="dialog"
+      aria-modal
+    >
+      <div
+        className={[styles.modal, fullScreenMobile ? styles.modalFull : '', className].filter(Boolean).join(' ')}
+        onClick={(e) => e.stopPropagation()}
+      >
         {children}
       </div>
     </div>
@@ -280,7 +299,7 @@ export function MyConnectionsModal({
   }
 
   return (
-    <Shell onClose={onClose}>
+    <Shell onClose={onClose} className={styles.modalWide} fullScreenMobile>
       <div className={styles.head}>
         <div>
           <div className={styles.headTitle}>Мои связи</div>

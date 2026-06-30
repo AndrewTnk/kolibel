@@ -64,6 +64,36 @@
   overflow-y: auto;
 }
 
+/* ── Полноэкранная модалка на мобилке (напр. «Мои связи») ── */
+@media (max-width: 980px) {
+  .scrimFull {
+    padding: 0;
+  }
+  .modalFull {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .modalFull .head {
+    padding-top: calc(16px + env(safe-area-inset-top));
+  }
+  /* Тело тянется на всю высоту, список заполняет остаток (фикс. высота не нужна). */
+  .modalFull .body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+  .modalFull .connScroll {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
+}
+
 /* ── Peek (профиль / компания) ── */
 .peekHead {
   position: relative;
@@ -330,9 +360,14 @@
 /* Табы «Мои связи»: Все / Люди / Компании / Исходящие / Входящие */
 .lTabs {
   display: flex;
-  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 12px;
+  /* В одну строку; на узких экранах — горизонтальный свайп, полоса скрыта. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.lTabs::-webkit-scrollbar {
+  display: none;
 }
 .lTab {
   flex: 0 0 auto;
@@ -386,14 +421,29 @@
   color: var(--muted);
 }
 /* Зона списка «Мои связи» — фиксированной высоты, чтобы модалка не «прыгала»
-   при переключении вкладок; скролл есть, но полоса скрыта. */
+   при переключении вкладок. Скролл есть, но ползунок неброский (в тёмной теме
+   темнее, чтобы не выделялся на чёрном). */
 .connScroll {
   height: 440px;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 .connScroll::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+}
+.connScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.connScroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+:global([data-theme='dark']) .connScroll {
+  scrollbar-color: var(--field-bg) transparent;
+}
+:global([data-theme='dark']) .connScroll::-webkit-scrollbar-thumb {
+  background: var(--field-bg);
 }
 
 .lList {

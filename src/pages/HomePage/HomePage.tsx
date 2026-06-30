@@ -37,7 +37,8 @@ export function HomePage() {
   // Карусели, чередуемые в ленте на мобилке (статьи — в общей ротации, как остальные рекомендации).
   const recSlots = isCompany
     ? [
-        <RecommendedCandidates key="cand" horizontal />,
+        <RecommendedCandidates key="cand" horizontal cards />,
+        <RecommendedPeople key="people" horizontal cards />,
         <ArticlesDiscovery key="articles" variant="carousel" />,
       ]
     : [

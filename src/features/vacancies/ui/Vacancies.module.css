@@ -2509,12 +2509,26 @@
   .tmActions {
     width: 100%;
   }
+  /* Мобилка: верхняя строка = [фото] [мэтч справа], а основная инфа (название/
+     компания/зп/дата) уходит на полную ширину под фото — чтобы кольцу мэтча
+     хватало места и оно не «улетало» вниз. */
   .vdTopLine {
     grid-template-columns: auto 1fr;
+    align-items: center;
+    row-gap: 12px;
   }
-  .vdRightMatch {
+  .vdAva {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .ring {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .vdTitleArea {
     grid-column: 1 / -1;
-    justify-self: start;
+    grid-row: 2;
   }
   /* Футер модалки вакансии: иконочные кнопки — компактные квадраты,
      текст остаётся только у кнопки отклика (иначе кнопки уезжают за край). */

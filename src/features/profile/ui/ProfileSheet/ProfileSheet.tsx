@@ -70,6 +70,7 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
             {!loaded ? (
               <BlockSkeleton height={520} />
             ) : (
+              <>
               <div className={s.sheet}>
                 <Hero
                   open={setModal}
@@ -116,16 +117,7 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
                   ) : null}
                 </div>
 
-                {tab === 'articles' && isMobile ? (
-                  <div className={s.bodyPadPosts}>
-                    {authorId ? <ArticlesBlock authorId={authorId} canEdit={!readOnly} variant="page" /> : null}
-                  </div>
-                ) : tab === 'posts' ? (
-                  <div className={s.bodyPadPosts}>
-                    {readOnly || isMobile ? null : <PostComposer compact />}
-                    <FeedList authorId={authorId} />
-                  </div>
-                ) : (
+                {tab === 'resume' ? (
                   <ResumeView
                     expanded={expanded}
                     onToggle={() => setExpanded((v) => !v)}
@@ -134,8 +126,21 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
                     resume={resume}
                     readOnly={readOnly}
                   />
-                )}
+                ) : null}
               </div>
+
+              {/* Посты/статьи — вне карточки профиля, на фоне страницы (как лента на главной). */}
+              {tab === 'posts' ? (
+                <div className={s.postsTab}>
+                  {readOnly || isMobile ? null : <PostComposer compact />}
+                  <FeedList authorId={authorId} />
+                </div>
+              ) : tab === 'articles' && isMobile ? (
+                <div className={s.postsTab}>
+                  {authorId ? <ArticlesBlock authorId={authorId} canEdit={!readOnly} variant="page" /> : null}
+                </div>
+              ) : null}
+              </>
             )}
           </div>
 

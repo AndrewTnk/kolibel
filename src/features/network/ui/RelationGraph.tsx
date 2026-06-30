@@ -77,11 +77,10 @@ type Props = {
   onNodeClick?: (node: GraphNodeData) => void
 }
 
-export type GraphFilter = 'all' | 'first' | 'people' | 'companies'
+export type GraphFilter = 'all' | 'people' | 'companies'
 
 const FILTERS: { key: GraphFilter; label: string }[] = [
   { key: 'all', label: 'Все' },
-  { key: 'first', label: '1-й круг' },
   { key: 'people', label: 'Люди' },
   { key: 'companies', label: 'Компании' },
 ]
@@ -122,8 +121,7 @@ export function RelationGraph({
   // Стабильная копия данных для симуляции (force-graph мутирует объекты) + фильтр.
   const graphData = useMemo(() => {
     let nodes = data.nodes
-    if (filter === 'first') nodes = nodes.filter((n) => n.degree <= 1)
-    else if (filter === 'people') nodes = nodes.filter((n) => n.degree === 0 || n.kind === 'person')
+    if (filter === 'people') nodes = nodes.filter((n) => n.degree === 0 || n.kind === 'person')
     else if (filter === 'companies') nodes = nodes.filter((n) => n.degree === 0 || n.kind === 'company')
     const ids = new Set(nodes.map((n) => n.id))
     const links = data.edges.filter((e) => ids.has(e.source) && ids.has(e.target))
@@ -303,10 +301,7 @@ export function RelationGraph({
       {expanded ? (
         <div className={styles.legend}>
           <span>
-            <i style={{ background: COLORS.me }} />Ты и 1-й круг
-          </span>
-          <span>
-            <i style={{ background: COLORS.second }} />2-й круг
+            <i style={{ background: COLORS.me }} />Пользователи
           </span>
           <span>
             <i className={styles.legendSq} style={{ background: COLORS.me }} />Компании

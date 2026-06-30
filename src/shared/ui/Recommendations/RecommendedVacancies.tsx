@@ -31,6 +31,34 @@ function VacancyRow({ v }: { v: Vacancy }) {
   )
 }
 
+/** Плитка вакансии для мобильной карусели — в стиле статей (коралловый заголовок,
+ *  название компании цветом текста, зарплата серым снизу, если указана). */
+function VacancyTile({ v }: { v: Vacancy }) {
+  const dispatch = useAppDispatch()
+  const hasSalary = Boolean(v.salaryFrom || v.salaryTo)
+  return (
+    <button
+      type="button"
+      className={styles.vacTile}
+      onClick={() => {
+        dispatch(vacanciesActions.openVacancy(v.id))
+        void dispatch(incrementVacancyView(v.id))
+      }}
+    >
+      <div className={styles.vacLogo} aria-hidden>
+        {v.companyLogo ? <img src={v.companyLogo} alt="" /> : v.company.charAt(0) || '?'}
+      </div>
+      <div className={styles.vacBody}>
+        <span className={styles.vacTitle}>{v.title}</span>
+        <span className={styles.vacCompany}>{v.company}</span>
+        {hasSalary ? (
+          <span className={styles.vacSalary}>{formatSalary(v.salaryFrom, v.salaryTo, v.currency)}</span>
+        ) : null}
+      </div>
+    </button>
+  )
+}
+
 export function RecommendedVacancies({ horizontal = false }: { horizontal?: boolean }) {
   const dispatch = useAppDispatch()
   const isMobile = useIsMobile()
@@ -56,7 +84,7 @@ export function RecommendedVacancies({ horizontal = false }: { horizontal?: bool
       {hcarousel ? (
         <HScroll>
           {list.slice(0, 10).map((v) => (
-            <VacancyRow key={v.id} v={v} />
+            <VacancyTile key={v.id} v={v} />
           ))}
         </HScroll>
       ) : (

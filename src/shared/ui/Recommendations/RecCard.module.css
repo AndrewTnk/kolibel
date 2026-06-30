@@ -1,0 +1,118 @@
+/* Компактная карточка-рекомендация для ленты: баннер + фото + имя + должность + «Связь».
+   Урезанный вид карточки сети (NetworkPersonCard) — без города и доп. бейджей. */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.banner {
+  position: relative;
+  aspect-ratio: 4 / 1;
+  background: linear-gradient(135deg, var(--c1, #fdece2), var(--c2, #f3b89e));
+}
+.bannerImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.body {
+  padding: 0 14px 14px;
+  margin-top: -26px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ava {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 3px solid var(--card);
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+  color: #fff;
+  font-weight: 900;
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+  margin-bottom: 4px;
+}
+.avaSq {
+  border-radius: 16px;
+}
+.avaImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.name {
+  font-weight: 900;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.role {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.follow {
+  margin-top: 10px;
+  width: 100%;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.follow:hover {
+  background: var(--primarySoft);
+}
+.followDone {
+  background: var(--primarySoft);
+}
+.followSolid {
+  background: var(--primary);
+  color: var(--onPrimary);
+}
+.followSolid:hover {
+  background: var(--primaryHover);
+  border-color: var(--primaryHover);
+}
+
+/* Тёмная тема: баннер-заглушка — фирменный тёмный градиент (как у фото профиля). */
+:global([data-theme='dark']) .banner {
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+}

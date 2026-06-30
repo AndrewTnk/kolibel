@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { AppHeader } from '../../shared/ui/AppHeader/AppHeader'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
 import {
-  CompositionListModal,
-  type CompositionRow,
+  MyConnectionsModal,
+  type ConnectionGroups,
 } from '../../features/network/ui/NetworkPeekModals'
 import { loadNetwork, toggleFollow } from '../../features/network/model/networkThunks'
 import { networkActions } from '../../features/network/model/networkSlice'
@@ -13,9 +13,7 @@ import { NetworkRecommendations } from '../../widgets/NetworkRecommendations/Net
 import { NetworkActivity } from '../../widgets/NetworkActivity/NetworkActivity'
 import styles from './NetworkPage.module.css'
 
-type NetModal =
-  | { kind: 'list'; title: string; subtitle: string; rows: CompositionRow[] }
-  | null
+type NetModal = { kind: 'connections'; groups: ConnectionGroups } | null
 
 /** Единый вид «Сети» (Hero + Рекомендуем + Активность) — общий для пользователя и
  *  компании; различаются только формулировки (через `audience`). */
@@ -41,8 +39,7 @@ function NetworkView({ audience }: { audience: 'user' | 'company' }) {
     void dispatch(toggleFollow(id))
   }
 
-  const openList = (title: string, subtitle: string, rows: CompositionRow[]) =>
-    setModal({ kind: 'list', title, subtitle, rows })
+  const openConnections = (groups: ConnectionGroups) => setModal({ kind: 'connections', groups })
 
   return (
     <div className={styles.page}>
@@ -51,7 +48,7 @@ function NetworkView({ audience }: { audience: 'user' | 'company' }) {
         <div className={styles.userInner}>
           {/* На мобилке Hero уезжает в полноэкранную граф-модалку (иконка в шапке). */}
           <div className="hideOnMobile">
-            <NetworkHero audience={audience} onOpenList={openList} />
+            <NetworkHero audience={audience} onOpenConnections={openConnections} />
           </div>
 
           <NetworkRecommendations onFollow={onFollow} />
@@ -76,18 +73,13 @@ function NetworkView({ audience }: { audience: 'user' | 'company' }) {
             </button>
           </div>
           <div className={styles.graphModalBody}>
-            <NetworkHero audience={audience} onOpenList={openList} />
+            <NetworkHero audience={audience} onOpenConnections={openConnections} />
           </div>
         </div>
       ) : null}
 
-      {modal?.kind === 'list' ? (
-        <CompositionListModal
-          title={modal.title}
-          subtitle={modal.subtitle}
-          rows={modal.rows}
-          onClose={() => setModal(null)}
-        />
+      {modal?.kind === 'connections' ? (
+        <MyConnectionsModal groups={modal.groups} onClose={() => setModal(null)} />
       ) : null}
     </div>
   )

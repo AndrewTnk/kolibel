@@ -5,6 +5,7 @@ import { spread } from '../../../features/network/lib/recommend'
 import { useRecommendations } from '../../../features/network/lib/useRecommendations'
 import type { Company } from '../../../features/network/model/types'
 import { RecRow } from './RecRow'
+import { RecCard } from './RecCard'
 import { RecModal } from './RecModal'
 import { RecSkeleton } from './RecSkeleton'
 import { HScroll } from '../HScroll/HScroll'
@@ -15,11 +16,14 @@ export function RecommendedCompanies({
   title = 'Рекомендованные компании',
   horizontal = false,
   loading = false,
+  cards = false,
 }: {
   title?: string
   horizontal?: boolean
   /** Принудительный скелетон (напр. пока грузится страница, где живёт блок). */
   loading?: boolean
+  /** Компактные карточки-баннеры вместо строк (для ленты на мобилке). */
+  cards?: boolean
 }) {
   const dispatch = useAppDispatch()
   const isMobile = useIsMobile()
@@ -53,19 +57,34 @@ export function RecommendedCompanies({
     return <RecSkeleton />
   }
 
-  const item = (c: Company) => (
-    <RecRow
-      key={c.id}
-      to={`/u/${c.id}`}
-      name={c.name}
-      sub={c.field || 'Компания'}
-      initial={c.logoInitial}
-      avatar={c.logo}
-      square
-      following={followingIds.includes(c.id)}
-      onToggle={() => dispatch(toggleFollow(c.id))}
-    />
-  )
+  const item = (c: Company) =>
+    cards ? (
+      <RecCard
+        key={c.id}
+        to={`/u/${c.id}`}
+        name={c.name}
+        sub={c.field || 'Компания'}
+        initial={c.logoInitial}
+        avatar={c.logo}
+        banner={c.banner}
+        bg={c.bg}
+        square
+        following={followingIds.includes(c.id)}
+        onToggle={() => dispatch(toggleFollow(c.id))}
+      />
+    ) : (
+      <RecRow
+        key={c.id}
+        to={`/u/${c.id}`}
+        name={c.name}
+        sub={c.field || 'Компания'}
+        initial={c.logoInitial}
+        avatar={c.logo}
+        square
+        following={followingIds.includes(c.id)}
+        onToggle={() => dispatch(toggleFollow(c.id))}
+      />
+    )
 
   return (
     <div className={styles.sideCard}>

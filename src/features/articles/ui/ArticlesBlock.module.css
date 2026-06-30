@@ -70,9 +70,13 @@
 }
 .scroll:hover {
   scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 .scroll::-webkit-scrollbar {
   width: 6px;
+}
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 /* WebKit: гаттер остаётся (контент не прыгает), ползунок виден только при наведении. */
 .scroll::-webkit-scrollbar-thumb {
@@ -81,6 +85,13 @@
 }
 .scroll:hover::-webkit-scrollbar-thumb {
   background: var(--border);
+}
+/* Тёмная тема: ползунок темнее и незаметнее (--border #45464a слишком светлый на чёрном). */
+:global([data-theme='dark']) .scroll:hover {
+  scrollbar-color: var(--field-bg) transparent;
+}
+:global([data-theme='dark']) .scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--field-bg);
 }
 
 /* Строка = инфо (слева) + ✕ (справа). ✕ виден при наведении на строку. */

@@ -16,6 +16,10 @@ export type ProfilePulse = {
   series: number[]
   /** Разбивка «кто смотрит профиль» (для модалки). */
   breakdown: BreakdownItem[]
+  /** Зрители профиля по типу: компании vs пользователи (для текста карточки). */
+  viewers: { companies: number; users: number }
+  /** Профиль сильнее по просмотрам, чем у N% похожих профилей (реальный перцентиль). */
+  percentile: number
 }
 
 const ZERO: PulseMetric = { count: 0, deltaPct: 0 }
@@ -54,12 +58,20 @@ export function useProfilePulse(): ProfilePulse {
     if (myId) void dispatch(loadAnalytics(myId))
   }, [myId, dispatch])
 
+  // Зрителей делим на компании (ключ 'company') и пользователей (все остальные:
+  // hr/специалисты/анонимы) — для текста карточки «Из них n — компании и n — пользователей».
+  const rows = data?.breakdown ?? []
+  const companies = rows.filter((r) => r.key === 'company').reduce((sum, r) => sum + r.value, 0)
+  const users = rows.filter((r) => r.key !== 'company').reduce((sum, r) => sum + r.value, 0)
+
   return {
     views: data?.views ?? ZERO,
     applications: data?.applications ?? ZERO,
     newConnections: { count: data?.newConnections ?? 0 },
     series: data?.series?.length ? data.series : EMPTY_SERIES,
     breakdown: mapBreakdown(data?.breakdown, VIEWER_LABELS),
+    viewers: { companies, users },
+    percentile: data?.viewsPercentile ?? 0,
   }
 }
 

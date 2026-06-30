@@ -17,7 +17,7 @@ export function getStoredTheme(): Theme {
 export function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', theme === 'dark' ? '#141414' : '#ffffff')
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff')
 }
 
 /** Сохранить и применить тему. */

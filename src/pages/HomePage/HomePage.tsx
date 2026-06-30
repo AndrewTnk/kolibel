@@ -41,9 +41,9 @@ export function HomePage() {
         <ArticlesDiscovery key="articles" variant="carousel" />,
       ]
     : [
-        <RecommendedPeople key="people" horizontal />,
+        <RecommendedPeople key="people" horizontal cards />,
         <RecommendedVacancies key="vac" horizontal />,
-        <RecommendedCompanies key="comp" horizontal />,
+        <RecommendedCompanies key="comp" horizontal cards />,
         <ArticlesDiscovery key="articles" variant="carousel" />,
       ]
 

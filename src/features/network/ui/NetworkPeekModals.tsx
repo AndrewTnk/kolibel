@@ -235,7 +235,116 @@ export type CompositionRow = {
   mutual?: number
 }
 
-/** Список состава сети (1-й/2-й круг, люди, компании) — строками с поиском. */
+/** Группы для модалки «Мои связи» (вкладки). */
+export type ConnectionGroups = {
+  all: CompositionRow[]
+  people: CompositionRow[]
+  companies: CompositionRow[]
+  outgoing: CompositionRow[]
+  incoming: CompositionRow[]
+}
+
+type ConnTab = keyof ConnectionGroups
+
+const CONN_TABS: { key: ConnTab; label: string }[] = [
+  { key: 'all', label: 'Все' },
+  { key: 'people', label: 'Люди' },
+  { key: 'companies', label: 'Компании' },
+  { key: 'outgoing', label: 'Исходящие' },
+  { key: 'incoming', label: 'Входящие' },
+]
+
+/** «Мои связи» — состав сети с вкладками (Все/Люди/Компании/Исходящие/Входящие) и поиском. */
+export function MyConnectionsModal({
+  groups,
+  onClose,
+}: {
+  groups: ConnectionGroups
+  onClose: () => void
+}) {
+  const dispatch = useAppDispatch()
+  const followingIds = useAppSelector((s) => s.network.followingIds)
+  const [tab, setTab] = useState<ConnTab>('all')
+  const [q, setQ] = useState('')
+
+  const rows = groups[tab]
+  const query = q.trim().toLowerCase()
+  const filtered = query
+    ? rows.filter((r) => `${r.name} ${r.sub}`.toLowerCase().includes(query))
+    : rows
+
+  function onToggle(e: MouseEvent, id: string) {
+    e.preventDefault()
+    e.stopPropagation()
+    void dispatch(toggleFollow(id))
+  }
+
+  return (
+    <Shell onClose={onClose}>
+      <div className={styles.head}>
+        <div>
+          <div className={styles.headTitle}>Мои связи</div>
+          <div className={styles.headSub}>{groups.all.length} в сети</div>
+        </div>
+        <button className={styles.close} onClick={onClose} aria-label="Закрыть">
+          ✕
+        </button>
+      </div>
+      <div className={styles.body}>
+        <div className={styles.lTabs} role="tablist">
+          {CONN_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.key}
+              className={[styles.lTab, tab === t.key ? styles.lTabOn : ''].join(' ')}
+              onClick={() => {
+                setTab(t.key)
+                setQ('')
+              }}
+            >
+              {t.label}
+              <span className={styles.lTabCount}>{groups[t.key].length}</span>
+            </button>
+          ))}
+        </div>
+        <div className={styles.lSearch}>
+          <NetIco.Search />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Поиск" />
+        </div>
+        <div className={styles.connScroll}>
+          {!filtered.length ? (
+            <div className={styles.empty}>{rows.length ? 'Ничего не найдено' : 'Здесь пока пусто'}</div>
+          ) : (
+            <div className={styles.lList}>
+              {filtered.map((r) => (
+                <Link key={r.id} to={`/u/${r.id}?from=network`} className={styles.lRow} onClick={onClose}>
+                  <span className={[styles.lAva, r.square ? styles.lAvaSq : ''].join(' ')}>
+                    {r.avatar ? <img src={r.avatar} alt="" /> : r.initial}
+                  </span>
+                  <span className={styles.lMeta}>
+                    <span className={styles.lName}>{r.name}</span>
+                    <span className={styles.lRole}>{r.sub}</span>
+                  </span>
+                  <button
+                    type="button"
+                    className={[styles.lAction, followingIds.includes(r.id) ? styles.lActionDone : ''].join(' ')}
+                    onClick={(e) => onToggle(e, r.id)}
+                  >
+                    {followingIds.includes(r.id) ? '✓ Связь' : '+ Связь'}
+                  </button>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Shell>
+  )
+}
+
+/** Список состава сети (люди, компании) — строками с поиском. */
 export function CompositionListModal({
   title,
   subtitle,

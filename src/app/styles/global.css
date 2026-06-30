@@ -62,8 +62,8 @@
 
 /* ── Тёмная тема ──────────────────────────────── */
 :root[data-theme='dark'] {
-  --bg: #141414; /* RGB(20,20,20) — основной фон, нейтральный (без синевы) */
-  --card: #363738; /* RGB(54,55,56) — блоки/карточки */
+  --bg: #000000; /* фул блэк — основной фон */
+  --card: #1c1c1c; /* RGB(28) — блоки/карточки, на пару тонов темнее прежнего */
   --text: #e6e9ee;
   --text-2: #b3bccb;
   --muted: #8a94a3;
@@ -78,8 +78,8 @@
   --primarySoftStrong: rgba(255, 127, 80, 0.3);
   --primarySoftBg: rgba(255, 127, 80, 0.12);
   --primaryBorder: rgba(255, 127, 80, 0.34);
-  --header-bg: rgba(20, 20, 20, 0.86);
-  --app-bg: radial-gradient(1100px 700px at 12% 10%, #1c1c1c 0%, var(--bg) 55%, #0e0e0e 100%);
+  --header-bg: rgba(0, 0, 0, 0.86);
+  --app-bg: #000000;
   --chat-canvas: #1b1a18;
   --chat-dot: rgba(255, 127, 80, 0.14);
   --chat-list-bg: #2c2d2e;

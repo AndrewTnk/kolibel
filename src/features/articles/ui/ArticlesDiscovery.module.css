@@ -135,9 +135,13 @@
 }
 .scroll:hover {
   scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 .scroll::-webkit-scrollbar {
   width: 6px;
+}
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 .scroll::-webkit-scrollbar-thumb {
   background: transparent;
@@ -145,6 +149,13 @@
 }
 .scroll:hover::-webkit-scrollbar-thumb {
   background: var(--border);
+}
+/* Тёмная тема: ползунок темнее и незаметнее (--border #45464a слишком светлый на чёрном). */
+:global([data-theme='dark']) .scroll:hover {
+  scrollbar-color: var(--field-bg) transparent;
+}
+:global([data-theme='dark']) .scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--field-bg);
 }
 
 /* Строка статьи — компактнее профильного блока (меньше вертикальный отступ). */

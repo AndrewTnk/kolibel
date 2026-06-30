@@ -6,6 +6,7 @@ import { spread } from '../../../features/network/lib/recommend'
 import { useRecommendations } from '../../../features/network/lib/useRecommendations'
 import type { NetworkPerson } from '../../../features/network/model/types'
 import { RecRow } from './RecRow'
+import { RecCard } from './RecCard'
 import { RecSkeleton } from './RecSkeleton'
 import { HScroll } from '../HScroll/HScroll'
 import { useIsMobile } from '../../lib/useMediaQuery'
@@ -15,11 +16,14 @@ export function RecommendedPeople({
   title = 'Рекомендованные пользователи',
   horizontal = false,
   loading = false,
+  cards = false,
 }: {
   title?: string
   horizontal?: boolean
   /** Принудительный скелетон (напр. пока грузится страница, где живёт блок). */
   loading?: boolean
+  /** Компактные карточки-баннеры вместо строк (для ленты на мобилке). */
+  cards?: boolean
 }) {
   const dispatch = useAppDispatch()
   const isMobile = useIsMobile()
@@ -53,20 +57,34 @@ export function RecommendedPeople({
     return <RecSkeleton />
   }
 
-  const card = (p: NetworkPerson) => (
-    <RecRow
-      key={p.id}
-      to={`/u/${p.id}`}
-      name={p.fullName}
-      sub={[p.jobTitle, p.company].filter(Boolean).join(' · ') || 'Пользователь'}
-      initial={p.avatarInitials}
-      avatar={p.avatar}
-      logo={p.companyLogo}
-      logoTitle={p.company}
-      following={followingIds.includes(p.id)}
-      onToggle={() => dispatch(toggleFollow(p.id))}
-    />
-  )
+  const card = (p: NetworkPerson) =>
+    cards ? (
+      <RecCard
+        key={p.id}
+        to={`/u/${p.id}`}
+        name={p.fullName}
+        sub={p.jobTitle || 'Пользователь'}
+        initial={p.avatarInitials}
+        avatar={p.avatar}
+        banner={p.banner}
+        bg={p.bg}
+        following={followingIds.includes(p.id)}
+        onToggle={() => dispatch(toggleFollow(p.id))}
+      />
+    ) : (
+      <RecRow
+        key={p.id}
+        to={`/u/${p.id}`}
+        name={p.fullName}
+        sub={[p.jobTitle, p.company].filter(Boolean).join(' · ') || 'Пользователь'}
+        initial={p.avatarInitials}
+        avatar={p.avatar}
+        logo={p.companyLogo}
+        logoTitle={p.company}
+        following={followingIds.includes(p.id)}
+        onToggle={() => dispatch(toggleFollow(p.id))}
+      />
+    )
 
   return (
     <div className={styles.sideCard}>

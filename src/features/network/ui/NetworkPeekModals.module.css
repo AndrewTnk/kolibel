@@ -19,6 +19,10 @@
   display: flex;
   flex-direction: column;
 }
+/* Модалка «Мои связи» шире — чтобы все 5 вкладок помещались в одну строку. */
+.modalWide {
+  max-width: 560px;
+}
 
 .head {
   display: flex;
@@ -323,6 +327,39 @@
 }
 
 /* ── Composition list ── */
+/* Табы «Мои связи»: Все / Люди / Компании / Исходящие / Входящие */
+.lTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.lTab {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--field-bg);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.lTab:hover {
+  border-color: var(--primary);
+}
+.lTabOn {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--onPrimary);
+}
+.lTabCount {
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
 .lSearch {
   position: relative;
   margin-bottom: 12px;
@@ -348,6 +385,17 @@
   transform: translateY(-50%);
   color: var(--muted);
 }
+/* Зона списка «Мои связи» — фиксированной высоты, чтобы модалка не «прыгала»
+   при переключении вкладок; скролл есть, но полоса скрыта. */
+.connScroll {
+  height: 440px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.connScroll::-webkit-scrollbar {
+  display: none;
+}
+
 .lList {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -392,6 +440,12 @@
 .lAvaSq {
   background: linear-gradient(135deg, #fdece2, #f3b89e);
   color: var(--accent);
+}
+/* Тёмная тема: заглушка лого компании (нет фото) — фирменный тёмный градиент,
+   а не светлая пастель (которая «светилась» на тёмном фоне). */
+:global([data-theme='dark']) .lAvaSq {
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+  color: #fff;
 }
 .lMeta {
   flex: 1;

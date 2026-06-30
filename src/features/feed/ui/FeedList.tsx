@@ -12,11 +12,12 @@ import { RecommendedVacancies } from '../../../shared/ui/Recommendations/Recomme
 import { RecommendedCompanies } from '../../../shared/ui/Recommendations/RecommendedCompanies'
 import styles from './Feed.module.css'
 
-/** Карусели рекомендаций, чередуемые между постами на мобильных. */
+/** Карусели рекомендаций, чередуемые между постами на мобильных.
+ *  Люди/компании — компактными карточками-баннерами (cards), вакансии — как были. */
 const recCarousels = [
-  <RecommendedPeople horizontal />,
+  <RecommendedPeople horizontal cards />,
   <RecommendedVacancies horizontal />,
-  <RecommendedCompanies horizontal />,
+  <RecommendedCompanies horizontal cards />,
 ]
 /** Разрыв между рекомендациями в ленте (постов): не чаще каждых MIN, не реже MAX. */
 const REC_MIN_GAP = 5

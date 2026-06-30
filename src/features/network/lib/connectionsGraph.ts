@@ -69,22 +69,10 @@ export async function fetchConnectionsGraph(rootId?: string): Promise<Connection
   const followingSet = new Set(following)
   const directIds = uniq([...following, ...followers]).filter((id) => id !== root)
 
-  // 2) Второй уровень: на кого подписаны прямые подписки корня
-  let secondEdges: { follower_id: string; followee_id: string }[] = []
-  if (following.length) {
-    const res = await supabase
-      .from('follows')
-      .select('follower_id, followee_id')
-      .in('follower_id', following)
-    if (res.error) throw new Error(res.error.message)
-    secondEdges = (res.data ?? []) as { follower_id: string; followee_id: string }[]
-  }
-  const secondIds = uniq(
-    secondEdges.map((e) => e.followee_id).filter((id) => id !== root && !directIds.includes(id)),
-  )
+  // Только прямые связи (1-й круг). Вторичные связи (2-й круг) убраны.
 
-  // 3) Данные профилей/компаний для всех узлов (+ сам корень)
-  const allIds = uniq([root, ...directIds, ...secondIds])
+  // 2) Данные профилей/компаний для всех узлов (+ сам корень)
+  const allIds = uniq([root, ...directIds])
   const profRes = await supabase
     .from('profiles')
     .select('id, full_name, job_title, avatar_url, account_type')
@@ -110,7 +98,7 @@ export async function fetchConnectionsGraph(rootId?: string): Promise<Connection
     const name = isCompany
       ? comp?.name?.trim() || p.full_name?.trim() || 'Компания'
       : p.full_name?.trim() || 'Пользователь'
-    const degree: 0 | 1 | 2 = p.id === root ? 0 : directIds.includes(p.id) ? 1 : 2
+    const degree: 0 | 1 | 2 = p.id === root ? 0 : 1
     // «Подписка» — корень подписан на узел; иначе (узел подписан на корень) — «подписчик».
     const relation: Relation | undefined =
       degree === 1 ? (followingSet.has(p.id) ? 'following' : 'follower') : undefined
@@ -129,7 +117,7 @@ export async function fetchConnectionsGraph(rootId?: string): Promise<Connection
   })
   const nodeIds = new Set(nodes.map((n) => n.id))
 
-  // 4) Рёбра: прямые (корень → связь) + второго уровня (связь → её связь)
+  // 3) Рёбра: только прямые (корень → связь)
   const edgeKey = new Set<string>()
   const edges: GraphEdgeData[] = []
   const addEdge = (source: string, target: string, degree: 1 | 2) => {
@@ -141,7 +129,6 @@ export async function fetchConnectionsGraph(rootId?: string): Promise<Connection
     edges.push({ source, target, degree })
   }
   for (const id of directIds) addEdge(root, id, 1)
-  for (const e of secondEdges) addEdge(e.follower_id, e.followee_id, 2)
 
   return { nodes, edges }
 }

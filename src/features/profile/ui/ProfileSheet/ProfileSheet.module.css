@@ -489,6 +489,15 @@
   gap: 14px;
 }
 
+/* Вкладка постов/статей — вне карточки профиля, на фоне страницы: посты выглядят
+   как лента на главной (отдельные карточки на фоне, без общего блока-обёртки). */
+.postsTab {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .resumeGrid {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
@@ -1365,6 +1374,15 @@
     border-right: none;
     border-radius: 0;
     box-shadow: none;
+  }
+
+  /* На мобилке у профиля `.main` без боковых полей (баннер edge-to-edge), поэтому
+     посты-вкладке возвращаем боковой отступ страницы — тогда `.post` со своими
+     отрицательными полями (−content-padding) дотягивается ровно до краёв экрана и
+     выглядит как лента на главной (на всю ширину, со скруглением). */
+  .postsTab {
+    padding-left: var(--content-padding);
+    padding-right: var(--content-padding);
   }
 
   .heroActionsOwner,

@@ -3,18 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '../../app/store/hooks'
 import type { GraphNodeData } from '../../features/network/lib/connectionsGraph'
 import type { GraphFilter } from '../../features/network/ui/RelationGraph'
-import type { CompositionRow } from '../../features/network/ui/NetworkPeekModals'
+import type { CompositionRow, ConnectionGroups } from '../../features/network/ui/NetworkPeekModals'
 import { HeroGraph } from './HeroGraph'
 import styles from './NetworkHero.module.css'
 
 type Props = {
-  onOpenList: (title: string, subtitle: string, rows: CompositionRow[]) => void
+  onOpenConnections: (groups: ConnectionGroups) => void
   audience?: 'user' | 'company'
 }
 
 const FILTERS: { v: GraphFilter; l: string }[] = [
   { v: 'all', l: 'Все' },
-  { v: 'first', l: '1-й' },
   { v: 'people', l: 'Люди' },
   { v: 'companies', l: 'Компании' },
 ]
@@ -34,28 +33,32 @@ function nodeToRow(n: GraphNodeData): CompositionRow {
   }
 }
 
-export function NetworkHero({ onOpenList, audience = 'user' }: Props) {
+export function NetworkHero({ onOpenConnections, audience = 'user' }: Props) {
   const isCompany = audience === 'company'
   const navigate = useNavigate()
   const myId = useAppSelector((s) => s.auth.user?.id)
+  const followingIds = useAppSelector((s) => s.network.followingIds)
+  const followers = useAppSelector((s) => s.network.followers)
   const [nodes, setNodes] = useState<GraphNodeData[]>([])
   const [filter, setFilter] = useState<GraphFilter>('all')
 
   const onNodes = useCallback((ns: GraphNodeData[]) => setNodes(ns), [])
 
-  // Состав сети из графа (degree>0 — это связи).
+  // Состав сети из графа: только прямые связи (1-й круг). Исходящие = на кого подписан я,
+  // входящие = кто подписан на меня (берём из стора, чтобы взаимные попали в обе вкладки).
   const comp = useMemo(() => {
     const links = nodes.filter((n) => n.degree > 0)
-    const first = links.filter((n) => n.degree === 1)
-    const second = links.filter((n) => n.degree === 2)
+    const followingSet = new Set(followingIds)
+    const followerSet = new Set(followers.map((f) => f.id))
     return {
-      first,
-      second,
+      first: links,
       people: links.filter((n) => n.kind === 'person'),
       companies: links.filter((n) => n.kind === 'company'),
+      outgoing: links.filter((n) => followingSet.has(n.id)),
+      incoming: links.filter((n) => followerSet.has(n.id)),
       total: links.length,
     }
-  }, [nodes])
+  }, [nodes, followingIds, followers])
 
   // Клик по узлу графа → переход в профиль (свой → /profile, чужой → /u/:id),
   // с разметкой источника для аналитики (record_profile_view → from=network).
@@ -67,19 +70,19 @@ export function NetworkHero({ onOpenList, audience = 'user' }: Props) {
     [navigate, myId],
   )
 
-  function openList(kind: 'first' | 'second' | 'people' | 'companies') {
-    const map = {
-      first: { src: comp.first, title: '1-й круг', sub: 'Прямые связи' },
-      second: { src: comp.second, title: '2-й круг', sub: 'Через знакомых' },
-      people: { src: comp.people, title: isCompany ? 'Люди в сети компании' : 'Люди в твоей сети', sub: 'Все люди' },
-      companies: { src: comp.companies, title: isCompany ? 'Компании в сети' : 'Компании в твоей сети', sub: 'Все компании' },
-    }[kind]
-    onOpenList(map.title, `${map.src.length} в списке`, map.src.map(nodeToRow))
+  function openConnections() {
+    onOpenConnections({
+      all: comp.first.map(nodeToRow),
+      people: comp.people.map(nodeToRow),
+      companies: comp.companies.map(nodeToRow),
+      outgoing: comp.outgoing.map(nodeToRow),
+      incoming: comp.incoming.map(nodeToRow),
+    })
   }
 
   const total = comp.total
-  const seg1 = total ? (C * comp.first.length) / total : 0
-  const seg2 = total ? (C * comp.second.length) / total : 0
+  // Только прямые связи → одно кольцо во всю окружность (с небольшим разрывом).
+  const seg1 = total ? C : 0
 
   return (
     <section className={styles.hero}>
@@ -99,15 +102,6 @@ export function NetworkHero({ onOpenList, audience = 'user' }: Props) {
               strokeDasharray={`${Math.max(seg1 - GAP, 0)} ${C - Math.max(seg1 - GAP, 0)}`}
               strokeDashoffset={0}
             />
-            <circle
-              cx="120"
-              cy="120"
-              r={R}
-              className={styles.ringSeg}
-              stroke="#f3b89e"
-              strokeDasharray={`${Math.max(seg2 - GAP, 0)} ${C - Math.max(seg2 - GAP, 0)}`}
-              strokeDashoffset={-seg1}
-            />
           </svg>
           <div className={styles.donutCenter}>
             <div className={styles.donutN}>{total}</div>
@@ -116,30 +110,9 @@ export function NetworkHero({ onOpenList, audience = 'user' }: Props) {
         </div>
 
         <div className={styles.legend}>
-          <button className={styles.legendItem} onClick={() => openList('first')}>
-            <div className={styles.legendLab}>
-              <span className={styles.swatch} style={{ background: '#ff7f50' }} />1-й круг
-            </div>
-            <div className={styles.legendVal}>{comp.first.length}</div>
-          </button>
-          <button className={styles.legendItem} onClick={() => openList('second')}>
-            <div className={styles.legendLab}>
-              <span className={styles.swatch} style={{ background: '#f3b89e' }} />2-й круг
-            </div>
-            <div className={styles.legendVal}>{comp.second.length}</div>
-          </button>
-          <button className={styles.legendItem} onClick={() => openList('people')}>
-            <div className={styles.legendLab}>
-              <span className={styles.swatch} style={{ background: '#111827' }} />Люди
-            </div>
-            <div className={styles.legendVal}>{comp.people.length}</div>
-          </button>
-          <button className={styles.legendItem} onClick={() => openList('companies')}>
-            <div className={styles.legendLab}>
-              <span className={[styles.swatch, styles.swatchSq].join(' ')} style={{ background: '#ff7f50' }} />
-              Компании
-            </div>
-            <div className={styles.legendVal}>{comp.companies.length}</div>
+          <button className={styles.connBtn} onClick={openConnections}>
+            <span className={styles.connBtnLab}>Мои связи</span>
+            <span className={styles.connBtnVal}>{total}</span>
           </button>
         </div>
       </div>
@@ -163,10 +136,7 @@ export function NetworkHero({ onOpenList, audience = 'user' }: Props) {
           <span>Нажми на узел — откроется профиль</span>
           <span className={styles.tipLegend}>
             <span>
-              <i className={styles.tipDot} style={{ background: '#ff7f50' }} />1-й
-            </span>
-            <span>
-              <i className={styles.tipDot} style={{ background: '#f3b89e' }} />2-й
+              <i className={styles.tipDot} style={{ background: '#ff7f50' }} />пользователи
             </span>
             <span>
               <i className={[styles.tipDot, styles.tipDotSq].join(' ')} style={{ background: '#ff7f50' }} />

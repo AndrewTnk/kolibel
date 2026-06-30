@@ -22,6 +22,7 @@ export function FiltersModal({ open, onClose, onApply }: Props) {
     <SeekerSheet
       onClose={onClose}
       size="md"
+      fullScreenMobile
       title="Фильтры"
       subtitle="Уточните выдачу под свои критерии"
       footerLeft={

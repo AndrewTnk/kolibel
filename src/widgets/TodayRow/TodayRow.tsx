@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/store/hooks'
 import { incrementVacancyView, loadVacancies } from '../../features/vacancies/model/vacancyThunks'
@@ -7,6 +7,8 @@ import { formatSalary } from '../../features/vacancies/lib/labels'
 import { computeMatch, resumeToMatchProfile } from '../../features/vacancies/lib/useVacancyMatch'
 import { isPublicVacancy } from '../../features/vacancies/lib/vacancyVisibility'
 import { loadNetwork, toggleFollow } from '../../features/network/model/networkThunks'
+import { useRecommendations } from '../../features/network/lib/useRecommendations'
+import { spread } from '../../features/network/lib/recommend'
 import { useProfilePulse, formatDelta } from '../../features/profile/lib/useProfilePulse'
 import { useIsMobile } from '../../shared/lib/useMediaQuery'
 import { ProfileAnalyticsModal } from '../ProfileAnalyticsModal/ProfileAnalyticsModal'
@@ -32,6 +34,15 @@ function PlusIcon() {
   )
 }
 
+/** Склонение слова «пользователь» по числу: 1 — пользователь, 2–4 — пользователя, иначе — пользователей. */
+function pluralUsers(n: number): string {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod10 === 1 && mod100 !== 11) return 'пользователь'
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'пользователя'
+  return 'пользователей'
+}
+
 /** Полоса «Сегодня для тебя» — три карточки-возможности (только user-режим). */
 export function TodayRow() {
   const dispatch = useAppDispatch()
@@ -41,9 +52,11 @@ export function TodayRow() {
   const vacanciesLoaded = useAppSelector((s) => s.vacanciesList.loaded)
   const resume = useAppSelector((s) => s.profile.resume)
   const appliedIds = useAppSelector((s) => s.vacancies.appliedIds)
-  const people = useAppSelector((s) => s.network.recommendedPeople)
   const followingIds = useAppSelector((s) => s.network.followingIds)
   const networkStatus = useAppSelector((s) => s.network.status)
+  // Ранжированные рекомендации (своя компания/навыки/похожая профессия/популярность/
+  // общие связи) — общая система рекомендаций сети.
+  const { scoredPeople } = useRecommendations()
   const pulse = useProfilePulse()
   const isMobile = useIsMobile()
   // Сид выбора случайной карточки — раз на монтаж (новый на каждый заход/обновление страницы).
@@ -85,12 +98,23 @@ export function TodayRow() {
     dispatch(vacanciesActions.openVacancy(vacancy.id))
     void dispatch(incrementVacancyView(vacancy.id))
   }
-  // Человек со связями (первый рекомендованный).
-  const person = people[0]
+  // «Стоит познакомиться»: берём лучшего по интересу кандидата, ИСКЛЮЧАЯ тех, на кого
+  // уже подписан (показываем только потенциально новые связи). Выбор замораживаем на
+  // монтаж (ref) — иначе карточка «перепрыгнула» бы на другого человека сразу после
+  // клика «Связь» (после подписки он бы выпал из пула). Подписавшись на показанного,
+  // видим состояние «✓ Связь», карточка не меняется.
+  const chosenPersonId = useRef<string | null>(null)
+  const person = useMemo(() => {
+    const pool = spread(scoredPeople).map((s) => s.item)
+    if (chosenPersonId.current) {
+      const kept = pool.find((p) => p.id === chosenPersonId.current)
+      if (kept) return kept
+    }
+    const next = pool.find((p) => !followingIds.includes(p.id))
+    chosenPersonId.current = next?.id ?? null
+    return next
+  }, [scoredPeople, followingIds])
   const isFollowing = person ? followingIds.includes(person.id) : false
-
-  const c = pulse.breakdown[0]?.value ?? 0
-  const h = pulse.breakdown[1]?.value ?? 0
 
   // Скелетоны на время холодной загрузки (вакансии/сеть ещё не подгрузились).
   const loading =
@@ -217,7 +241,7 @@ export function TodayRow() {
                     void dispatch(toggleFollow(person.id))
                   }}
                 >
-                  {isFollowing ? '✓ Подписка' : (<><PlusIcon />&nbsp;Связь</>)}
+                  {isFollowing ? '✓ Связь' : (<><PlusIcon />&nbsp;Связь</>)}
                 </button>
               </div>
             </article>
@@ -240,7 +264,8 @@ export function TodayRow() {
               </div>
               <div className={styles.metaLine}>{formatDelta(pulse.views.deltaPct)} к прошлой неделе</div>
               <div className={styles.why}>
-                Из них {c} — компании-работодатели и {h} — HR. Сильнее, чем у 78% похожих профилей.
+                Из них {pulse.viewers.companies} — компании и {pulse.viewers.users} —{' '}
+                {pluralUsers(pulse.viewers.users)}. Сильнее, чем у {pulse.percentile}% похожих профилей.
               </div>
             </div>
             <div className={styles.foot}>

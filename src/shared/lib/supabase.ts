@@ -23,13 +23,13 @@ if (!directUrl || !anonKey) {
  * `vercel.json` → Supabase). Этот путь идёт через доступный из РФ Vercel, а хоп
  * Vercel→Supabase уже вне российской границы и не троттлится.
  *
- * В dev (`npm run dev`) ходим в Supabase напрямую (rewrite'ов Vercel локально нет;
- * под VPN всё работает).
+ * В dev то же самое обеспечивает прокси `/sb` в `vite.config.ts`. Поэтому и в проде,
+ * и в dev клиент ходит одинаково через `${origin}/sb` — новые загрузки в Storage
+ * сразу получают проксируемый адрес, а dev и прод ведут себя одинаково.
+ * (`directUrl` — фолбэк на случай отсутствия window, напр. в нодовом окружении.)
  */
 const url =
-  import.meta.env.PROD && typeof window !== 'undefined'
-    ? `${window.location.origin}/sb`
-    : directUrl
+  typeof window !== 'undefined' ? `${window.location.origin}/sb` : directUrl
 
 export const supabase = createClient(url, anonKey, {
   auth: {

@@ -8,6 +8,8 @@ import {
   type ConversationRow,
   type MessageRow,
 } from '../lib/mapChat'
+import { selectViewedConversationId } from './chatUiSlice'
+import type { RootState } from '../../../app/store/store'
 
 async function currentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession()
@@ -74,6 +76,88 @@ export const loadConversations = createAsyncThunk<ChatConversation[], void>(
     const convos = rows.map((r) => rowToConversation(r, myId))
     await enrichCompanyTitles(convos)
     return convos
+  },
+)
+
+/**
+ * Лёгкий опрос новых сообщений — замена realtime-подписки на messages (WebSocket
+ * не проходит через Vercel-прокси из РФ, см. раздел про прокси в CONTEXT_HANDOFF).
+ *
+ * Не перезагружает беседы целиком (это бы перерисовывало весь чат и дёргало скролл).
+ * Берёт только сообщения, созданные ПОЗЖЕ последнего известного, и докидывает их
+ * через `appendMessage` (с дедупом). Плюс для открытой беседы дотягивает last_read_at
+ * собеседника (галочки «прочитано»). Обычно запрос возвращает 0 строк → почти бесплатно.
+ *
+ * ⚠️ Правки/удаления сообщений собеседником этим опросом НЕ ловятся (инкрементально их
+ * не отличить) — отразятся при следующей полной перезагрузке (переход/отправка). Для MVP ок.
+ */
+export const pollNewMessages = createAsyncThunk<void, void>(
+  'chat/poll',
+  async (_, { dispatch, getState }) => {
+    const myId = await currentUserId()
+    if (!myId) return
+    const state = getState() as RootState
+    const convos = state.chat.conversations
+    if (state.chat.status !== 'ready') return // ждём первичную загрузку (loadConversations)
+
+    // Последний известный момент среди всех сообщений — точка отсчёта опроса.
+    let since = 0
+    for (const c of convos) for (const m of c.messages) if (m.createdAt > since) since = m.createdAt
+    const sinceIso = new Date(since || 0).toISOString()
+
+    // Новые сообщения МОИХ бесед (RLS messages_select ограничивает только участниками).
+    const sel = await supabase
+      .from('messages')
+      .select('id, conversation_id, sender_id, body, created_at, reply_to, attach, reactions')
+      .gt('created_at', sinceIso)
+      .order('created_at', { ascending: true })
+    let rows: (MessageRow & { conversation_id: string })[]
+    if (sel.error) {
+      // Фолбэк без полей 0019.
+      const base = await supabase
+        .from('messages')
+        .select('id, conversation_id, sender_id, body, created_at')
+        .gt('created_at', sinceIso)
+        .order('created_at', { ascending: true })
+      if (base.error) return
+      rows = base.data as unknown as (MessageRow & { conversation_id: string })[]
+    } else {
+      rows = sel.data as unknown as (MessageRow & { conversation_id: string })[]
+    }
+
+    const known = new Set(convos.map((c) => c.id))
+    const viewedId = selectViewedConversationId(state)
+    let needFullReload = false
+    for (const row of rows) {
+      if (!known.has(row.conversation_id)) {
+        // Беседа создана собеседником только что — её ещё нет в сторе.
+        needFullReload = true
+        continue
+      }
+      const message = rowToMessage(row, myId)
+      const active = viewedId === row.conversation_id
+      dispatch(chatActions.appendMessage({ conversationId: row.conversation_id, message, active }))
+      if (message.sender === 'them' && active) void dispatch(markConversationRead(row.conversation_id))
+    }
+    if (needFullReload) {
+      void dispatch(loadConversations())
+      return
+    }
+
+    // Галочки прочтения: дотянуть last_read_at собеседника для открытой беседы.
+    if (viewedId) {
+      const { data: parts } = await supabase
+        .from('conversation_participants')
+        .select('user_id, last_read_at')
+        .eq('conversation_id', viewedId)
+      if (parts) {
+        for (const p of parts as { user_id: string; last_read_at: string | null }[]) {
+          if (p.user_id === myId || !p.last_read_at) continue
+          const readAt = new Date(p.last_read_at).getTime()
+          if (readAt) dispatch(chatActions.applyOtherRead({ conversationId: viewedId, readAt }))
+        }
+      }
+    }
   },
 )
 

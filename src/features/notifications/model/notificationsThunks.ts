@@ -2,6 +2,8 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { supabase } from '../../../shared/lib/supabase'
 import { notificationsActions, isKindEnabled, type NotificationPrefs } from './notificationsSlice'
 import type { AppNotification, NotificationKind } from './types'
+import { selectViewedConversationId } from '../../chat/model/chatUiSlice'
+import type { RootState } from '../../../app/store/store'
 
 async function currentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession()
@@ -110,6 +112,56 @@ export const loadNotifications = createAsyncThunk<AppNotification[], void>(
       .map(rowToNotification)
       .filter((n) => isKindEnabled(prefs, n.kind))
     return enrichNotificationAvatars(items)
+  },
+)
+
+/**
+ * Лёгкий опрос новых уведомлений — замена realtime-подписки (WebSocket не проходит
+ * через Vercel-прокси из РФ, см. CONTEXT_HANDOFF → «Доступ из России»).
+ *
+ * Берёт только уведомления, созданные ПОЗЖЕ последнего известного (`items[0]`), и для
+ * каждого нового: фильтрует по настройкам, дотягивает аватар, добавляет в список и
+ * показывает пуш-тост (кроме сообщения из открытой прямо сейчас беседы). Обычно 0 строк.
+ */
+export const pollNewNotifications = createAsyncThunk<void, void>(
+  'notifications/poll',
+  async (_, { dispatch, getState }) => {
+    const me = await currentUserId()
+    if (!me) return
+    const state = getState() as RootState
+    if (state.notifications.status !== 'ready') return
+    const items = state.notifications.items
+    const since = items.length ? items[0].createdAt : 0
+    const sinceIso = new Date(since || 0).toISOString()
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select(SELECT)
+      .gt('created_at', sinceIso)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    if (error || !data) return
+
+    // ascending → при prepend самое новое добавляется последним и оказывается сверху.
+    const rows = (data as NotificationRow[]).reverse()
+    const prefs = state.notifications.prefs
+    const known = new Set(items.map((n) => n.id))
+    const toAdd = rows
+      .map(rowToNotification)
+      .filter((n) => isKindEnabled(prefs, n.kind) && !known.has(n.id))
+    if (!toAdd.length) return
+
+    await enrichNotificationAvatars(toAdd)
+    const viewedId = selectViewedConversationId(state)
+    const viewedConv = viewedId ? state.chat.conversations.find((c) => c.id === viewedId) : null
+    for (const notif of toAdd) {
+      dispatch(notificationsActions.prepend(notif))
+      // Сообщение из открытой сейчас беседы — пользователь его уже видит, тост не нужен.
+      const inOpenChat =
+        notif.kind === 'message' && !!viewedConv?.otherId && notif.actorId === viewedConv.otherId
+      if (inOpenChat) void dispatch(markNotificationRead(notif.id))
+      else dispatch(notificationsActions.pushToast(notif))
+    }
   },
 )
 

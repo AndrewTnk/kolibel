@@ -1,9 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { createPortal } from 'react-dom'
-import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
-import { supabase } from '../../../shared/lib/supabase'
 import { blockUser, unblockUser } from '../../blocks/model/blocksThunks'
 import { reportUiActions } from '../../reports/model/reportUiSlice'
 import type { ChatAttach, ChatConversation, ChatMessage } from '../model/types'
@@ -46,7 +44,6 @@ export function ChatThread({
   onEditMessage,
   headerExtra,
 }: Props) {
-  const myId = useAppSelector((s) => s.auth.user?.id)
   const dispatch = useAppDispatch()
   // Блокировка собеседника (чёрный список): блокируем отправку и старт.
   const otherId = conversation.otherId
@@ -54,11 +51,6 @@ export function ChatThread({
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<EmojiInputHandle | null>(null)
   const [empty, setEmpty] = useState(true)
-  // «Печатает…» собеседника (через broadcast на канале беседы).
-  const [othersTyping, setOthersTyping] = useState(false)
-  const typingChanRef = useRef<RealtimeChannel | null>(null)
-  const typingClearRef = useRef<number | null>(null)
-  const lastTypingSentRef = useRef(0)
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
   const [attachOpen, setAttachOpen] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false)
@@ -101,38 +93,6 @@ export function ChatThread({
     prevLenRef.current = conversation.messages.length
     distBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight
   }, [conversation.id, conversation.messages.length, delDeadlines])
-
-  // Индикатор «печатает…»: broadcast-канал беседы. Получив событие от собеседника,
-  // показываем статус и гасим через 3 c (Telegram-стиль). Оба видят его, только когда
-  // тред открыт у обоих (канал живёт на время монтирования треда).
-  useEffect(() => {
-    setOthersTyping(false)
-    const channel = supabase.channel(`typing:${conversation.id}`, {
-      config: { broadcast: { self: false } },
-    })
-    channel
-      .on('broadcast', { event: 'typing' }, (payload) => {
-        if ((payload.payload as { userId?: string })?.userId === myId) return
-        setOthersTyping(true)
-        if (typingClearRef.current) window.clearTimeout(typingClearRef.current)
-        typingClearRef.current = window.setTimeout(() => setOthersTyping(false), 3000)
-      })
-      .subscribe()
-    typingChanRef.current = channel
-    return () => {
-      if (typingClearRef.current) window.clearTimeout(typingClearRef.current)
-      typingChanRef.current = null
-      void supabase.removeChannel(channel)
-    }
-  }, [conversation.id, myId])
-
-  /** Сообщить собеседнику, что я печатаю (не чаще раза в 1.5 c). */
-  function notifyTyping() {
-    const now = Date.now()
-    if (now - lastTypingSentRef.current < 1500) return
-    lastTypingSentRef.current = now
-    void typingChanRef.current?.send({ type: 'broadcast', event: 'typing', payload: { userId: myId } })
-  }
 
   // Закрытие поповеров/меню по клику вне и Esc
   useEffect(() => {
@@ -288,9 +248,7 @@ export function ChatThread({
             )}
             <CompanyBadge logo={conversation.companyLogo} title={conversation.company} size={15} />
           </div>
-          {othersTyping ? (
-            <div className={[styles.threadStatus, styles.threadTyping].join(' ')}>печатает…</div>
-          ) : conversation.subtitle ? (
+          {conversation.subtitle ? (
             <div className={styles.threadStatus}>{conversation.subtitle}</div>
           ) : null}
         </div>
@@ -516,10 +474,7 @@ export function ChatThread({
             className={styles.composerTextarea}
             placeholder="Сообщение…"
             onEnter={send}
-            onChange={(isEmpty) => {
-              setEmpty(isEmpty)
-              if (!isEmpty) notifyTyping()
-            }}
+            onChange={(isEmpty) => setEmpty(isEmpty)}
           />
           <button
             type="button"

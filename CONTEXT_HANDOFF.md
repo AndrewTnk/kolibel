@@ -41,6 +41,25 @@
 - **Email-подтверждение ВЫКЛЮЧЕНО** в дашборде (Authentication → Providers → Email → «Confirm email» off) — для удобной разработки. Встроенный почтовик Supabase имеет крошечный rate limit.
 - **Важно про тест-аккаунты:** Supabase отклоняет `@example.com`. Использовать реальные домены (`@gmail.com`). Все тест-аккаунты создавались с паролем `test123456`.
 
+### 🇷🇺 Доступ из России без VPN — прокси Supabase через Vercel (2026-07-01)
+- **Проблема:** домен `*.supabase.co` стоит за Cloudflare, который ТСПУ троттлит на границе РФ → прямые запросы из браузера рвутся (`net::ERR_CONNECTION_RESET`): сайт грузит каркас (Vercel доступен, статика 200), но не данные и картинки. Подтверждено по Network: `rest/v1/*` — reset на ~38с (часть доезжала за ~20с, auth-`token` прошёл за 22с) = троттлинг, не жёсткий блок (поэтому одиночный пробник «отвечал»).
+- **Решение — гоним ВСЕ запросы Supabase через same-origin прокси `/sb`**, который идёт через доступный из РФ Vercel (хоп Vercel→Supabase уже вне границы, не троттлится):
+  - `vercel.json` — rewrite `/sb/:path* → https://oobutqfpxykxzrilhokn.supabase.co/:path*` (**ДО** SPA-правила).
+  - `vite.config.ts` — тот же прокси `/sb` для dev (`server.proxy`).
+  - `src/shared/lib/supabase.ts` — клиент всегда `createClient(${window.location.origin}/sb, ...)` (dev и прод одинаково; новые загрузки Storage сразу получают `/sb`-адрес).
+  - Миграция `0045_proxy_media_urls.sql` — старые ссылки на файлы в БД переписаны `https://oobutqfpxykxzrilhokn.supabase.co` → `/sb` (text: profiles.avatar/banner, companies.logo/banner/avatar, posts/post_comments.author_avatar, articles.cover; jsonb: posts.content, companies.gallery, messages.attach). **✅ ПРИМЕНЕНА.** Идемпотентна.
+- **Env на Vercel:** держать `VITE_SUPABASE_URL` = прямой адрес `https://oobutqfpxykxzrilhokn.supabase.co` (используется как fallback вне браузера + для справки). **В браузере переменная НЕ обязательна** — URL берётся из origin; `supabase.ts` теперь требует только `VITE_SUPABASE_ANON_KEY`, поэтому пустая/сбитая `VITE_SUPABASE_URL` больше не валит сайт в белый экран (раньше валила — был инцидент 2026-07-01). Anon-ключ обязателен.
+- **✅ Realtime переведён с WebSocket на ОПРОС (polling), 2025-07-01.** WebSocket не проходит через Vercel-rewrite, поэтому живость сделана лёгким поллингом по REST через `/sb`:
+  - `ChatRealtime` → `pollNewMessages` (chatThunks): раз в **2с** добирает только сообщения новее последнего известного (`appendMessage` с дедупом) + last_read_at собеседника для открытой беседы (галочки). Полную перезагрузку НЕ делает (не дёргает скролл/перерисовку). Новая беседа от собеседника → разовый `loadConversations`.
+  - `NotificationsRealtime` → `pollNewNotifications` (notificationsThunks): раз в **2с** добирает уведомления новее `items[0]` (фильтр по prefs, enrich аватара, prepend, пуш-тост кроме сообщения из открытой беседы).
+  - `PresenceTracker` → опрос **30с** (presence не нужен мгновенным): heartbeat `touch_last_seen` раз в 60с (как было) + читает `last_seen_at` собеседников из чата, онлайн = свежее 90с; себя всегда онлайн. ⚠️ Значок онлайн на чужом профиле БЕЗ переписки теперь не подсветится (его id нет в наборе) — для MVP ок.
+  - Все три поллера опрашивают **только при активной вкладке** (`visibilitychange`) — фоновая вкладка не грузит бэкенд.
+  - **«Печатает…» убран** (`ChatThread`) — держался на WS-broadcast. CSS-класс `.threadTyping` осиротел (безвреден).
+  - ⚠️ **Правки/удаления сообщений собеседником** опросом НЕ ловятся инкрементально — отразятся при следующей полной перезагрузке (переход/отправка). Для MVP приемлемо.
+  - Веса/интервалы: `POLL_MS=2000` в `ChatRealtime`/`NotificationsRealtime`; `PRESENCE_POLL_MS=30000`, `ONLINE_WINDOW_MS=90000`, `HEARTBEAT_MS=60000` в `PresenceTracker`.
+- **Локалка:** dev по-прежнему требует VPN (Vite-прокси ходит в Supabase напрямую из РФ).
+- **✅ Проверено в РФ без VPN (2026-07-01):** данные и картинки грузятся.
+
 ### Управление схемой
 SQL-файлы лежат в репозитории: `supabase/migrations/*.sql` (версионируются). **Применяются вручную** через Supabase Dashboard → SQL Editor → вставить → Run. CLI/Docker не используются (можно подключить позже без переделок). При создании новой миграции — даём владельцу инструкцию «скопируй и запусти».
 

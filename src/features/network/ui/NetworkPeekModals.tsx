@@ -273,13 +273,16 @@ const CONN_TABS: { key: ConnTab; label: string }[] = [
   { key: 'incoming', label: 'Входящие' },
 ]
 
-/** «Мои связи» — состав сети с вкладками (Все/Люди/Компании/Исходящие/Входящие) и поиском. */
+/** «Мои связи» — состав сети с вкладками (Все/Люди/Компании/Исходящие/Входящие) и поиском.
+ *  `title` — заголовок (для чужого профиля, напр. «Сеть Ивана»); по умолчанию «Мои связи». */
 export function MyConnectionsModal({
   groups,
   onClose,
+  title = 'Мои связи',
 }: {
   groups: ConnectionGroups
   onClose: () => void
+  title?: string
 }) {
   const dispatch = useAppDispatch()
   const followingIds = useAppSelector((s) => s.network.followingIds)
@@ -302,7 +305,7 @@ export function MyConnectionsModal({
     <Shell onClose={onClose} className={styles.modalWide} fullScreenMobile>
       <div className={styles.head}>
         <div>
-          <div className={styles.headTitle}>Мои связи</div>
+          <div className={styles.headTitle}>{title}</div>
           <div className={styles.headSub}>{groups.all.length} в сети</div>
         </div>
         <button className={styles.close} onClick={onClose} aria-label="Закрыть">

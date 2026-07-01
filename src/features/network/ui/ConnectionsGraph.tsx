@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { loadNetwork } from '../model/networkThunks'
@@ -6,7 +6,7 @@ import { fetchConnectionsGraph, type ConnectionsGraph as GraphData } from '../li
 import { BlockSkeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { RelationGraph, DEFAULT_GRAPH_COLORS, type GraphColors } from './RelationGraph'
 import { NetworkStats } from './NetworkStats'
-import { NetworkListModal, type NetworkListKind, type NetworkListItem } from './NetworkListModal'
+import { MyConnectionsModal, type CompositionRow, type ConnectionGroups } from './NetworkPeekModals'
 import styles from './ConnectionsGraph.module.css'
 
 const COLORS_KEY = 'kolibel:graphColors'
@@ -87,14 +87,14 @@ export function ConnectionsGraph({
     setOpen(false)
     if (forceOpen) onForceClose?.()
   }
-  const [statModal, setStatModal] = useState<NetworkListKind | null>(null)
+  const [connOpen, setConnOpen] = useState(false)
   const [colors, setColors] = useState<GraphColors>(loadColors)
   const cacheRef = useRef<Map<string, HTMLImageElement>>(new Map())
 
-  // Счётчики моей сети (для своего профиля)
-  const myFollowingPeople = useAppSelector((s) => s.network.followingPeople.length)
-  const myFollowingCompanies = useAppSelector((s) => s.network.followingCompanies.length)
-  const myFollowers = useAppSelector((s) => s.network.followers.length)
+  // Списки моей сети (для своего профиля — когда rootId не задан)
+  const myFollowingPeople = useAppSelector((s) => s.network.followingPeople)
+  const myFollowingCompanies = useAppSelector((s) => s.network.followingCompanies)
+  const myFollowers = useAppSelector((s) => s.network.followers)
   const networkStatus = useAppSelector((s) => s.network.status)
   // id текущего аккаунта — чтобы перестроить «свой» граф при смене аккаунта (rootId не меняется).
   const myId = useAppSelector((s) => s.auth.user?.id)
@@ -102,26 +102,65 @@ export function ConnectionsGraph({
     if (withStats && !isPublic && networkStatus === 'idle') void dispatch(loadNetwork())
   }, [withStats, isPublic, networkStatus, dispatch])
 
-  // Для чужого профиля счётчики и списки берём прямо из данных графа (degree 1)
+  // Группы связей для модалки «Связи» (вкладки Все/Люди/Компании/Исходящие/Входящие).
+  // Чужой профиль — из данных графа (degree 1); свой — из слайса сети.
   const directNodes = data?.nodes.filter((n) => n.degree === 1) ?? []
-  const pubFollowing = directNodes.filter((n) => n.relation === 'following')
-  const pubFollowers = directNodes.filter((n) => n.relation === 'follower')
-
-  const followingPeople = isPublic ? pubFollowing.length : myFollowingPeople
-  const followingCompanies = isPublic ? 0 : myFollowingCompanies
-  const followers = isPublic ? pubFollowers.length : myFollowers
-
-  function publicItems(kind: NetworkListKind): NetworkListItem[] {
-    const src = kind === 'followers' ? pubFollowers : pubFollowing
-    return src.map((n) => ({
-      id: n.id,
-      name: n.name,
-      sub: n.sub,
-      avatar: n.avatar,
-      initial: n.initial,
-      square: n.kind === 'company',
-    }))
-  }
+  const connectionGroups: ConnectionGroups = useMemo(() => {
+    // Строка + тип/направление (для раскладки по вкладкам).
+    type Row = CompositionRow & { kind: 'person' | 'company'; dir: 'out' | 'in' | 'both' }
+    let rows: Row[]
+    if (isPublic) {
+      // У узла графа ровно одно направление (взаимная связь помечается как following).
+      rows = directNodes.map((n) => ({
+        id: n.id,
+        name: n.name,
+        sub: n.sub,
+        avatar: n.avatar,
+        initial: n.initial,
+        square: n.kind === 'company',
+        kind: n.kind === 'company' ? 'company' : 'person',
+        dir: n.relation === 'follower' ? 'in' : 'out',
+      }))
+    } else {
+      // Свой профиль: сливаем подписки (out) и подписчиков (in), взаимные → both.
+      const byId = new Map<string, Row>()
+      const add = (r: Row) => {
+        const ex = byId.get(r.id)
+        if (ex) {
+          if (ex.dir !== r.dir) ex.dir = 'both'
+        } else {
+          byId.set(r.id, r)
+        }
+      }
+      const personSub = (jobTitle?: string, company?: string) =>
+        [jobTitle, company].filter(Boolean).join(' · ') || 'Пользователь'
+      myFollowingPeople.forEach((p) =>
+        add({ id: p.id, name: p.fullName, sub: personSub(p.jobTitle, p.company), avatar: p.avatar, initial: p.avatarInitials, square: false, kind: 'person', dir: 'out' }),
+      )
+      myFollowingCompanies.forEach((c) =>
+        add({ id: c.id, name: c.name, sub: c.field || 'Компания', avatar: c.logo, initial: c.logoInitial, square: true, kind: 'company', dir: 'out' }),
+      )
+      myFollowers.forEach((p) =>
+        add({ id: p.id, name: p.fullName, sub: personSub(p.jobTitle, p.company), avatar: p.avatar, initial: p.avatarInitials, square: false, kind: 'person', dir: 'in' }),
+      )
+      rows = [...byId.values()]
+    }
+    const toRow = (r: Row): CompositionRow => ({
+      id: r.id,
+      name: r.name,
+      sub: r.sub,
+      avatar: r.avatar,
+      initial: r.initial,
+      square: r.square,
+    })
+    return {
+      all: rows.map(toRow),
+      people: rows.filter((r) => r.kind === 'person').map(toRow),
+      companies: rows.filter((r) => r.kind === 'company').map(toRow),
+      outgoing: rows.filter((r) => r.dir === 'out' || r.dir === 'both').map(toRow),
+      incoming: rows.filter((r) => r.dir === 'in' || r.dir === 'both').map(toRow),
+    }
+  }, [isPublic, directNodes, myFollowingPeople, myFollowingCompanies, myFollowers])
 
   function updateColors(next: GraphColors) {
     setColors(next)
@@ -217,21 +256,15 @@ export function ConnectionsGraph({
 
       {withStats ? (
         <div className={styles.statsSection}>
-          <NetworkStats
-            embedded
-            onOpen={(kind) => setStatModal(kind)}
-            followingPeople={followingPeople}
-            followingCompanies={followingCompanies}
-            followers={followers}
-          />
+          <NetworkStats embedded onOpen={() => setConnOpen(true)} total={connectionGroups.all.length} />
         </div>
       ) : null}
 
-      {statModal ? (
-        <NetworkListModal
-          kind={statModal}
-          onClose={() => setStatModal(null)}
-          items={isPublic ? publicItems(statModal) : undefined}
+      {connOpen ? (
+        <MyConnectionsModal
+          title={title}
+          groups={connectionGroups}
+          onClose={() => setConnOpen(false)}
         />
       ) : null}
 

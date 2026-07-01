@@ -13,23 +13,11 @@
   margin-bottom: 12px;
 }
 
-/* Ряд статистики — число над подписью; по центру прямой вертикальный разделитель */
+/* Ряд статистики — одна кнопка «Связи»: число над подписью */
 .stats {
   display: flex;
   align-items: stretch;
   position: relative;
-}
-
-.stats::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 8px;
-  bottom: 8px;
-  width: 1px;
-  background: var(--border);
-  transform: translateX(-50%);
-  pointer-events: none;
 }
 
 .stat {

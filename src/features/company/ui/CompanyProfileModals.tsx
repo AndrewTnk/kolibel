@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { RecModal } from '../../../shared/ui/Recommendations/RecModal'
 import { ImageUploadField } from '../../../shared/ui/ImageUploadField/ImageUploadField'
@@ -233,41 +233,115 @@ export function LogoModal({ onClose }: { onClose: () => void }) {
 }
 
 // ── Контакты ───────────────────────────────────
+const ROLE_OPTIONS: { value: CompanyContact['kind']; label: string }[] = [
+  { value: 'founder', label: 'Основатель' },
+  { value: 'hr', label: 'HR' },
+]
+
+/** Селект роли контакта в стиле сайта (кастомная выпадашка вместо нативного <select>). */
+function RoleSelect({
+  value,
+  onChange,
+}: {
+  value: CompanyContact['kind']
+  onChange: (v: CompanyContact['kind']) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+  const current = ROLE_OPTIONS.find((o) => o.value === value)
+  return (
+    <div className={styles.selectWrap} ref={ref}>
+      <button
+        type="button"
+        className={[styles.selectControl, open ? styles.selectOpen : ''].filter(Boolean).join(' ')}
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span>{current?.label}</span>
+        <svg
+          className={[styles.selectCaret, open ? styles.selectCaretUp : ''].filter(Boolean).join(' ')}
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open ? (
+        <div className={styles.selectMenu} role="listbox">
+          {ROLE_OPTIONS.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              role="option"
+              aria-selected={o.value === value}
+              className={[styles.selectOption, o.value === value ? styles.selectOptionOn : '']
+                .filter(Boolean)
+                .join(' ')}
+              onClick={() => {
+                onChange(o.value)
+                setOpen(false)
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 export function ContactsModal({ onClose }: { onClose: () => void }) {
   const { company, saving, save } = useSaveCompany()
+  // Изначально — один пустой контакт (без деления на основателя/HR); роль выбирается
+  // выпадающим списком прямо в строке. При наличии сохранённых контактов — грузим их.
   const base: CompanyContact[] =
     company.contacts.length > 0
       ? company.contacts.map((c) => ({ ...c }))
-      : [
-          { id: uid(), kind: 'founder', name: '', position: '' },
-          { id: uid(), kind: 'hr', name: '', position: '' },
-        ]
+      : [{ id: uid(), kind: 'founder', name: '', position: '' }]
   const [items, setItems] = useState<CompanyContact[]>(base)
-  const upd = (i: number, k: 'name' | 'position', v: string) =>
-    setItems((arr) => arr.map((it, j) => (j === i ? { ...it, [k]: v } : it)))
   const updPatch = (i: number, patch: Partial<CompanyContact>) =>
     setItems((arr) => arr.map((it, j) => (j === i ? { ...it, ...patch } : it)))
+  const del = (i: number) => setItems((arr) => arr.filter((_, j) => j !== i))
+  const add = () => setItems((arr) => [...arr, { id: uid(), kind: 'founder', name: '', position: '' }])
   return (
     <RecModal title="Контакты компании" onClose={onClose} fullScreenMobile maxWidth={560}>
       <div className={styles.sub}>Кому писать по разным вопросам</div>
       <div className={styles.itemEditor}>
         {items.map((c, i) => (
           <div key={c.id} className={styles.itemRow}>
-            <div className={styles.label} style={{ marginBottom: 8 }}>
-              {c.kind === 'founder' ? 'Основатель' : 'Команда найма / HR'}
-            </div>
+            {items.length > 1 ? (
+              <button type="button" className={styles.del} onClick={() => del(i)} aria-label="Удалить контакт">✕</button>
+            ) : null}
             <div className={styles.grid2}>
               <label className={styles.field}>
-                <span className={styles.label}>Имя</span>
+                <span className={styles.label}>Пользователь</span>
                 <NameField contact={c} onPatch={(patch) => updPatch(i, patch)} />
               </label>
               <label className={styles.field}>
                 <span className={styles.label}>Должность</span>
-                <input className={styles.input} value={c.position ?? ''} onChange={(e) => upd(i, 'position', e.target.value)} />
+                <RoleSelect value={c.kind} onChange={(k) => updPatch(i, { kind: k })} />
               </label>
             </div>
           </div>
         ))}
+        <button type="button" className={styles.addItem} onClick={add}>+ Добавить контакт</button>
       </div>
       <Foot onClose={onClose} saving={saving} onSave={() => save({ contacts: items.filter((c) => c.name.trim()) }, onClose)} />
     </RecModal>

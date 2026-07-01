@@ -27,7 +27,7 @@
   --content-max: 1320px;
   --content-padding: clamp(20px, 3vw, 40px);
   /* Верхний отступ контента под хедером — вдвое меньше бокового. */
-  --content-padding-top: clamp(10px, 1.5vw, 20px);
+  --content-padding-top: clamp(5px, 0.75vw, 10px);
   --feed-max: 760px;
   --text-base: 16px;
   --text-sm: 14px;
@@ -68,7 +68,7 @@
   --text-2: #b3bccb;
   --muted: #8a94a3;
   --accent: #f1ddcf; /* тёплый светлый — заголовки/акцентный текст */
-  --border: #45464a; /* нейтральный серый */
+  --border: transparent; /* временно прозрачный — пробуем вид без рамок в тёмной теме */
   --field-bg: #2c2d2e; /* поля ввода — чуть темнее блока */
   --hover: rgba(255, 255, 255, 0.06);
   --overlay: rgba(0, 0, 0, 0.62);
@@ -117,7 +117,7 @@ body {
 @media (max-width: 980px) {
   :root {
     --content-padding: 14px;
-    --content-padding-top: 7px;
+    --content-padding-top: 4px;
   }
   /* App-shell: вьюпорт зафиксирован (html), скроллится body — документ не растёт по
      контенту, поэтому фиксированный таб-бар/шапка встают корректно (в т.ч. в превью,

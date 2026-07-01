@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { recordProfileView, normalizeSource } from '../../features/analytics/lib/analyticsApi'
 import { AppHeader } from '../../shared/ui/AppHeader/AppHeader'
@@ -26,7 +27,9 @@ import type { Vacancy } from '../../features/vacancies/model/types'
 import { ProfileSheet } from '../../features/profile/ui/ProfileSheet/ProfileSheet'
 import { CompanyContacts } from '../../features/company/ui/CompanyContacts'
 import { fetchCompanyEmployees, type CompanyEmployee } from '../../features/company/lib/companyTeamApi'
+import type { CompanyPhoto } from '../../features/company/model/companyData'
 import { Ic } from '../../features/company/ui/brandIcons'
+import { RecModal } from '../../shared/ui/Recommendations/RecModal'
 import { ConnectionsGraph } from '../../features/network/ui/ConnectionsGraph'
 import { ArticlesBlock } from '../../features/articles/ui/ArticlesBlock'
 import { RecommendedCompanies } from '../../shared/ui/Recommendations/RecommendedCompanies'
@@ -34,6 +37,7 @@ import { RecommendedPeople } from '../../shared/ui/Recommendations/RecommendedPe
 import { SupportLinks } from '../../shared/ui/Recommendations/SupportLinks'
 import { BlockSkeleton } from '../../shared/ui/Skeleton/Skeleton'
 import brand from '../../features/company/ui/CompanyBrand.module.css'
+import lb from '../../features/feed/ui/Feed.module.css'
 import styles from './PublicProfilePage.module.css'
 
 export function PublicProfilePage() {
@@ -287,7 +291,11 @@ export function PublicProfilePage() {
                 <div className="hideOnMobile">
                   <ArticlesBlock authorId={id!} title={articlesTitle} />
                 </div>
-                {data.company.contacts.length ? <CompanyContacts contacts={data.company.contacts} /> : null}
+                {data.company.contacts.length ? (
+                  <div className="hideOnMobile">
+                    <CompanyContacts contacts={data.company.contacts} />
+                  </div>
+                ) : null}
                 <div className="hideOnMobile">
                   <RecommendedCompanies title="Похожие компании" />
                 </div>
@@ -406,6 +414,186 @@ function Collapsible({ count, initial, children }: { count: number; initial: num
         </button>
       ) : null}
     </>
+  )
+}
+
+/**
+ * Секция «Жизнь в компании» в просмотре профиля компании.
+ * - Превью: первые 3 фото; клик по фото → полноэкранный лайтбокс (как в постах).
+ * - «Показать все · N» → модалка (на мобилке — на весь экран) со всеми фото сеткой;
+ *   клик по фото в модалке тоже открывает лайтбокс.
+ */
+function CompanyLifeGallery({ photos }: { photos: CompanyPhoto[] }) {
+  const [allOpen, setAllOpen] = useState(false)
+  const [lightbox, setLightbox] = useState<number | null>(null)
+  const stripRef = useRef<HTMLDivElement>(null)
+  const [canLeft, setCanLeft] = useState(false)
+  const [canRight, setCanRight] = useState(false)
+  const urls = photos.map((g) => g.url)
+
+  // Показываем/прячем стрелки в зависимости от того, есть ли ещё контент по краям.
+  const updateArrows = useCallback(() => {
+    const el = stripRef.current
+    if (!el) return
+    setCanLeft(el.scrollLeft > 4)
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }, [])
+
+  useEffect(() => {
+    updateArrows()
+    const el = stripRef.current
+    if (!el) return
+    el.addEventListener('scroll', updateArrows, { passive: true })
+    window.addEventListener('resize', updateArrows)
+    return () => {
+      el.removeEventListener('scroll', updateArrows)
+      window.removeEventListener('resize', updateArrows)
+    }
+  }, [updateArrows, photos.length])
+
+  const scrollStrip = (dir: -1 | 1) => {
+    const el = stripRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * Math.max(240, el.clientWidth * 0.8), behavior: 'smooth' })
+  }
+
+  return (
+    <section className={brand.sec}>
+      <div className={brand.secHead}><span className={brand.secTitle}>Жизнь в компании</span></div>
+      <div className={styles.galWrap}>
+        <div className={brand.gallery} ref={stripRef}>
+          {photos.map((g, i) => (
+            <button key={g.id} type="button" className={brand.galCell} onClick={() => setLightbox(i)}>
+              {/* onLoad — пересчитать стрелки, когда картинки задали ширину ленты. */}
+              <img src={g.url} alt="" onLoad={updateArrows} />
+            </button>
+          ))}
+        </div>
+        {canLeft ? (
+          <button
+            type="button"
+            className={[styles.galArrow, styles.galArrowLeft].join(' ')}
+            onClick={() => scrollStrip(-1)}
+            aria-label="Назад"
+          >
+            ‹
+          </button>
+        ) : null}
+        {canRight ? (
+          <button
+            type="button"
+            className={[styles.galArrow, styles.galArrowRight].join(' ')}
+            onClick={() => scrollStrip(1)}
+            aria-label="Далее"
+          >
+            ›
+          </button>
+        ) : null}
+      </div>
+      {photos.length > 3 ? (
+        <button type="button" className={brand.expandBtn} onClick={() => setAllOpen(true)}>
+          Показать все · {photos.length} <Ic.chevronDown />
+        </button>
+      ) : null}
+      {allOpen ? (
+        <RecModal title="Жизнь в компании" onClose={() => setAllOpen(false)} fullScreenMobile maxWidth={760}>
+          <div className={styles.galGrid}>
+            {photos.map((g, i) => (
+              <button key={g.id} type="button" className={styles.galGridCell} onClick={() => setLightbox(i)}>
+                <img src={g.url} alt="" />
+              </button>
+            ))}
+          </div>
+        </RecModal>
+      ) : null}
+      {lightbox !== null ? (
+        <GalleryLightbox images={urls} startIndex={lightbox} onClose={() => setLightbox(null)} />
+      ) : null}
+    </section>
+  )
+}
+
+/**
+ * Полноэкранный просмотр фото галереи (карусель) — переиспользует стиль лайтбокса постов
+ * (`Feed.module.css` `lb*`): стрелки, свайп, счётчик, Esc. Работает на вебе и мобилке.
+ */
+function GalleryLightbox({
+  images,
+  startIndex,
+  onClose,
+}: {
+  images: string[]
+  startIndex: number
+  onClose: () => void
+}) {
+  const [idx, setIdx] = useState(startIndex)
+  const swipeX = useRef<number | null>(null)
+  const go = (dir: -1 | 1) => setIdx((i) => Math.min(images.length - 1, Math.max(0, i + dir)))
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft') setIdx((i) => (i > 0 ? i - 1 : i))
+      if (e.key === 'ArrowRight') setIdx((i) => (i < images.length - 1 ? i + 1 : i))
+    }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [images.length, onClose])
+
+  const cur = images[idx]
+  if (cur == null) return null
+
+  return createPortal(
+    <div className={lb.lbOverlay} onClick={onClose} role="dialog" aria-modal="true">
+      <div className={lb.lbStage} onClick={(e) => e.stopPropagation()}>
+        <button className={lb.lbClose} type="button" onClick={onClose} aria-label="Закрыть">✕</button>
+        <div
+          className={lb.lbMedia}
+          onPointerDown={(e) => {
+            swipeX.current = e.clientX
+          }}
+          onPointerUp={(e) => {
+            if (swipeX.current === null) return
+            const dx = e.clientX - swipeX.current
+            swipeX.current = null
+            if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1)
+          }}
+        >
+          <img className={lb.lbImg} src={cur} alt="" draggable={false} />
+        </div>
+        {images.length > 1 ? (
+          <>
+            <button
+              className={[lb.lbNav, lb.lbPrev].join(' ')}
+              type="button"
+              disabled={idx === 0}
+              onClick={() => setIdx((i) => Math.max(0, i - 1))}
+              aria-label="Предыдущее"
+            >
+              ‹
+            </button>
+            <button
+              className={[lb.lbNav, lb.lbNext].join(' ')}
+              type="button"
+              disabled={idx === images.length - 1}
+              onClick={() => setIdx((i) => Math.min(images.length - 1, i + 1))}
+              aria-label="Следующее"
+            >
+              ›
+            </button>
+            <div className={lb.lbCounter}>
+              {idx + 1} / {images.length}
+            </div>
+          </>
+        ) : null}
+      </div>
+    </div>,
+    document.body,
   )
 }
 
@@ -534,20 +722,7 @@ function CompanyView({
             </section>
           ) : null}
 
-          {hasGallery ? (
-            <section className={brand.sec}>
-              <div className={brand.secHead}><span className={brand.secTitle}>Жизнь в компании</span></div>
-              <Collapsible count={c.gallery.length} initial={3}>
-                {(open) => (
-                  <div className={brand.gallery}>
-                    {(open ? c.gallery : c.gallery.slice(0, 3)).map((g) => (
-                      <div key={g.id} className={brand.galCell}><img src={g.url} alt="" /></div>
-                    ))}
-                  </div>
-                )}
-              </Collapsible>
-            </section>
-          ) : null}
+          {hasGallery ? <CompanyLifeGallery photos={c.gallery} /> : null}
 
           {hasDirections ? (
             <section className={brand.sec}>

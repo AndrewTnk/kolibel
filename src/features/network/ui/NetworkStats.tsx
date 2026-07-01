@@ -1,37 +1,31 @@
 import styles from './NetworkStats.module.css'
 
-export type NetworkStatKind = 'following' | 'followers'
-
 type Props = {
-  onOpen: (kind: NetworkStatKind) => void
-  followingPeople: number
-  followingCompanies: number
-  followers: number
+  /** Открыть модалку связей. */
+  onOpen: () => void
+  /** Всего связей (подписки + подписчики). */
+  total: number
   /** Встроенный режим: без карточки и заголовка «Моя сеть» (внутри блока графа). */
   embedded?: boolean
 }
 
-export function NetworkStats({
-  onOpen,
-  followingPeople,
-  followingCompanies,
-  followers,
-  embedded = false,
-}: Props) {
-  // Подписки = люди + компании (без разделения)
-  const stats: { kind: NetworkStatKind; label: string; count: number }[] = [
-    { kind: 'following', label: 'подписки', count: followingPeople + followingCompanies },
-    { kind: 'followers', label: 'подписчики', count: followers },
-  ]
+/** Склонение слова «связь» по числу. */
+function connectionsWord(n: number) {
+  const m10 = n % 10
+  const m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return 'связь'
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'связи'
+  return 'связей'
+}
 
+/** Одна кнопка «Связи» с общим числом связей — открывает модалку списка. */
+export function NetworkStats({ onOpen, total, embedded = false }: Props) {
   const row = (
     <div className={styles.stats}>
-      {stats.map((s) => (
-        <button key={s.kind} type="button" className={styles.stat} onClick={() => onOpen(s.kind)}>
-          <span className={styles.count}>{s.count}</span>
-          <span className={styles.label}>{s.label}</span>
-        </button>
-      ))}
+      <button type="button" className={styles.stat} onClick={onOpen}>
+        <span className={styles.count}>{total}</span>
+        <span className={styles.label}>{connectionsWord(total)}</span>
+      </button>
     </div>
   )
 

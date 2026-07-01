@@ -83,6 +83,19 @@
     order: 2;
     position: static;
   }
+  /* Профиль компании — на всю ширину экрана (edge-to-edge), как на своей бренд-странице:
+     сама карточка `brand.sheet` на мобилке без боковых рамок и скругления, поэтому убираем
+     боковые поля страницы. Рейлу (карточка «Контакты») и состояниям (загрузка/не найдено)
+     возвращаем боковой отступ, чтобы их карточки не липли к краям экрана. */
+  .main {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .colRight,
+  .soloColumn {
+    padding-left: var(--content-padding);
+    padding-right: var(--content-padding);
+  }
 }
 
 /* Кнопка «Ещё» (⋯) — в правый нижний угол строки действий баннера */
@@ -237,6 +250,85 @@
 
 .writeBtn:hover {
   background: var(--primarySoft);
+}
+
+/* ── Галерея «Жизнь в компании» — лента с пролистыванием ── */
+.galWrap {
+  position: relative;
+}
+
+.galArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  z-index: 2;
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+
+.galArrow:hover {
+  background: var(--hover);
+}
+
+.galArrowLeft {
+  left: 6px;
+}
+
+.galArrowRight {
+  right: 6px;
+}
+
+/* Тач-устройства листают пальцем — стрелки не нужны. */
+@media (hover: none) {
+  .galArrow {
+    display: none;
+  }
+}
+
+/* ── Галерея «Жизнь в компании» — модалка «Показать все» ── */
+.galGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.galGridCell {
+  aspect-ratio: 1 / 1;
+  border: 0;
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--field-bg);
+  transition: transform 0.12s;
+}
+
+.galGridCell:hover {
+  transform: scale(1.015);
+}
+
+.galGridCell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .galGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* ── Публикации ──────────────────────────────────── */

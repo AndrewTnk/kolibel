@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
-import { loadConversations, pollNewMessages } from '../model/chatThunks'
+import { ensureSupportConversation, loadConversations, pollNewMessages } from '../model/chatThunks'
 
 /** Интервал опроса чата, мс. Ровно 2с (чаще — лишняя нагрузка). */
 const POLL_MS = 2000
@@ -23,7 +23,8 @@ export function ChatRealtime() {
   useEffect(() => {
     if (!userId) return
 
-    void dispatch(loadConversations())
+    // Создаём (если ещё нет) системный чат «Поддержка Kolibel», затем грузим беседы.
+    void dispatch(ensureSupportConversation()).then(() => dispatch(loadConversations()))
 
     let timer: ReturnType<typeof setInterval> | null = null
     const start = () => {

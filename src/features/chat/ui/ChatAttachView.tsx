@@ -7,6 +7,7 @@ import type { ChatAttach } from '../model/types'
 import { ChatIco } from './chatIcons'
 import { SharedPostCard } from './SharedPostCard'
 import { SharedProfileCard } from './SharedProfileCard'
+import { ReportCardView } from './ReportCardView'
 import styles from './Chat.module.css'
 
 /** Рендер вложения сообщения: фото/видео — медиа, документ — карточка, вакансия/пост/профиль — карточка. */
@@ -76,6 +77,10 @@ export function ChatAttachView({ attach }: { attach: ChatAttach }) {
         {meta ? <span className={styles.atVacancyMeta}>{meta}</span> : null}
       </button>
     )
+  }
+
+  if (kind === 'report') {
+    return <ReportCardView attach={attach} />
   }
 
   if (kind === 'post' && post) {

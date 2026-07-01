@@ -47,7 +47,7 @@ async function enrichCompanyTitles(convos: ChatConversation[]): Promise<void> {
 
 // Полный SELECT (после миграции 0019) и базовый (на случай непримененной миграции).
 const SELECT_FULL =
-  'id, last_message_at, conversation_participants ( user_id, last_read_at, pinned, muted, profiles ( full_name, job_title, avatar_url, account_type, job_status, status ) ), messages ( id, sender_id, body, created_at, reply_to, attach, reactions )'
+  'id, last_message_at, kind, conversation_participants ( user_id, last_read_at, pinned, muted, profiles ( full_name, job_title, avatar_url, account_type, job_status, status ) ), messages ( id, sender_id, body, created_at, reply_to, attach, reactions )'
 const SELECT_BASE =
   'id, last_message_at, conversation_participants ( user_id, last_read_at, profiles ( full_name, job_title, avatar_url, account_type, job_status, status ) ), messages ( id, sender_id, body, created_at )'
 
@@ -76,6 +76,20 @@ export const loadConversations = createAsyncThunk<ChatConversation[], void>(
     const convos = rows.map((r) => rowToConversation(r, myId))
     await enrichCompanyTitles(convos)
     return convos
+  },
+)
+
+/**
+ * Гарантирует наличие системной беседы «Поддержка Kolibel» (создаёт её + приветствие
+ * при первом вызове). Идемпотентно. Зовём один раз при входе (перед loadConversations).
+ */
+export const ensureSupportConversation = createAsyncThunk<void, void>(
+  'chat/ensureSupport',
+  async () => {
+    const myId = await currentUserId()
+    if (!myId) return
+    // Если миграция 0046 ещё не применена — RPC не существует; молча пропускаем.
+    await supabase.rpc('ensure_support_conversation')
   },
 )
 

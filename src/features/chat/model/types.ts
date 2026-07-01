@@ -32,7 +32,7 @@ export type SharedProfile = {
 export type ChatAttach = {
   title: string
   subtitle?: string
-  kind?: 'photo' | 'video' | 'file' | 'loc' | 'contact' | 'vacancy' | 'post' | 'profile' | 'voice'
+  kind?: 'photo' | 'video' | 'file' | 'loc' | 'contact' | 'vacancy' | 'post' | 'profile' | 'voice' | 'report'
   /** Публичный URL загруженного файла (фото/видео/документ). */
   url?: string
   /** MIME-тип файла. */
@@ -45,6 +45,12 @@ export type ChatAttach = {
   post?: SharedPost
   /** Пересланный профиль (kind === 'profile'). */
   profile?: SharedProfile
+  /** Карточка жалобы (kind === 'report') — снимок для превью; детали тянутся get_my_report. */
+  reportId?: string
+  reportSeq?: number
+  reportCategory?: string
+  /** Снимок статуса жалобы: new | reviewing | resolved | rejected. */
+  reportStatus?: string
 }
 
 /** Реакция на сообщение (агрегат по эмодзи). */
@@ -101,4 +107,6 @@ export type ChatConversation = {
   lastSeen?: string
   /** Групповой чат (групп пока нет — для совместимости типа) */
   group?: boolean
+  /** Системная беседа «Поддержка Kolibel» (read-only, не удаляется). */
+  support?: boolean
 }

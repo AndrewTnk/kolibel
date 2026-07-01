@@ -85,6 +85,23 @@
   color: var(--accent);
 }
 
+/* Индикатор новых сообщений на пункте «Чат» (брендовый бейдж, читается в обеих темах). */
+.navBadge {
+  min-width: 18px;
+  height: 18px;
+  margin-left: 7px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--onPrimary);
+  font-weight: 900;
+  font-size: 11px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .right {
   display: flex;
   align-items: center;

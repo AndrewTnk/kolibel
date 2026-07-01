@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { ChatConversation } from '../model/types'
-import { formatChatTime, lastMessagePreview } from '../lib/format'
+import { formatChatTime, lastMessagePreview, messagePreviewText } from '../lib/format'
 import { BlockSkeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { ChatAvatar } from './ChatAvatar'
 import { ChatIco } from './chatIcons'
@@ -122,7 +122,7 @@ export function ConversationList({
                   }
                 }}
               >
-                <ChatAvatar name={c.title} avatar={c.avatar} size={46} square={c.type === 'company'} id={c.otherId} />
+                <ChatAvatar name={c.title} avatar={c.avatar} size={46} square={c.type === 'company'} id={c.otherId} support={c.support} />
                 <div className={styles.lMeta}>
                   <div className={styles.lTop}>
                     <div className={styles.lName}>
@@ -151,7 +151,7 @@ export function ConversationList({
                         </span>
                       ) : null}
                       {isMe ? 'Вы: ' : ''}
-                      {last ? lastMessagePreview(last.text || last.attach?.title || '', 38) : 'Нет сообщений'}
+                      {last ? lastMessagePreview(messagePreviewText(last), 38) : 'Нет сообщений'}
                     </div>
                     {c.unreadCount ? (
                       <span className={styles.lBadge}>{c.unreadCount}</span>

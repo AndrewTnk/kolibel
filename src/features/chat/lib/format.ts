@@ -1,3 +1,5 @@
+import type { ChatAttach } from '../model/types'
+
 export function formatChatTime(ts: number) {
   const d = new Date(ts)
   const now = new Date()
@@ -15,6 +17,16 @@ export function lastMessagePreview(text: string, max = 42) {
   const t = text.trim()
   if (t.length <= max) return t
   return `${t.slice(0, max)}…`
+}
+
+/** Текст превью последнего сообщения для списка бесед. Для карточки жалобы номер
+ *  считается из reportId (как в карточке/админке), а не из сохранённого title. */
+export function messagePreviewText(m: { text?: string; attach?: ChatAttach | null }): string {
+  if (m.attach?.kind === 'report') {
+    const shortId = (m.attach.reportId ?? '').slice(0, 8)
+    return shortId ? `Жалоба #${shortId}` : 'Жалоба'
+  }
+  return m.text || m.attach?.title || ''
 }
 
 /** Только время (чч:мм) — для подписи под пузырём сообщения. */

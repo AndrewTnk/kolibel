@@ -45,6 +45,9 @@ export function ChatThread({
   headerExtra,
 }: Props) {
   const dispatch = useAppDispatch()
+  // Системный чат «Поддержка Kolibel» — read-only: без композера, без правки/удаления
+  // сообщений и контекстного меню (карточку жалобы удалить нельзя).
+  const readOnly = !!conversation.support
   // Блокировка собеседника (чёрный список): блокируем отправку и старт.
   const otherId = conversation.otherId
   const blocked = useAppSelector((s) => (otherId ? s.blocks.hiddenIds.includes(otherId) : false))
@@ -235,6 +238,7 @@ export function ChatThread({
             size={42}
             square={conversation.type === 'company'}
             id={conversation.otherId}
+            support={conversation.support}
           />
         )}
         <div className={styles.threadMeta}>
@@ -373,12 +377,16 @@ export function ChatThread({
               ) : null}
               <div
                 className={[styles.msgRow, m.sender === 'me' ? styles.msgMe : styles.msgThem, tailHide ? styles.tailHide : ''].join(' ')}
-                onContextMenu={(e) => {
-                  e.preventDefault()
-                  setCtx({ msg: m, x: e.clientX, y: e.clientY })
-                }}
+                onContextMenu={
+                  readOnly
+                    ? undefined
+                    : (e) => {
+                        e.preventDefault()
+                        setCtx({ msg: m, x: e.clientX, y: e.clientY })
+                      }
+                }
               >
-                {m.sender === 'me' ? (
+                {m.sender === 'me' && !readOnly ? (
                   <div className={styles.msgQuick}>
                     <button type="button" title="Ответить" onClick={(e) => { e.stopPropagation(); setReplyTo(m) }}>
                       <ChatIco.reply />
@@ -405,7 +413,7 @@ export function ChatThread({
                     </span>
                   </div>
                 </div>
-                {m.sender === 'them' ? (
+                {m.sender === 'them' && !readOnly ? (
                   <div className={styles.msgQuick}>
                     <button type="button" title="Ответить" onClick={(e) => { e.stopPropagation(); setReplyTo(m) }}>
                       <ChatIco.reply />
@@ -444,7 +452,11 @@ export function ChatThread({
         </div>
       ) : null}
 
-      {conversation.otherBlocked ? (
+      {readOnly ? (
+        <div className={styles.composerBlocked}>
+          <span>Это официальный чат поддержки — здесь появляются ваши жалобы и ответы модерации.</span>
+        </div>
+      ) : conversation.otherBlocked ? (
         <div className={styles.composerBlocked}>
           <span>Аккаунт собеседника заблокирован — сообщения недоступны.</span>
         </div>

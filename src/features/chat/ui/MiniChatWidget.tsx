@@ -10,7 +10,7 @@ import {
   sendMessage,
 } from '../model/chatThunks'
 import { chatUiActions } from '../model/chatUiSlice'
-import { formatChatTime, lastMessagePreview } from '../lib/format'
+import { formatChatTime, lastMessagePreview, messagePreviewText } from '../lib/format'
 import { ChatAvatar } from './ChatAvatar'
 import { ChatThread, type SendExtras } from './ChatThread'
 import { ChatIco } from './chatIcons'
@@ -107,7 +107,7 @@ export function MiniChatWidget() {
                       const isMe = last?.sender === 'me'
                       return (
                         <button type="button" key={c.id} className={styles.listRow} onClick={() => openConv(c.id)}>
-                          <ChatAvatar name={c.title} avatar={c.avatar} size={42} square={c.type === 'company'} id={c.otherId} />
+                          <ChatAvatar name={c.title} avatar={c.avatar} size={42} square={c.type === 'company'} id={c.otherId} support={c.support} />
                           <div className={styles.lMeta}>
                             <div className={styles.lTop}>
                               <div className={styles.lName}>{c.title}</div>
@@ -116,7 +116,7 @@ export function MiniChatWidget() {
                             <div className={styles.lBottom}>
                               <div className={styles.lPreview}>
                                 {isMe ? 'Вы: ' : ''}
-                                {last ? lastMessagePreview(last.text || last.attach?.title || '', 30) : ''}
+                                {last ? lastMessagePreview(messagePreviewText(last), 30) : ''}
                               </div>
                               {c.unreadCount ? <span className={styles.lBadge}>{c.unreadCount}</span> : null}
                             </div>
@@ -186,9 +186,11 @@ export function MiniChatWidget() {
           onClick={() => dispatch(chatUiActions.toggleMini())}
         >
           <ChatIco.chat />
-          <span className={styles.pulse} aria-hidden />
           {totalUnread > 0 ? (
-            <span className={styles.miniBadge}>{totalUnread > 9 ? '9+' : totalUnread}</span>
+            <>
+              <span className={styles.pulse} aria-hidden />
+              <span className={styles.miniBadge}>{totalUnread > 9 ? '9+' : totalUnread}</span>
+            </>
           ) : null}
         </button>
       ) : null}

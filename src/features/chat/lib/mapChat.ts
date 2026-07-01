@@ -23,7 +23,8 @@ type ReactionRow = { em: string; users?: string[] | null }
 
 export type MessageRow = {
   id: string
-  sender_id: string
+  /** null — системное сообщение (например, «Поддержка Kolibel»). */
+  sender_id: string | null
   body: string
   created_at: string
   reply_to?: ChatMessage['replyTo'] | null
@@ -34,6 +35,7 @@ export type MessageRow = {
 export type ConversationRow = {
   id: string
   last_message_at: string
+  kind?: string | null
   conversation_participants: ParticipantRow[]
   messages: MessageRow[]
 }
@@ -79,6 +81,20 @@ export function rowToConversation(row: ConversationRow, myId: string): ChatConve
     .sort((a, b) => a.createdAt - b.createdAt)
 
   const unreadCount = messages.filter((m) => m.sender === 'them' && m.createdAt > lastRead).length
+
+  // Системная беседа «Поддержка Kolibel» — без собеседника (единственный участник — мы).
+  if (row.kind === 'support') {
+    return {
+      id: row.id,
+      title: 'Поддержка Kolibel',
+      subtitle: undefined,
+      messages,
+      updatedAt: new Date(row.last_message_at).getTime(),
+      unreadCount,
+      support: true,
+      type: 'company',
+    }
+  }
 
   return {
     id: row.id,

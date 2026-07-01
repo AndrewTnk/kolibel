@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { reportUiActions } from '../model/reportUiSlice'
 import { submitReport, REPORT_REASONS } from '../lib/reportApi'
+import { loadConversations } from '../../chat/model/chatThunks'
 import type { ReportTargetType } from '../model/types'
 import { Select } from '../../../shared/ui/Select/Select'
 import s from './ReportModal.module.css'
@@ -90,6 +91,8 @@ export function ReportModal() {
     setError(null)
     try {
       await submitReport({ target, reason, description: text, evidence: files })
+      // Карточка жалобы уже создана в чате «Поддержка Kolibel» — подтянем её сразу.
+      void dispatch(loadConversations())
       setDone(true)
       setTimeout(close, 1400)
     } catch (e) {

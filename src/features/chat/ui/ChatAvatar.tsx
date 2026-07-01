@@ -20,6 +20,7 @@ export function ChatAvatar({
   size = 48,
   square = false,
   id,
+  support = false,
 }: {
   name: string
   avatar?: string
@@ -28,9 +29,19 @@ export function ChatAvatar({
   square?: boolean
   /** id собеседника — для индикатора присутствия (только у людей). */
   id?: string
+  /** Системный чат «Поддержка Kolibel» — бейдж с логотипом на синем фоне. */
+  support?: boolean
 }) {
-  const cls = [styles.avatar, square ? styles.avatarSquare : ''].join(' ')
+  const cls = [styles.avatar, square || support ? styles.avatarSquare : ''].join(' ')
   const style = { width: size, height: size }
+  // Поддержка — фирменный бейдж: логотип Kolibel на синем фоне (как у уведомлений модерации).
+  if (support) {
+    return (
+      <span className={[cls, styles.avatarSupport].join(' ')} style={style} aria-hidden>
+        <img className={styles.avatarSupportMark} src="/logo/kolibel-mark.png" alt="" />
+      </span>
+    )
+  }
   const inner = avatar ? (
     <img className={cls} style={style} src={avatar} alt="" />
   ) : (

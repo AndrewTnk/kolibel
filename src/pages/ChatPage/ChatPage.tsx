@@ -121,8 +121,10 @@ export function ChatPage() {
             }),
           )
         }
-        onTogglePin={() =>
-          void dispatch(setConversationFlag({ conversationId: conv.id, pinned: !conv.pinned }))
+        onTogglePin={
+          conv.support
+            ? undefined
+            : () => void dispatch(setConversationFlag({ conversationId: conv.id, pinned: !conv.pinned }))
         }
         onDeleteMessage={(messageId) =>
           void dispatch(deleteMessage({ conversationId: conv.id, messageId }))

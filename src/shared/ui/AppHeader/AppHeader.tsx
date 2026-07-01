@@ -59,6 +59,10 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
     { to: "/chat", label: "Чат" },
   ];
   const recSearch = useAppSelector((s) => s.network.recSearch);
+  // Индикатор новых сообщений на пункте «Чат» (как у мини-чата).
+  const chatUnread = useAppSelector((s) =>
+    s.chat.conversations.reduce((acc, c) => acc + (c.unreadCount ?? 0), 0),
+  );
   const [menuOpen, setMenuOpen] = useState(false);
   const [newAccountOpen, setNewAccountOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
@@ -161,6 +165,11 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
                       }
                     >
                       {l.label}
+                      {l.to === "/chat" && chatUnread > 0 ? (
+                        <span className={styles.navBadge}>
+                          {chatUnread > 9 ? "9+" : chatUnread}
+                        </span>
+                      ) : null}
                     </NavLink>
                   ))}
                 </nav>

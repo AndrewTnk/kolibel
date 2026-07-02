@@ -114,6 +114,9 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 }
 
 // ── Чем занимаемся ─────────────────────────────
+/** Лимит описания направления (текст справа в карточке — длиннее не влезает красиво). */
+const DIRECTION_DESC_LIMIT = 70
+
 export function DirectionsModal({ onClose }: { onClose: () => void }) {
   const { company, saving, save } = useSaveCompany()
   const [items, setItems] = useState<CompanyDirection[]>(company.directions.map((d) => ({ ...d })))
@@ -133,8 +136,19 @@ export function DirectionsModal({ onClose }: { onClose: () => void }) {
               <input className={styles.input} value={d.title} onChange={(e) => upd(i, 'title', e.target.value)} placeholder="Эквайринг" />
             </label>
             <label className={styles.field} style={{ marginTop: 8 }}>
-              <span className={styles.label}>Описание</span>
-              <textarea className={styles.area} value={d.desc} onChange={(e) => upd(i, 'desc', e.target.value)} rows={2} />
+              <span className={styles.label}>
+                Описание
+                <span className={styles.count}>
+                  {d.desc.length}/{DIRECTION_DESC_LIMIT}
+                </span>
+              </span>
+              <textarea
+                className={[styles.area, styles.areaFixed].join(' ')}
+                value={d.desc}
+                onChange={(e) => upd(i, 'desc', e.target.value.slice(0, DIRECTION_DESC_LIMIT))}
+                maxLength={DIRECTION_DESC_LIMIT}
+                rows={1}
+              />
             </label>
           </div>
         ))}

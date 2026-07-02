@@ -11,6 +11,41 @@ async function currentUserId(): Promise<string | null> {
 const AUTHOR_SELECT =
   '*, author:profiles!author_id(full_name, avatar_url, job_status)'
 
+type CompanyAuthorRow = {
+  id: string
+  name: string | null
+  logo_url: string | null
+  avatar_url: string | null
+  industry: string | null
+}
+
+/**
+ * У аккаунта-компании `profiles.full_name`/аватар пусты (имя в `companies.name`,
+ * id компании = id профиля) → статья компании показывалась без автора.
+ * Дотягиваем название/лого/отрасль одним батч-запросом (паттерн `enrichAuthors`
+ * ленты / `enrichCompanyTitles` чата). Пустые authorName = кандидаты в компании.
+ */
+async function enrichCompanyAuthors(items: Article[]): Promise<Article[]> {
+  const ids = [...new Set(items.filter((a) => !a.authorName).map((a) => a.authorId))]
+  if (ids.length === 0) return items
+  const { data, error } = await supabase
+    .from('companies')
+    .select('id, name, logo_url, avatar_url, industry')
+    .in('id', ids)
+  if (error || !data || data.length === 0) return items
+  const map = new Map((data as CompanyAuthorRow[]).map((c) => [c.id, c]))
+  return items.map((a) => {
+    const c = map.get(a.authorId)
+    if (!c) return a
+    return {
+      ...a,
+      authorName: a.authorName || c.name || undefined,
+      authorAvatar: a.authorAvatar || c.logo_url || c.avatar_url || undefined,
+      authorRole: a.authorRole || c.industry || undefined,
+    }
+  })
+}
+
 /** Список статей автора (для блока в профиле и «другие статьи автора»). */
 export const loadAuthorArticles = createAsyncThunk<Article[], string>(
   'articles/loadByAuthor',
@@ -22,7 +57,7 @@ export const loadAuthorArticles = createAsyncThunk<Article[], string>(
       .order('published_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
-    return (data as ArticleRow[]).map(rowToArticle)
+    return enrichCompanyAuthors((data as ArticleRow[]).map(rowToArticle))
   },
 )
 
@@ -37,7 +72,7 @@ export const loadAllArticles = createAsyncThunk<Article[], void>(
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(60)
     if (error) throw new Error(error.message)
-    return (data as ArticleRow[]).map(rowToArticle)
+    return enrichCompanyAuthors((data as ArticleRow[]).map(rowToArticle))
   },
 )
 
@@ -51,7 +86,7 @@ export const loadArticle = createAsyncThunk<Article, string>(
       .eq('id', id)
       .single()
     if (error) throw new Error(error.message)
-    return rowToArticle(data as ArticleRow)
+    return (await enrichCompanyAuthors([rowToArticle(data as ArticleRow)]))[0]
   },
 )
 
@@ -78,7 +113,7 @@ export const createArticle = createAsyncThunk<Article, ArticleDraft>(
       .select(AUTHOR_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return rowToArticle(data as ArticleRow)
+    return (await enrichCompanyAuthors([rowToArticle(data as ArticleRow)]))[0]
   },
 )
 
@@ -104,7 +139,7 @@ export const updateArticle = createAsyncThunk<Article, ArticleDraft & { id: stri
       .select(AUTHOR_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return rowToArticle(data as ArticleRow)
+    return (await enrichCompanyAuthors([rowToArticle(data as ArticleRow)]))[0]
   },
 )
 

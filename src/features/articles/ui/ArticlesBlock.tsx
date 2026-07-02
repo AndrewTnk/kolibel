@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { loadAuthorArticles, deleteArticle } from '../model/articleThunks'
 import { formatArticleDateShort, formatViews } from '../lib/articleFormat'
+import { isPlatformUpdate } from '../lib/categories'
 import type { Article } from '../model/types'
 import { ArticleEditorModal } from './ArticleEditorModal'
+import { UpdateChip } from './UpdateChip'
 import s from './ArticlesBlock.module.css'
 
 const DELETE_DELAY = 5 // секунд до удаления (можно отменить)
@@ -107,7 +109,11 @@ function ArticleRow({ article, canEdit, onOpen }: { article: Article; canEdit: b
   return (
     <div className={s.itemWrap}>
       <button type="button" className={s.item} onClick={onOpen}>
-        <span className={s.cat}>{article.category || 'Без категории'}</span>
+        {isPlatformUpdate(article.category) ? (
+          <UpdateChip />
+        ) : (
+          <span className={s.cat}>{article.category || 'Без категории'}</span>
+        )}
         <span className={s.title}>{article.title}</span>
         <span className={s.meta}>
           {article.status === 'draft' ? <span className={s.draft}>Черновик</span> : null}

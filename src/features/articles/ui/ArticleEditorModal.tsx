@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useAppDispatch } from '../../../app/store/hooks'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { RichEditor } from '../../../shared/ui/RichEditor/RichEditor'
 import { Select, type SelectOption } from '../../../shared/ui/Select/Select'
 import { ImageUploadField } from '../../../shared/ui/ImageUploadField/ImageUploadField'
-import { ARTICLE_CATEGORIES } from '../lib/categories'
+import { ARTICLE_CATEGORIES, PLATFORM_UPDATE_CATEGORY } from '../lib/categories'
 import { createArticle, updateArticle } from '../model/articleThunks'
 import type { Article } from '../model/types'
 import s from './ArticleEditor.module.css'
@@ -19,6 +19,8 @@ type Props = {
 
 export function ArticleEditorModal({ article, onClose, onSaved }: Props) {
   const dispatch = useAppDispatch()
+  // Издатель обновлений платформы (publisher_roles) — видит категорию «Update».
+  const publisher = useAppSelector((st) => st.admin.publisher)
   const [category, setCategory] = useState(article?.category ?? '')
   const [title, setTitle] = useState(article?.title ?? '')
   const [subtitle, setSubtitle] = useState(article?.subtitle ?? '')
@@ -35,11 +37,17 @@ export function ArticleEditorModal({ article, onClose, onSaved }: Props) {
     }
   }, [])
 
-  // Опции категорий: плейсхолдер + общий пул (+ текущее значение, если оно не из пула — старые статьи).
+  // Опции категорий: плейсхолдер + «Update» у издателя + общий пул
+  // (+ текущее значение, если оно не из пула — старые статьи).
   const categoryOptions: SelectOption<string>[] = [
     { value: '', label: 'Выберите категорию' },
+    ...(publisher
+      ? [{ value: PLATFORM_UPDATE_CATEGORY, label: `${PLATFORM_UPDATE_CATEGORY} — обновление платформы` }]
+      : []),
     ...ARTICLE_CATEGORIES.map((c) => ({ value: c, label: c })),
-    ...(category && !ARTICLE_CATEGORIES.includes(category as never)
+    ...(category &&
+    !ARTICLE_CATEGORIES.includes(category as never) &&
+    !(publisher && category === PLATFORM_UPDATE_CATEGORY)
       ? [{ value: category, label: category }]
       : []),
   ]

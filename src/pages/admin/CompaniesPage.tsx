@@ -7,6 +7,7 @@ import { useAsync, useDebounced } from '../../features/admin/lib/useAsync'
 import { adminApi } from '../../features/admin/lib/adminApi'
 import { fmtDate, fmtNum } from '../../features/admin/lib/format'
 import { accountStatus } from '../../features/admin/lib/labels'
+import { useAppSelector } from '../../app/store/hooks'
 import type { AccountStatus } from '../../features/admin/model/types'
 import { ModerationReasonModal } from '../../features/admin/ui/ModerationReasonModal'
 import { ACCOUNT_BLOCK_REASONS } from '../../features/admin/lib/moderationReasons'
@@ -14,6 +15,7 @@ import { ACCOUNT_BLOCK_REASONS } from '../../features/admin/lib/moderationReason
 const PAGE_SIZE = 12
 
 export function CompaniesPage() {
+  const isAdmin = useAppSelector((st) => st.admin.role === 'admin')
   const [searchRaw, setSearchRaw] = useState('')
   const [status, setStatus] = useState<AccountStatus | ''>('')
   const [page, setPage] = useState(0)
@@ -25,6 +27,15 @@ export function CompaniesPage() {
     () => adminApi.companies({ search, status, limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
     [search, status, page],
   )
+
+  // Издатели обновлений платформы (admin only; не-админу вернётся пустой список).
+  const { data: publisherIds, reload: reloadPublishers } = useAsync(() => adminApi.publisherIds(), [])
+
+  const togglePublisher = async (id: string, has: boolean) => {
+    if (has && !confirm('Снять роль издателя обновлений с компании?')) return
+    await adminApi.setPublisher(id, !has)
+    reloadPublishers()
+  }
 
   const setStatusFor = async (id: string, next: AccountStatus) => {
     await adminApi.setAccountStatus(id, next)
@@ -105,6 +116,7 @@ export function CompaniesPage() {
               )}
               {data?.rows.map((c) => {
                 const st = accountStatus[c.status]
+                const isPublisher = (publisherIds ?? []).includes(c.id)
                 return (
                   <tr key={c.id}>
                     <td>
@@ -125,6 +137,19 @@ export function CompaniesPage() {
                     </td>
                     <td>
                       <div className={s.rowActions}>
+                        {isAdmin ? (
+                          <button
+                            className={`${s.btn} ${s.btnIcon} ${isPublisher ? s.btnSuccess : ''}`}
+                            title={
+                              isPublisher
+                                ? 'Издатель обновлений платформы — нажмите, чтобы снять роль'
+                                : 'Сделать издателем обновлений (статьи «Update»)'
+                            }
+                            onClick={() => togglePublisher(c.id, isPublisher)}
+                          >
+                            <Ic.post />
+                          </button>
+                        ) : null}
                         <button
                           className={`${s.btn} ${s.btnIcon}`}
                           title="Открыть страницу"

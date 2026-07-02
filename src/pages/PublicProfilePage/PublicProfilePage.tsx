@@ -675,8 +675,10 @@ function CompanyView({
                   <div className={brand.dirGrid}>
                     {(open ? c.directions : c.directions.slice(0, 2)).map((d) => (
                       <div key={d.id} className={brand.dirCard}>
-                        <span className={brand.dirIco}><Ic.bolt /></span>
-                        <span className={brand.dirTitle}>{d.title}</span>
+                        <span className={brand.dirLeft}>
+                          <span className={brand.dirIco}><Ic.bolt /></span>
+                          <span className={brand.dirTitle}>{d.title}</span>
+                        </span>
                         <span className={brand.dirDesc}>{d.desc}</span>
                       </div>
                     ))}

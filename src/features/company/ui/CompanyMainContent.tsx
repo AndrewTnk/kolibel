@@ -350,8 +350,10 @@ function AboutTab({ c, onOpen }: { c: CompanyProfile; onOpen: (m: ModalKind) => 
               <div className={styles.dirGrid}>
                 {(open ? c.directions : c.directions.slice(0, 2)).map((d) => (
                   <button key={d.id} type="button" className={styles.dirCard} onClick={() => onOpen('directions')}>
-                    <span className={styles.dirIco}><Ic.bolt /></span>
-                    <span className={styles.dirTitle}>{d.title}</span>
+                    <span className={styles.dirLeft}>
+                      <span className={styles.dirIco}><Ic.bolt /></span>
+                      <span className={styles.dirTitle}>{d.title}</span>
+                    </span>
                     <span className={styles.dirDesc}>{d.desc}</span>
                   </button>
                 ))}

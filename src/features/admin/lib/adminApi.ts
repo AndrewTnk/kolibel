@@ -128,4 +128,15 @@ export const adminApi = {
     rpc<void>('admin_grant_role', { p_user_id: userId, p_role: role }),
 
   revokeRole: (userId: string) => rpc<void>('admin_revoke_role', { p_user_id: userId }),
+
+  // ── Издатель обновлений платформы (admin only, миграция 0051) ──
+  setPublisher: (profileId: string, grant: boolean) =>
+    rpc<void>('admin_set_publisher', { p_profile_id: profileId, p_grant: grant }),
+
+  /** Кто уже издатель (admin видит все строки publisher_roles по RLS). */
+  publisherIds: async (): Promise<string[]> => {
+    const { data, error } = await supabase.from('publisher_roles').select('profile_id')
+    if (error) return [] // таблица ещё не создана — считаем, что издателей нет
+    return (data ?? []).map((r) => r.profile_id as string)
+  },
 }

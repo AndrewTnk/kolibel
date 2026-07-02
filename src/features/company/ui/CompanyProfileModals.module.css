@@ -16,6 +16,17 @@
   font-size: 12.5px;
   font-weight: 800;
   color: var(--text-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Счётчик лимита символов в правом краю подписи поля («N/70») */
+.count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .hint {
@@ -53,6 +64,20 @@
   color: var(--text);
   background: var(--field-bg);
   resize: vertical;
+}
+
+/* Описание направления: без ручного расширения и без видимого скроллбара
+   (прокрутка при длинном тексте сохраняется, полосы не видно).
+   Высота — одна строка (как input, 44px): лимит 70 символов. */
+.areaFixed {
+  resize: none;
+  scrollbar-width: none;
+  min-height: 0;
+  height: 44px;
+}
+
+.areaFixed::-webkit-scrollbar {
+  display: none;
 }
 
 .grid2 {

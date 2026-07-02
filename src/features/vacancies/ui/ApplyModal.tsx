@@ -28,7 +28,7 @@ export function ApplyModal({ vacancy, onClose }: Props) {
   )
 
   function submit() {
-    void dispatch(applyToVacancy(vacancy.id))
+    void dispatch(applyToVacancy({ vacancyId: vacancy.id, cover }))
     dispatch(vacanciesActions.openApplied(vacancy.id))
   }
 

@@ -581,6 +581,34 @@
   color: var(--onPrimary);
 }
 
+/* Переключатель сортировки откликов (по мэтчу / по дате). */
+.sortRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.sortLbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.sortBtn {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-2, var(--muted));
+  cursor: pointer;
+}
+.sortOn {
+  border-color: var(--primary);
+  background: var(--primarySoft, rgba(255, 127, 80, 0.12));
+  color: var(--primary);
+}
+
 .appList {
   display: flex;
   flex-direction: column;

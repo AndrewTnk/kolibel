@@ -209,8 +209,8 @@ export const removeVacancy = createAsyncThunk<string, string>(
 /** Отклик на вакансию (данные кандидата берём из его профиля). */
 export const applyToVacancy = createAsyncThunk<
   { vacancyId: string; application: MyApplication | null },
-  string
->('vacancies/apply', async (vacancyId, { getState }) => {
+  { vacancyId: string; cover?: string }
+>('vacancies/apply', async ({ vacancyId, cover }, { getState }) => {
   const state = getState() as RootState
   const { id: uid, email } = await currentUser()
   if (!uid) throw new Error('Нет активной сессии')
@@ -223,6 +223,8 @@ export const applyToVacancy = createAsyncThunk<
       applicant_name: resume.fullName,
       applicant_title: resume.jobTitle,
       applicant_email: email,
+      // Сопроводительное письмо кандидата (переиспользуем существующую колонку note).
+      note: cover?.trim() || null,
     })
     .select('id')
     .single()

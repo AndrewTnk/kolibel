@@ -1,4 +1,5 @@
 import type { Resume } from '../../model/types'
+import { Markdown } from '../../../../shared/ui/Markdown/Markdown'
 import d from './ResumeDocument.module.css'
 
 function initials(name: string): string {
@@ -136,12 +137,8 @@ export function ResumeDocument({ resume: r, accent }: Props) {
                     </div>
                     <div className={d.expCompany}>{e.company}</div>
                     {e.summary ? <p className={d.expSummary}>{e.summary}</p> : null}
-                    {e.achievements.length ? (
-                      <ul className={d.expBullets}>
-                        {e.achievements.map((b, i) => (
-                          <li key={i}>{b}</li>
-                        ))}
-                      </ul>
+                    {e.achievements?.trim() ? (
+                      <Markdown className={d.expBullets}>{e.achievements}</Markdown>
                     ) : null}
                     {e.stack.length ? (
                       <div className={d.expStack}>

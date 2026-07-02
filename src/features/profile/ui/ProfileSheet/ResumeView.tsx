@@ -2,6 +2,8 @@ import { useAppSelector } from '../../../../app/store/hooks'
 import type { ContactLink, ExperienceItem, Resume } from '../../model/types'
 import type { ProfileModalState } from './ProfileModals'
 import { contactHref } from '../../lib/contactHref'
+import { formatExperience, totalExperienceMonths } from '../../lib/period'
+import { Markdown } from '../../../../shared/ui/Markdown/Markdown'
 import { Ic } from './icons'
 import s from './ProfileSheet.module.css'
 
@@ -46,10 +48,11 @@ type Props = {
   readOnly?: boolean
 }
 
-function SecHead({ title, onEdit, onAdd }: { title: string; onEdit?: () => void; onAdd?: () => void }) {
+function SecHead({ title, meta, onEdit, onAdd }: { title: string; meta?: string; onEdit?: () => void; onAdd?: () => void }) {
   return (
     <div className={s.secHead}>
       <span className={s.secTitle}>{title}</span>
+      {meta ? <span className={s.secMeta}>{meta}</span> : null}
       {onAdd ? (
         <button type="button" className={s.secEdit} onClick={onAdd} aria-label={`Добавить в «${title}»`}>
           <Ic.plus />
@@ -182,7 +185,11 @@ export function ResumeView({ expanded, onToggle, layout, open, resume: propResum
         if (readOnly && !resume.experience.length) return null
         return (
           <div className={s.sec} key="experience">
-            <SecHead title="Опыт работы" onAdd={edit && (() => open({ kind: 'experience', item: null }))} />
+            <SecHead
+              title="Опыт работы"
+              meta={formatExperience(totalExperienceMonths(resume.experience))}
+              onAdd={edit && (() => open({ kind: 'experience', item: null }))}
+            />
             {resume.experience.length ? (
               <div className={s.exp}>
                 {resume.experience.map((e: ExperienceItem) => (
@@ -192,7 +199,13 @@ export function ResumeView({ expanded, onToggle, layout, open, resume: propResum
                     className={s.expItem}
                     onClick={readOnly ? undefined : () => open({ kind: 'experience', item: e })}
                   >
-                    <div className={[s.expLogo, s.grad].join(' ')}>{initials(e.company)}</div>
+                    <div className={[s.expLogo, s.grad].join(' ')}>
+                      {e.companyLogo ? (
+                        <img className={s.expLogoImg} src={e.companyLogo} alt="" />
+                      ) : (
+                        initials(e.company)
+                      )}
+                    </div>
                     <div className={s.expMeta}>
                       <div className={s.expRoleRow}>
                         <div className={s.expRole}>{e.role}</div>
@@ -202,12 +215,8 @@ export function ResumeView({ expanded, onToggle, layout, open, resume: propResum
                         <span>{e.company}</span>
                       </div>
                       {e.summary ? <div className={s.expSummary}>{e.summary}</div> : null}
-                      {e.achievements.length ? (
-                        <ul className={s.expBullets}>
-                          {e.achievements.map((b, i) => (
-                            <li key={i}>{b}</li>
-                          ))}
-                        </ul>
+                      {e.achievements?.trim() ? (
+                        <Markdown className={s.expBullets}>{e.achievements}</Markdown>
                       ) : null}
                       {e.stack.length ? (
                         <div className={s.expStack}>

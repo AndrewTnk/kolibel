@@ -1,31 +1,13 @@
 import type { ExperienceItem } from '../model/types'
+import { composePeriod } from '../lib/period'
+import { RichEditor } from '../../../shared/ui/RichEditor/RichEditor'
+import { MonthYearSelect } from './MonthYearSelect'
 import { SkillsEditor } from './SkillsEditor'
 import f from './ProfileFields.module.css'
 
 type Props = {
   value: ExperienceItem[]
   onChange: (items: ExperienceItem[]) => void
-}
-
-const MONTHS = [
-  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
-]
-
-const CURRENT_YEAR = new Date().getFullYear()
-const YEARS = Array.from({ length: 55 }, (_, i) => CURRENT_YEAR - i)
-
-function monthYear(month?: number, year?: number) {
-  if (!year) return ''
-  return month ? `${MONTHS[month - 1]} ${year}` : `${year}`
-}
-
-/** Собирает строку периода из структурированных полей. */
-function composePeriod(item: ExperienceItem): string {
-  const start = monthYear(item.startMonth, item.startYear)
-  const end = item.current ? 'наст. время' : monthYear(item.endMonth, item.endYear)
-  if (start && end) return `${start} — ${end}`
-  return start || end
 }
 
 function emptyItem(): ExperienceItem {
@@ -35,52 +17,9 @@ function emptyItem(): ExperienceItem {
     company: '',
     period: '',
     summary: '',
-    achievements: [],
+    achievements: '',
     stack: [],
   }
-}
-
-function MonthYear({
-  month,
-  year,
-  onMonth,
-  onYear,
-}: {
-  month?: number
-  year?: number
-  onMonth: (v?: number) => void
-  onYear: (v?: number) => void
-}) {
-  return (
-    <div className={f.row}>
-      <select
-        className={f.select}
-        value={month ?? ''}
-        onChange={(e) => onMonth(e.target.value ? Number(e.target.value) : undefined)}
-        aria-label="Месяц"
-      >
-        <option value="">Месяц</option>
-        {MONTHS.map((m, i) => (
-          <option key={m} value={i + 1}>
-            {m}
-          </option>
-        ))}
-      </select>
-      <select
-        className={f.select}
-        value={year ?? ''}
-        onChange={(e) => onYear(e.target.value ? Number(e.target.value) : undefined)}
-        aria-label="Год"
-      >
-        <option value="">Год</option>
-        {YEARS.map((y) => (
-          <option key={y} value={y}>
-            {y}
-          </option>
-        ))}
-      </select>
-    </div>
-  )
 }
 
 export function ExperienceEditor({ value, onChange }: Props) {
@@ -138,11 +77,13 @@ export function ExperienceEditor({ value, onChange }: Props) {
 
           <div className={f.field}>
             <span className={f.label}>Начало работы</span>
-            <MonthYear
+            <MonthYearSelect
               month={item.startMonth}
               year={item.startYear}
               onMonth={(startMonth) => updatePeriod(item.id, { startMonth })}
               onYear={(startYear) => updatePeriod(item.id, { startYear })}
+              rowClassName={f.row}
+              selectClassName={f.select}
             />
           </div>
 
@@ -161,14 +102,15 @@ export function ExperienceEditor({ value, onChange }: Props) {
               />
               Работаю в настоящее время
             </label>
-            {!item.current ? (
-              <MonthYear
-                month={item.endMonth}
-                year={item.endYear}
-                onMonth={(endMonth) => updatePeriod(item.id, { endMonth })}
-                onYear={(endYear) => updatePeriod(item.id, { endYear })}
-              />
-            ) : null}
+            <MonthYearSelect
+              month={item.endMonth}
+              year={item.endYear}
+              onMonth={(endMonth) => updatePeriod(item.id, { endMonth })}
+              onYear={(endYear) => updatePeriod(item.id, { endYear })}
+              disabled={!!item.current}
+              rowClassName={f.row}
+              selectClassName={f.select}
+            />
           </div>
 
           <textarea
@@ -179,12 +121,11 @@ export function ExperienceEditor({ value, onChange }: Props) {
           />
 
           <div className={f.field}>
-            <span className={f.label}>Достижения (по одному в строке)</span>
-            <textarea
-              className={f.textarea}
-              value={item.achievements.join('\n')}
-              onChange={(e) => update(item.id, { achievements: e.target.value.split('\n') })}
-              placeholder={'Например:\nСократил время загрузки на 35%\nВнедрил дизайн-систему'}
+            <span className={f.label}>Достижения</span>
+            <RichEditor
+              value={item.achievements}
+              onChange={(md) => update(item.id, { achievements: md })}
+              placeholder="Сократил время загрузки на 35%"
             />
           </div>
 

@@ -153,6 +153,7 @@
 
 .metaRow {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 12px;
@@ -193,6 +194,20 @@
   font-size: 14px;
   line-height: 1.55;
   color: var(--text);
+}
+
+
+/* Сопроводительное письмо — блок-«письмо» (личное сообщение кандидата). */
+.cover {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 10px;
+  padding: 12px 14px;
 }
 
 .skills {
@@ -238,7 +253,13 @@
   color: #fff;
   font-weight: 900;
   font-size: 13px;
-  background: linear-gradient(135deg, #1f2937, var(--primary));
+  background: linear-gradient(135deg, #111827 0%, #334155 55%, var(--primary) 100%);
+  overflow: hidden;
+}
+.expDotImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .expRole {
@@ -252,6 +273,61 @@
   font-size: 13px;
   color: var(--muted);
   font-weight: 600;
+}
+
+.expToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.expToggle svg {
+  transition: transform 0.18s;
+}
+.expToggleOpen svg {
+  transform: rotate(180deg);
+}
+
+.expDetail {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+.expSummary {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.expAch {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.expStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.expChip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  color: var(--text-2, var(--muted));
 }
 
 .foot {

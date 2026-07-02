@@ -8,6 +8,8 @@ export type ExperienceItem = {
   id: string
   role: string
   company: string
+  /** Логотип работодателя, если это зарегистрированная на сайте компания. */
+  companyLogo?: string
   /** Готовая строка периода для отображения (собирается из полей ниже). */
   period: string
   /** Структурированный период (источник правды в редакторе). */
@@ -20,7 +22,8 @@ export type ExperienceItem = {
   /** @deprecated больше не редактируется (оставлено для обратной совместимости) */
   location?: string
   summary: string
-  achievements: string[]
+  /** Ключевые достижения в формате markdown (редактор RichEditor). */
+  achievements: string
   stack: string[]
 }
 

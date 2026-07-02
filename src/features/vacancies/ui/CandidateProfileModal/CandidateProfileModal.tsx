@@ -1,9 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import type { Applicant } from '../../model/types'
 import type { NetworkPerson } from '../../../network/model/types'
 import { CompanyBadge } from '../../../../shared/ui/CompanyBadge/CompanyBadge'
+import { CandidateWarmthBadge } from '../CandidateWarmthBadge/CandidateWarmthBadge'
+import { Markdown } from '../../../../shared/ui/Markdown/Markdown'
 import styles from './CandidateProfileModal.module.css'
 
 /** Нормализованное резюме кандидата — общее для откликов и рекомендаций. */
@@ -24,11 +26,21 @@ export type CandidateProfile = {
   matchedSkills?: string[]
   /** Процент совпадения (мок). null — кольцо не рисуем. */
   score?: number | null
-  experience?: { role: string; company: string; period: string }[]
+  experience?: {
+    role: string
+    company: string
+    companyLogo?: string
+    period: string
+    summary?: string
+    achievements?: string
+    stack?: string[]
+  }[]
   /** Если кандидат — отклик: на какую вакансию. */
   appliedFor?: string
   /** Подпись времени отклика («2 ч назад»). */
   appliedAt?: string
+  /** Сопроводительное письмо (только у откликов). */
+  coverLetter?: string
 }
 
 /** Кандидат из реального отклика → нормализованный профиль. */
@@ -48,6 +60,7 @@ export function applicantToCandidate(a: Applicant, opts?: { matchedSkills?: stri
     score: opts?.score,
     experience: a.experience,
     appliedFor: opts?.appliedFor,
+    coverLetter: a.note,
   }
 }
 
@@ -112,6 +125,63 @@ function RejectIcon() {
       <line x1="15" y1="9" x2="9" y2="15" />
       <line x1="9" y1="9" x2="15" y2="15" />
     </svg>
+  )
+}
+
+function ChevronIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
+}
+
+/** Строка опыта с раскрытием «чем занимался» (summary/достижения/стек из профиля). */
+function ExpRow({ e }: { e: NonNullable<CandidateProfile['experience']>[number] }) {
+  const [open, setOpen] = useState(false)
+  const hasDetail = !!(e.summary?.trim() || e.achievements?.trim() || e.stack?.length)
+  return (
+    <div className={styles.expItem}>
+      <div className={styles.expDot} aria-hidden>
+        {e.companyLogo ? (
+          <img className={styles.expDotImg} src={e.companyLogo} alt="" />
+        ) : (
+          (e.company || '?').slice(0, 1).toUpperCase()
+        )}
+      </div>
+      <div>
+        <div className={styles.expRole}>{e.role}</div>
+        <div className={styles.expCo}>{[e.company, e.period].filter(Boolean).join(' · ')}</div>
+
+        {hasDetail && open ? (
+          <div className={styles.expDetail}>
+            {e.summary?.trim() ? <div className={styles.expSummary}>{e.summary}</div> : null}
+            {e.achievements?.trim() ? (
+              <Markdown className={styles.expAch}>{e.achievements}</Markdown>
+            ) : null}
+            {e.stack?.length ? (
+              <div className={styles.expStack}>
+                {e.stack.map((s) => (
+                  <span key={s} className={styles.expChip}>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {hasDetail ? (
+          <button
+            type="button"
+            className={[styles.expToggle, open ? styles.expToggleOpen : ''].filter(Boolean).join(' ')}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? 'Свернуть' : 'Чем занимался'} <ChevronIcon />
+          </button>
+        ) : null}
+      </div>
+    </div>
   )
 }
 
@@ -202,7 +272,15 @@ export function CandidateProfileModal({
                 <span className={styles.metaIco}><PinIcon /></span> {c.location.split(' · ')[0]}
               </span>
             ) : null}
+            <CandidateWarmthBadge candidateId={c.userId} />
           </div>
+
+          {isApplication && c.coverLetter?.trim() ? (
+            <div className={styles.section}>
+              <div className={styles.secTitle}>Сопроводительное письмо</div>
+              <div className={styles.cover}>{c.coverLetter}</div>
+            </div>
+          ) : null}
 
           {c.about ? (
             <div className={styles.section}>
@@ -232,17 +310,7 @@ export function CandidateProfileModal({
               <div className={styles.secTitle}>Опыт работы</div>
               <div className={styles.exp}>
                 {c.experience.map((e, i) => (
-                  <div className={styles.expItem} key={i}>
-                    <div className={styles.expDot} aria-hidden>
-                      {(e.company || '?').slice(0, 1).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className={styles.expRole}>{e.role}</div>
-                      <div className={styles.expCo}>
-                        {[e.company, e.period].filter(Boolean).join(' · ')}
-                      </div>
-                    </div>
-                  </div>
+                  <ExpRow key={i} e={e} />
                 ))}
               </div>
             </div>

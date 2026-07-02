@@ -5,16 +5,16 @@ import { loadVacancies, updateVacancyStatus } from '../../features/vacancies/mod
 import { vacanciesActions } from '../../features/vacancies/model/vacanciesSlice'
 import {
   fetchOwnerApplications,
+  markApplicationViewed,
   updateApplicationStatus,
 } from '../../features/vacancies/lib/applicationsApi'
 import { fetchFolders, createFolder, setFolderItem } from '../../features/vacancies/lib/foldersApi'
-import { loadFavorites, saveFavorites } from '../../features/vacancies/lib/applicantFavorites'
+import { fetchSavedCandidates, setSavedCandidate } from '../../features/vacancies/lib/savedCandidates'
 import { applicantToMatchProfile, computeMatch } from '../../features/vacancies/lib/useVacancyMatch'
 import { buildRejectReply } from '../../features/vacancies/lib/rejectReplies'
 import { loadConversations, sendMessage, startConversation } from '../../features/chat/model/chatThunks'
 import type {
   Applicant,
-  ApplicationStatus,
   Vacancy,
   VacancyFolder,
   VacancyStatus,
@@ -30,6 +30,7 @@ import {
   applicantToCandidate,
   type CandidateProfile,
 } from '../../features/vacancies/ui/CandidateProfileModal/CandidateProfileModal'
+import { CandidateWarmthBadge } from '../../features/vacancies/ui/CandidateWarmthBadge/CandidateWarmthBadge'
 import { WriteModal } from '../../features/company/ui/WriteModal/WriteModal'
 import { RecommendedCandidates } from '../../widgets/RecommendedCandidates/RecommendedCandidates'
 import { formatPosted, formatSalary, workFormatLabels } from '../../features/vacancies/lib/labels'
@@ -38,27 +39,29 @@ import { CompanyBadge } from '../../shared/ui/CompanyBadge/CompanyBadge'
 import { Icon } from './icons'
 import styles from './MyVacanciesPage.module.css'
 
-type Stage = 'new' | 'contacted' | 'interview' | 'offer' | 'rejected'
-const STAGE_LABEL: Record<Stage, string> = {
-  new: 'Новые',
-  contacted: 'Связались',
-  interview: 'Интервью',
-  offer: 'Оффер',
-  rejected: 'Отклонены',
+// Воронку убрали. Статус отклика теперь автоматический:
+//   rejected — отклонён (через модалку отказа), viewed — компания открыла, new — ещё нет.
+type AppState = 'new' | 'viewed' | 'rejected'
+const APP_STATE_LABEL: Record<AppState, string> = {
+  new: 'Новый',
+  viewed: 'Просмотрен',
+  rejected: 'Отклонён',
 }
-// Этапы, которые HR может выставить вручную (без «Отклонены» — это через модалку отказа).
-const MOVABLE: Stage[] = ['new', 'contacted', 'interview', 'offer']
-
-/** Нормализация статуса в стадию воронки (legacy 'saved' → interview). */
-function normStage(s: ApplicationStatus): Stage {
-  return s === 'saved' ? 'interview' : (s as Stage)
+function appState(a: Applicant): AppState {
+  if (a.status === 'rejected') return 'rejected'
+  return a.viewedAt ? 'viewed' : 'new'
 }
 
 function vacCounts(applicants: Applicant[]) {
-  const c: Record<Stage, number> = { new: 0, contacted: 0, interview: 0, offer: 0, rejected: 0 }
-  for (const a of applicants) c[normStage(a.status)]++
+  let rejected = 0
+  let fresh = 0 // новые = ещё не просмотрены и не отклонены
+  for (const a of applicants) {
+    const st = appState(a)
+    if (st === 'rejected') rejected++
+    else if (st === 'new') fresh++
+  }
   const total = applicants.length
-  return { ...c, total, active: total - c.rejected }
+  return { total, new: fresh, rejected, active: total - rejected }
 }
 
 const STATUS_FILTERS: [VacancyStatus | 'all', string, () => React.ReactElement][] = [
@@ -104,7 +107,10 @@ export function MyVacanciesPage() {
   const [detailId, setDetailId] = useState<string | null>(null)
   // Фильтр кандидатов в правом сайдбаре открытой вакансии.
   const [candFilter, setCandFilter] = useState<'all' | 'favorite' | 'rejected'>('all')
-  const [favorites, setFavorites] = useState<Set<string>>(() => loadFavorites())
+  // Сортировка откликов: по мэтчу (по умолчанию) или по дате отклика.
+  const [sortBy, setSortBy] = useState<'match' | 'date'>('match')
+  // Избранные кандидаты — множество profile_id (серверный шорт-лист, приватно).
+  const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [modal, setModal] = useState<ModalState>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | null>(null)
@@ -123,6 +129,9 @@ export function MyVacanciesPage() {
     fetchFolders()
       .then(setFolders)
       .catch(() => setFolders([]))
+    fetchSavedCandidates()
+      .then(setFavorites)
+      .catch(() => setFavorites(new Set()))
   }, [dispatch])
 
   // Открытие модалки публикации из хедера (мобилка): сбрасываем флаг и открываем модалку.
@@ -168,7 +177,7 @@ export function MyVacanciesPage() {
     let newApplies = 0
     for (const v of myVacancies) {
       if (statusOf(v) === 'active') activeVac++
-      for (const a of applicantsOf(v.id)) if (normStage(a.status) === 'new') newApplies++
+      for (const a of applicantsOf(v.id)) if (appState(a) === 'new') newApplies++
     }
     return { activeVac, newApplies }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -178,15 +187,24 @@ export function MyVacanciesPage() {
   const detailApplicants = detailVac ? applicantsOf(detailVac.id) : []
   const candCounts = {
     all: detailApplicants.length,
-    favorite: detailApplicants.filter((a) => favorites.has(a.id)).length,
-    rejected: detailApplicants.filter((a) => normStage(a.status) === 'rejected').length,
+    favorite: detailApplicants.filter((a) => favorites.has(a.userId)).length,
+    rejected: detailApplicants.filter((a) => a.status === 'rejected').length,
   }
-  const shownApplicants =
+  const filteredApplicants =
     candFilter === 'favorite'
-      ? detailApplicants.filter((a) => favorites.has(a.id))
+      ? detailApplicants.filter((a) => favorites.has(a.userId))
       : candFilter === 'rejected'
-        ? detailApplicants.filter((a) => normStage(a.status) === 'rejected')
+        ? detailApplicants.filter((a) => a.status === 'rejected')
         : detailApplicants
+  // По мэтчу — лучший кандидат сверху; по дате — как пришло из БД (created_at desc).
+  const shownApplicants =
+    sortBy === 'match' && detailVac
+      ? [...filteredApplicants].sort(
+          (a, b) =>
+            (computeMatch(detailVac, applicantToMatchProfile(b)).score ?? -1) -
+            (computeMatch(detailVac, applicantToMatchProfile(a)).score ?? -1),
+        )
+      : filteredApplicants
 
   function selectVac(v: Vacancy) {
     if (statusOf(v) === 'draft') {
@@ -208,13 +226,17 @@ export function MyVacanciesPage() {
     dispatch(vacanciesActions.closeFoldersModal())
   }
 
-  function toggleFavorite(appId: string) {
+  // Ключ избранного — profile_id кандидата (звёздочка относится к человеку).
+  function toggleFavorite(candidateId: string) {
+    const present = !favorites.has(candidateId)
     setFavorites((prev) => {
       const next = new Set(prev)
-      if (next.has(appId)) next.delete(appId)
-      else next.add(appId)
-      saveFavorites(next)
+      if (present) next.add(candidateId)
+      else next.delete(candidateId)
       return next
+    })
+    void setSavedCandidate(candidateId, present).catch(() => {
+      fetchSavedCandidates().then(setFavorites).catch(() => {})
     })
   }
 
@@ -229,13 +251,13 @@ export function MyVacanciesPage() {
     })
   }
 
-  async function changeStage(appId: string, status: ApplicationStatus) {
-    patchApplicant(appId, { status })
-    try {
-      await updateApplicationStatus(appId, status)
-    } catch {
+  // Отметить отклик просмотренным при открытии профиля кандидата (авто-статус «просмотрен»).
+  function markViewed(a: Applicant) {
+    if (a.viewedAt) return
+    patchApplicant(a.id, { viewedAt: Date.now() })
+    void markApplicationViewed(a.id).catch(() => {
       fetchOwnerApplications().then(setApplicantsByVacancy).catch(() => {})
-    }
+    })
   }
 
   async function confirmReject(
@@ -385,13 +407,15 @@ export function MyVacanciesPage() {
                   v={detailVac}
                   applicants={shownApplicants}
                   totalCount={detailApplicants.length}
-                  newCount={detailApplicants.filter((a) => normStage(a.status) === 'new').length}
+                  newCount={detailApplicants.filter((a) => appState(a) === 'new').length}
                   favorites={favorites}
                   onToggleFav={toggleFavorite}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
                   onBack={backToList}
                   onEdit={() => setModal({ kind: 'publish', vacancy: detailVac })}
-                  onStage={changeStage}
                   onOpenProfile={(a) => {
+                    markViewed(a)
                     const m = computeMatch(detailVac, applicantToMatchProfile(a))
                     setModal({
                       kind: 'profile',
@@ -763,23 +787,25 @@ function DetailPane({
   newCount,
   favorites,
   onToggleFav,
+  sortBy,
+  onSortChange,
   onBack,
   onEdit,
-  onStage,
   onOpenProfile,
   onWrite,
   onReject,
 }: {
   v: Vacancy
-  /** Уже отфильтрованный список (по выбранному фильтру в сайдбаре). */
+  /** Уже отфильтрованный и отсортированный список. */
   applicants: Applicant[]
   totalCount: number
   newCount: number
   favorites: Set<string>
   onToggleFav: (appId: string) => void
+  sortBy: 'match' | 'date'
+  onSortChange: (s: 'match' | 'date') => void
   onBack: () => void
   onEdit: () => void
-  onStage: (appId: string, status: ApplicationStatus) => void
   onOpenProfile: (a: Applicant) => void
   onWrite: (a: Applicant) => void
   onReject: (a: Applicant) => void
@@ -801,15 +827,33 @@ function DetailPane({
         </button>
       </div>
 
+      <div className={styles.sortRow}>
+        <span className={styles.sortLbl}>Сортировка:</span>
+        {(
+          [
+            ['match', 'По мэтчу'],
+            ['date', 'По дате'],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={[styles.sortBtn, sortBy === key ? styles.sortOn : ''].filter(Boolean).join(' ')}
+            onClick={() => onSortChange(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className={styles.appList}>
         {applicants.map((a) => (
           <ApplicantRow
             key={a.id}
             v={v}
             a={a}
-            favorite={favorites.has(a.id)}
-            onToggleFav={() => onToggleFav(a.id)}
-            onStage={onStage}
+            favorite={favorites.has(a.userId)}
+            onToggleFav={() => onToggleFav(a.userId)}
             onOpenProfile={() => onOpenProfile(a)}
             onWrite={() => onWrite(a)}
             onReject={() => onReject(a)}
@@ -827,7 +871,6 @@ function ApplicantRow({
   a,
   favorite,
   onToggleFav,
-  onStage,
   onOpenProfile,
   onWrite,
   onReject,
@@ -836,12 +879,13 @@ function ApplicantRow({
   a: Applicant
   favorite: boolean
   onToggleFav: () => void
-  onStage: (appId: string, status: ApplicationStatus) => void
   onOpenProfile: () => void
   onWrite: () => void
   onReject: () => void
 }) {
-  const stage = normStage(a.status)
+  const state = appState(a)
+  // Переиспользуем существующие CSS-классы пилюль: viewed красим нейтральным 'contacted'.
+  const pillKind = state === 'viewed' ? 'contacted' : state
   const match = computeMatch(v, applicantToMatchProfile(a))
   const about = a.about ?? ''
   const cover = a.note ?? ''
@@ -849,17 +893,6 @@ function ApplicantRow({
   const coverLong = cover.length > 130
   const [openAbout, setOpenAbout] = useState(false)
   const [openCover, setOpenCover] = useState(false)
-  const [stageMenu, setStageMenu] = useState(false)
-  const stageRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    if (!stageMenu) return
-    function onDown(e: MouseEvent) {
-      if (stageRef.current && !stageRef.current.contains(e.target as Node)) setStageMenu(false)
-    }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [stageMenu])
 
   const stop = (e: React.MouseEvent, fn: () => void) => {
     e.stopPropagation()
@@ -868,7 +901,7 @@ function ApplicantRow({
 
   return (
     <article
-      className={[styles.appRow, stage === 'rejected' ? styles.appRejected : ''].filter(Boolean).join(' ')}
+      className={[styles.appRow, state === 'rejected' ? styles.appRejected : ''].filter(Boolean).join(' ')}
       onClick={onOpenProfile}
     >
       <div className={styles.appAva}>
@@ -887,36 +920,11 @@ function ApplicantRow({
             <Icon.clock /> {formatPosted(a.appliedAt)}
           </span>
           <span className={styles.appDot} />
-          <div className={styles.stageWrap} ref={stageRef} onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className={[styles.appStagePill, styles[`pill_${stage}`]].join(' ')}
-              onClick={() => setStageMenu((o) => !o)}
-              title="Сменить этап"
-            >
-              <span className={[styles.appStageDot, styles[`dot_${stage}`]].join(' ')} />
-              {STAGE_LABEL[stage]}
-              <Icon.chevD />
-            </button>
-            {stageMenu ? (
-              <div className={styles.stageMenu} role="menu">
-                {MOVABLE.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className={[styles.stageMenuItem, s === stage ? styles.stageMenuOn : ''].filter(Boolean).join(' ')}
-                    onClick={() => {
-                      setStageMenu(false)
-                      if (s !== stage) onStage(a.id, s)
-                    }}
-                  >
-                    <span className={[styles.appStageDot, styles[`dot_${s}`]].join(' ')} />
-                    {STAGE_LABEL[s]}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          <span className={[styles.appStagePill, styles[`pill_${pillKind}`]].join(' ')}>
+            <span className={[styles.appStageDot, styles[`dot_${pillKind}`]].join(' ')} />
+            {APP_STATE_LABEL[state]}
+          </span>
+          <CandidateWarmthBadge candidateId={a.userId} />
         </div>
       </div>
       <div className={styles.appRight}>

@@ -1,0 +1,73 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Тёплый — акцентный (коралл). */
+.hot {
+  color: var(--primary);
+  background: var(--primarySoft, rgba(255, 127, 80, 0.12));
+  border: 1px solid var(--primary);
+}
+
+/* Знаком — нейтральный. */
+.known {
+  color: var(--text-2, var(--muted));
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+}
+
+/* Поповер со списком сигналов под бейджом. */
+.pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 220px;
+  max-width: 280px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  padding: 12px 14px;
+}
+
+.popTitle {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.popList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.popItem {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.popEmpty {
+  font-size: 13px;
+  color: var(--muted);
+}

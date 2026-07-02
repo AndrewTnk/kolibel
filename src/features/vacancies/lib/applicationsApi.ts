@@ -1,4 +1,5 @@
 import { supabase } from '../../../shared/lib/supabase'
+import { normalizeAchievements } from '../../../shared/lib/normalizeAchievements'
 import type { Applicant, ApplicationStatus, MyApplication } from '../model/types'
 
 type EmbeddedProfile = {
@@ -9,7 +10,18 @@ type EmbeddedProfile = {
   avatar_url: string | null
   job_status: { company?: string; companyLogo?: string } | null
   skills: string[] | null
-  experience: { role?: string; company?: string; period?: string }[] | null
+  experience:
+    | {
+        role?: string
+        company?: string
+        companyLogo?: string
+        period?: string
+        summary?: string
+        // Старые данные — массив строк, новые — markdown-строка.
+        achievements?: string[] | string
+        stack?: string[]
+      }[]
+    | null
 } | null
 
 type ApplicationRow = {
@@ -21,6 +33,7 @@ type ApplicationRow = {
   applicant_email: string | null
   note: string | null
   status: ApplicationStatus | null
+  viewed_at: string | null
   created_at: string
   profiles: EmbeddedProfile
 }
@@ -47,6 +60,7 @@ function rowToApplicant(row: ApplicationRow): Applicant {
     id: row.id,
     userId: row.applicant_id,
     status: row.status ?? 'new',
+    viewedAt: row.viewed_at ? new Date(row.viewed_at).getTime() : undefined,
     name,
     jobTitle: p?.job_title?.trim() || row.applicant_title || '',
     avatarInitials: initials(name),
@@ -61,8 +75,12 @@ function rowToApplicant(row: ApplicationRow): Applicant {
     skills: p?.skills ?? [],
     experience: (p?.experience ?? []).map((e) => ({
       company: e.company ?? '',
+      companyLogo: e.companyLogo ?? undefined,
       role: e.role ?? '',
       period: e.period ?? '',
+      summary: e.summary ?? undefined,
+      achievements: normalizeAchievements(e.achievements) || undefined,
+      stack: e.stack ?? undefined,
     })),
   }
 }
@@ -79,6 +97,12 @@ export async function updateApplicationStatus(
     .from('vacancy_applications')
     .update({ status })
     .eq('id', applicationId)
+  if (error) throw new Error(error.message)
+}
+
+/** Отметить отклик просмотренным (идемпотентно, только владелец вакансии — по RPC). */
+export async function markApplicationViewed(applicationId: string): Promise<void> {
+  const { error } = await supabase.rpc('mark_application_viewed', { p_application: applicationId })
   if (error) throw new Error(error.message)
 }
 

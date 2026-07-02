@@ -14,7 +14,7 @@ export function resumeToMatchProfile(resume: Resume): MatchProfile {
     jobTitle: resume.jobTitle || resume.headline,
     about: resume.about,
     experienceText: resume.experience
-      .map((e) => [e.role, e.company, e.summary, e.achievements.join(' '), e.stack.join(' ')].join(' '))
+      .map((e) => [e.role, e.company, e.summary, e.achievements, e.stack.join(' ')].join(' '))
       .join('  '),
     years: estimateYears(resume.experience),
   }

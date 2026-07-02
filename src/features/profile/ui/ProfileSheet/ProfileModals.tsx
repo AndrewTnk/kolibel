@@ -18,6 +18,9 @@ import { useProfilePulse, buildSparkline, formatDelta } from '../../lib/useProfi
 import { contactHref } from '../../lib/contactHref'
 import { findCompanyLogoByName } from '../../../company/lib/findCompanyLogo'
 import { CompanyAutocomplete } from '../../../company/ui/CompanyAutocomplete'
+import { composePeriod } from '../../lib/period'
+import { MonthYearSelect } from '../MonthYearSelect'
+import { RichEditor } from '../../../../shared/ui/RichEditor/RichEditor'
 import { ImageUploadField } from '../../../../shared/ui/ImageUploadField/ImageUploadField'
 import { LocationField } from '../../../../shared/ui/LocationField/LocationField'
 import { sanitizePersonName } from '../../../../shared/lib/nameValidation'
@@ -302,26 +305,36 @@ function ExperienceModal({ onClose, showToast, item }: ModalProps & { item: Expe
   const isEdit = !!item
   const [role, setRole] = useState(item?.role ?? '')
   const [company, setCompany] = useState(item?.company ?? '')
-  const [period, setPeriod] = useState(item?.period ?? '')
   const [current, setCurrent] = useState(!!item?.current)
+  const [startMonth, setStartMonth] = useState<number | undefined>(item?.startMonth)
+  const [startYear, setStartYear] = useState<number | undefined>(item?.startYear)
+  const [endMonth, setEndMonth] = useState<number | undefined>(item?.endMonth)
+  const [endYear, setEndYear] = useState<number | undefined>(item?.endYear)
   const [summary, setSummary] = useState(item?.summary ?? '')
-  const [bullets, setBullets] = useState((item?.achievements ?? []).join('\n'))
+  const [bullets, setBullets] = useState(item?.achievements ?? '')
   const [stack, setStack] = useState<string[]>(item?.stack ?? [])
+  const [resolving, setResolving] = useState(false)
 
-  function commit() {
+  async function commit() {
+    // Логотип работодателя подтягиваем по названию (для фото компании в опыте).
+    setResolving(true)
+    const trimmed = company.trim()
+    const companyLogo = trimmed ? (await findCompanyLogoByName(trimmed)) ?? undefined : undefined
+    setResolving(false)
     const next: ExperienceItem = {
       id: item?.id ?? `exp-${crypto.randomUUID()}`,
       role,
-      company,
-      period,
+      company: trimmed,
+      companyLogo,
+      period: composePeriod({ startMonth, startYear, endMonth, endYear, current }),
       current,
       summary,
-      achievements: bullets.split('\n').map((b) => b.trim()).filter(Boolean),
+      achievements: bullets.trim(),
       stack,
-      startMonth: item?.startMonth,
-      startYear: item?.startYear,
-      endMonth: item?.endMonth,
-      endYear: item?.endYear,
+      startMonth,
+      startYear,
+      endMonth: current ? undefined : endMonth,
+      endYear: current ? undefined : endYear,
     }
     const list = isEdit
       ? resume.experience.map((e) => (e.id === next.id ? next : e))
@@ -350,7 +363,7 @@ function ExperienceModal({ onClose, showToast, item }: ModalProps & { item: Expe
           <button className={m.btnGhost} onClick={onClose} type="button">
             Отмена
           </button>
-          <button className={m.btnPrimary} onClick={commit} type="button" disabled={busy}>
+          <button className={m.btnPrimary} onClick={commit} type="button" disabled={busy || resolving}>
             Сохранить
           </button>
         </>
@@ -361,15 +374,33 @@ function ExperienceModal({ onClose, showToast, item }: ModalProps & { item: Expe
           <input className={m.input} value={role} onChange={(e) => setRole(e.target.value)} placeholder="Senior Product Designer" />
         </Field>
         <Field label="Компания">
-          <input className={m.input} value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Avito" />
+          <CompanyAutocomplete
+            value={company}
+            onChange={setCompany}
+            inputClassName={m.input}
+            placeholder="Avito"
+          />
         </Field>
       </div>
-      <Field label="Период">
-        <input
-          className={m.input}
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          placeholder="июль 2022 — сейчас"
+      <Field label="Начало работы">
+        <MonthYearSelect
+          month={startMonth}
+          year={startYear}
+          onMonth={setStartMonth}
+          onYear={setStartYear}
+          rowClassName={m.fGrid2}
+          selectClassName={m.select}
+        />
+      </Field>
+      <Field label="Окончание работы">
+        <MonthYearSelect
+          month={endMonth}
+          year={endYear}
+          onMonth={setEndMonth}
+          onYear={setEndYear}
+          disabled={current}
+          rowClassName={m.fGrid2}
+          selectClassName={m.select}
         />
       </Field>
       <label className={m.checkRow}>
@@ -379,12 +410,10 @@ function ExperienceModal({ onClose, showToast, item }: ModalProps & { item: Expe
       <Field label="Короткое описание роли">
         <textarea className={m.textarea} rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} />
       </Field>
-      <Field label="Ключевые достижения (по одному в строку)">
-        <textarea
-          className={m.textarea}
-          rows={5}
+      <Field label="Ключевые достижения">
+        <RichEditor
           value={bullets}
-          onChange={(e) => setBullets(e.target.value)}
+          onChange={setBullets}
           placeholder="Запустил новый онбординг — +18% к конверсии за 3 месяца"
         />
       </Field>

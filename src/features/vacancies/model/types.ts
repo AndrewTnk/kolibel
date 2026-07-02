@@ -43,8 +43,10 @@ export type Applicant = {
   id: string
   /** id пользователя-кандидата (для старта переписки) */
   userId: string
-  /** Стадия в воронке (управляет владелец вакансии) */
+  /** Статус отклика (по факту используется только 'rejected'; воронку убрали) */
   status: ApplicationStatus
+  /** Когда компания открыла отклик (авто-статус «просмотрен»); null — ещё не смотрели */
+  viewedAt?: number
   name: string
   jobTitle: string
   avatarInitials: string
@@ -62,7 +64,17 @@ export type Applicant = {
   location?: string
   about?: string
   skills?: string[]
-  experience?: { company: string; role: string; period: string }[]
+  experience?: {
+    company: string
+    companyLogo?: string
+    role: string
+    period: string
+    /** Чем занимался на позиции (для раскрытия в карточке кандидата). */
+    summary?: string
+    /** Достижения в формате markdown. */
+    achievements?: string
+    stack?: string[]
+  }[]
 }
 
 export type Vacancy = {

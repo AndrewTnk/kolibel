@@ -7,6 +7,7 @@ import type {
   LanguageItem,
   Resume,
 } from '../model/types'
+import { normalizeAchievements } from '../../../shared/lib/normalizeAchievements'
 
 /** Строка таблицы public.profiles (как возвращает Supabase). */
 export type ProfileRow = {
@@ -85,7 +86,11 @@ export function rowToResume(row: ProfileRow): Resume {
     about: row.about ?? '',
     highlights: row.highlights ?? [],
     skills: row.skills ?? [],
-    experience: row.experience ?? [],
+    // Достижения: старые данные — массив строк, приводим к markdown-строке.
+    experience: (row.experience ?? []).map((e) => ({
+      ...e,
+      achievements: normalizeAchievements((e as { achievements?: unknown }).achievements),
+    })),
     education: row.education ?? [],
     languages: row.languages ?? [],
     contacts: row.contacts ?? [],

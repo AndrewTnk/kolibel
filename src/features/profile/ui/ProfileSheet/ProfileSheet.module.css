@@ -539,6 +539,13 @@
   color: var(--accent);
 }
 
+/* Суммарный стаж рядом с «Опыт работы». */
+.secMeta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
 .secEdit {
   margin-left: auto;
   width: 28px;
@@ -623,6 +630,12 @@
   font-size: 16px;
   flex-shrink: 0;
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
+}
+.expLogoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .expMeta {
@@ -678,22 +691,9 @@
 }
 
 .expBullets li {
-  position: relative;
-  padding-left: 18px;
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-2);
-}
-
-.expBullets li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 8px;
-  width: 8px;
-  height: 2px;
-  background: var(--primary);
-  border-radius: 2px;
 }
 
 .expStack {

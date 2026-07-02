@@ -4,6 +4,10 @@
       "source": "/sb/:path*",
       "destination": "https://oobutqfpxykxzrilhokn.supabase.co/:path*"
     },
+    {
+      "source": "/shot/:path*",
+      "destination": "https://s0.wp.com/mshots/v1/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

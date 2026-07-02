@@ -252,49 +252,7 @@
   background: var(--primarySoft);
 }
 
-/* ── Галерея «Жизнь в компании» — лента с пролистыванием ── */
-.galWrap {
-  position: relative;
-}
-
-.galArrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  font-size: 22px;
-  line-height: 1;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  z-index: 2;
-  transition: background 0.12s ease, transform 0.12s ease;
-}
-
-.galArrow:hover {
-  background: var(--hover);
-}
-
-.galArrowLeft {
-  left: 6px;
-}
-
-.galArrowRight {
-  right: 6px;
-}
-
-/* Тач-устройства листают пальцем — стрелки не нужны. */
-@media (hover: none) {
-  .galArrow {
-    display: none;
-  }
-}
+/* Лента галереи со стрелками — общий GalleryStrip (features/company/ui, CSS в CompanyBrand.module.css) */
 
 /* ── Галерея «Жизнь в компании» — модалка «Показать все» ── */
 .galGrid {

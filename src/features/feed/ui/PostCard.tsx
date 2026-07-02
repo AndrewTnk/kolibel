@@ -10,6 +10,7 @@ import type { FeedPost } from '../model/types'
 import { MoreMenu, type MoreMenuItem } from '../../../shared/ui/MoreMenu/MoreMenu'
 import { emojify } from '../../../shared/ui/Emoji/emojify'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
+import { FollowIconButton } from './FollowIconButton'
 import { PostActions } from './PostActions'
 import { PostCommentsModal } from './PostCommentsModal'
 import { PostLightbox } from './PostLightbox'
@@ -134,7 +135,10 @@ export function PostCard({ post }: { post: FeedPost }) {
             {formatPostTime(post.createdAt)}
           </div>
         </div>
-        <MoreMenu className={styles.postMore} items={menuItems} />
+        <div className={styles.postHeadRight}>
+          <FollowIconButton userId={post.authorId} />
+          <MoreMenu items={menuItems} />
+        </div>
       </header>
 
       <div className={styles.postBody}>

@@ -18,6 +18,14 @@ export default defineConfig({
         ws: true,
         rewrite: (path) => path.replace(/^\/sb/, ""),
       },
+      // Скриншоты сайтов для карточек-ссылок портфолио (mShots от WordPress).
+      // На проде тот же rewrite в vercel.json (`/shot/*`) — хоп через Vercel, как /sb.
+      "/shot": {
+        target: "https://s0.wp.com",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/shot/, "/mshots/v1"),
+      },
     },
   },
 });

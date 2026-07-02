@@ -24,6 +24,7 @@ import { CompanyAnalyticsModal } from './CompanyAnalyticsModal/CompanyAnalyticsM
 import { CompanyPulse } from '../../../widgets/CompanyPulse/CompanyPulse'
 import { ArticlesBlock } from '../../articles/ui/ArticlesBlock'
 import { loadAuthorArticles } from '../../articles/model/articleThunks'
+import { GalleryStrip } from './GalleryStrip'
 import { fetchCompanyEmployees, type CompanyEmployee } from '../lib/companyTeamApi'
 import { useCompanyCompletion } from '../lib/useCompanyCompletion'
 import {
@@ -337,13 +338,7 @@ function AboutTab({ c, onOpen }: { c: CompanyProfile; onOpen: (m: ModalKind) => 
       {hasGallery ? (
         <section className={styles.sec}>
           <SecHead title="Жизнь в компании" onAdd={() => onOpen('gallery')} />
-          <div className={styles.gallery}>
-            {c.gallery.map((g) => (
-              <button key={g.id} type="button" className={styles.galCell} onClick={() => onOpen('gallery')}>
-                <img src={g.url} alt="" />
-              </button>
-            ))}
-          </div>
+          <GalleryStrip photos={c.gallery} onPhotoClick={() => onOpen('gallery')} />
         </section>
       ) : null}
 

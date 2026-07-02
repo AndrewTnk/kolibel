@@ -821,6 +821,39 @@
   align-self: flex-start;
 }
 
+/* Правый блок шапки поста: кнопка связи + «⋯» */
+.postHeadRight {
+  margin-left: auto;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Иконка-связь с автором: «+» — установить, «✓» — установлена (стиль как у «⋯») */
+.followIco {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.followIco:hover {
+  color: var(--accent);
+  background: var(--primarySoft);
+}
+
+.followIcoOn {
+  color: var(--accent);
+  background: var(--primarySoft);
+}
+
 .avatar {
   width: 40px;
   height: 40px;

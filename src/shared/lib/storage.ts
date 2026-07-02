@@ -10,7 +10,7 @@ import { supabase } from './supabase'
 const BUCKET = 'media'
 
 /** Категория-подпапка внутри папки пользователя. */
-export type StorageCategory = 'avatar' | 'banner' | 'logo' | 'posts' | 'chat' | 'report' | 'article'
+export type StorageCategory = 'avatar' | 'banner' | 'logo' | 'posts' | 'chat' | 'report' | 'article' | 'portfolio'
 
 /** Текущий uid из активной сессии или null. */
 async function currentUserId(): Promise<string | null> {

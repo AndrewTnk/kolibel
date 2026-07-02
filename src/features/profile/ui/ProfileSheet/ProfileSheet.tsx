@@ -4,6 +4,8 @@ import { useAppDispatch, useAppSelector } from '../../../../app/store/hooks'
 import { useIsMobile } from '../../../../shared/lib/useMediaQuery'
 import { ArticlesBlock } from '../../../articles/ui/ArticlesBlock'
 import { loadAuthorArticles } from '../../../articles/model/articleThunks'
+import { PortfolioTab } from '../../../portfolio/ui/PortfolioTab'
+import { loadPortfolio } from '../../../portfolio/model/portfolioThunks'
 import { PostComposer } from '../../../feed/ui/PostComposer'
 import { FeedList } from '../../../feed/ui/FeedList'
 import { BlockSkeleton } from '../../../../shared/ui/Skeleton/Skeleton'
@@ -50,7 +52,14 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
     if (authorId && !articlesLoaded) void dispatch(loadAuthorArticles(authorId))
   }, [dispatch, authorId, articlesLoaded])
 
-  const [tab, setTab] = useState<'resume' | 'posts' | 'articles'>('resume')
+  // Портфолио — для счётчика на вкладке и видимости вкладки у чужого профиля.
+  const portfolioLoaded = useAppSelector((st) => st.portfolio.loadedOwners.includes(authorId ?? ''))
+  const portfolioCount = useAppSelector((st) => (st.portfolio.byOwner[authorId ?? ''] ?? []).length)
+  useEffect(() => {
+    if (authorId && !portfolioLoaded) void dispatch(loadPortfolio(authorId))
+  }, [dispatch, authorId, portfolioLoaded])
+
+  const [tab, setTab] = useState<'resume' | 'posts' | 'portfolio' | 'articles'>('resume')
   const [expanded, setExpanded] = useState(readOnly)
   const [modal, setModal] = useState<ProfileModalState>(null)
   const [layout, setLayout] = useState<SectionId[]>(DEFAULT_LAYOUT)
@@ -102,6 +111,19 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
                     <Ic.chart /> Посты
                     {postCount > 0 ? <span className={s.tabCount}>{postCount}</span> : null}
                   </button>
+                  {/* Портфолио — у себя всегда, у чужого профиля — только если есть работы. */}
+                  {!readOnly || portfolioCount > 0 ? (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={tab === 'portfolio'}
+                      className={[s.tab, tab === 'portfolio' ? s.tabOn : ''].filter(Boolean).join(' ')}
+                      onClick={() => setTab('portfolio')}
+                    >
+                      <Ic.layout /> Портфолио
+                      {portfolioCount > 0 ? <span className={s.tabCount}>{portfolioCount}</span> : null}
+                    </button>
+                  ) : null}
                   {/* Статьи — отдельной вкладкой только на мобилке (на десктопе блок в сайдбаре). */}
                   {isMobile && (!readOnly || articleCount > 0) ? (
                     <button
@@ -134,6 +156,10 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
                 <div className={s.postsTab}>
                   {readOnly || isMobile ? null : <PostComposer compact />}
                   <FeedList authorId={authorId} />
+                </div>
+              ) : tab === 'portfolio' ? (
+                <div className={s.postsTab}>
+                  {authorId ? <PortfolioTab ownerId={authorId} canEdit={!readOnly} /> : null}
                 </div>
               ) : tab === 'articles' && isMobile ? (
                 <div className={s.postsTab}>

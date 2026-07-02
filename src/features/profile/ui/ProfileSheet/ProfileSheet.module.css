@@ -434,6 +434,25 @@
   border-bottom: 1px solid var(--border);
 }
 
+/* Мобилка: вкладок стало 4 (Резюме/Посты/Портфолио/Статьи) — таб-бар свайпается
+   по горизонтали (без flex:1 — иначе табы сжимались в ширину экрана без скролла). */
+@media (max-width: 980px) {
+  .sheetTabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .sheetTabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+    padding: 0 14px;
+  }
+}
+
 .tab {
   flex: 1;
   height: 44px;

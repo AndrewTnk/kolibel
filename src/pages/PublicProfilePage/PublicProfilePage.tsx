@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { recordProfileView, normalizeSource } from '../../features/analytics/lib/analyticsApi'
@@ -26,6 +26,7 @@ import type { FeedPost } from '../../features/feed/model/types'
 import type { Vacancy } from '../../features/vacancies/model/types'
 import { ProfileSheet } from '../../features/profile/ui/ProfileSheet/ProfileSheet'
 import { CompanyContacts } from '../../features/company/ui/CompanyContacts'
+import { GalleryStrip } from '../../features/company/ui/GalleryStrip'
 import { fetchCompanyEmployees, type CompanyEmployee } from '../../features/company/lib/companyTeamApi'
 import type { CompanyPhoto } from '../../features/company/model/companyData'
 import { Ic } from '../../features/company/ui/brandIcons'
@@ -426,70 +427,12 @@ function Collapsible({ count, initial, children }: { count: number; initial: num
 function CompanyLifeGallery({ photos }: { photos: CompanyPhoto[] }) {
   const [allOpen, setAllOpen] = useState(false)
   const [lightbox, setLightbox] = useState<number | null>(null)
-  const stripRef = useRef<HTMLDivElement>(null)
-  const [canLeft, setCanLeft] = useState(false)
-  const [canRight, setCanRight] = useState(false)
   const urls = photos.map((g) => g.url)
-
-  // Показываем/прячем стрелки в зависимости от того, есть ли ещё контент по краям.
-  const updateArrows = useCallback(() => {
-    const el = stripRef.current
-    if (!el) return
-    setCanLeft(el.scrollLeft > 4)
-    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
-  }, [])
-
-  useEffect(() => {
-    updateArrows()
-    const el = stripRef.current
-    if (!el) return
-    el.addEventListener('scroll', updateArrows, { passive: true })
-    window.addEventListener('resize', updateArrows)
-    return () => {
-      el.removeEventListener('scroll', updateArrows)
-      window.removeEventListener('resize', updateArrows)
-    }
-  }, [updateArrows, photos.length])
-
-  const scrollStrip = (dir: -1 | 1) => {
-    const el = stripRef.current
-    if (!el) return
-    el.scrollBy({ left: dir * Math.max(240, el.clientWidth * 0.8), behavior: 'smooth' })
-  }
 
   return (
     <section className={brand.sec}>
       <div className={brand.secHead}><span className={brand.secTitle}>Жизнь в компании</span></div>
-      <div className={styles.galWrap}>
-        <div className={brand.gallery} ref={stripRef}>
-          {photos.map((g, i) => (
-            <button key={g.id} type="button" className={brand.galCell} onClick={() => setLightbox(i)}>
-              {/* onLoad — пересчитать стрелки, когда картинки задали ширину ленты. */}
-              <img src={g.url} alt="" onLoad={updateArrows} />
-            </button>
-          ))}
-        </div>
-        {canLeft ? (
-          <button
-            type="button"
-            className={[styles.galArrow, styles.galArrowLeft].join(' ')}
-            onClick={() => scrollStrip(-1)}
-            aria-label="Назад"
-          >
-            ‹
-          </button>
-        ) : null}
-        {canRight ? (
-          <button
-            type="button"
-            className={[styles.galArrow, styles.galArrowRight].join(' ')}
-            onClick={() => scrollStrip(1)}
-            aria-label="Далее"
-          >
-            ›
-          </button>
-        ) : null}
-      </div>
+      <GalleryStrip photos={photos} onPhotoClick={setLightbox} />
       {photos.length > 3 ? (
         <button type="button" className={brand.expandBtn} onClick={() => setAllOpen(true)}>
           Показать все · {photos.length} <Ic.chevronDown />

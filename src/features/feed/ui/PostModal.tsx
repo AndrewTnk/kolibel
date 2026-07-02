@@ -9,6 +9,7 @@ import { incrementVacancyView, loadVacancies } from '../../vacancies/model/vacan
 import type { FeedPost } from '../model/types'
 import { useAuthorIdentity } from '../lib/useAuthorIdentity'
 import { AuthorAvatar, AuthorName } from './AuthorAvatar'
+import { FollowIconButton } from './FollowIconButton'
 import { PostActions } from './PostActions'
 import { PostMedia, type MediaItem } from './PostMedia'
 import { PostLightbox } from './PostLightbox'
@@ -138,6 +139,9 @@ function PostModalInner({
                       {post.authorSubtitle ? `${post.authorSubtitle} · ` : ''}
                       {formatPostTime(post.createdAt)}
                     </div>
+                  </div>
+                  <div className={styles.postHeadRight}>
+                    <FollowIconButton userId={post.authorId} />
                   </div>
                 </header>
 

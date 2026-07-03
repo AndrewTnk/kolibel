@@ -2,6 +2,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./app/router/router";
 import { AuthBootstrap } from "./features/auth/ui/AuthBootstrap";
 import { BlockedScreen } from "./features/auth/ui/BlockedScreen";
+import { SupportModal } from "./features/support/ui/SupportModal";
 import { ChatRealtime } from "./features/chat/ui/ChatRealtime";
 import { NotificationsRealtime } from "./features/notifications/ui/NotificationsRealtime";
 import { PresenceTracker } from "./features/presence/ui/PresenceTracker";
@@ -18,6 +19,9 @@ function App() {
       <RouterProvider router={router} />
       {/* Экран блокировки поверх всего: заблокированный аккаунт в приложение не пускаем. */}
       <BlockedScreen />
+      {/* Модалка поддержки — ВНЕ роутера (без <Link>) и выше BlockedScreen (z 5100):
+          заблокированный может оспорить блокировку. */}
+      <SupportModal />
     </>
   );
 }

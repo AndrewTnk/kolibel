@@ -415,6 +415,13 @@
   color: var(--muted);
   text-decoration: none;
   transition: color 0.12s ease;
+  /* Пункт может быть <button> (Тех. поддержка → модалка) — сбрасываем вид кнопки. */
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .linkRow:hover {

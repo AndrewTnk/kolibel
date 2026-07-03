@@ -930,6 +930,56 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* ── Обсуждения: переписка в детальной панели ─────────────── */
+.dcChat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 380px;
+  overflow-y: auto;
+  background: var(--a-bg);
+  border: 1px solid var(--a-border);
+  border-radius: 11px;
+  padding: 12px;
+}
+.dcRow {
+  display: flex;
+}
+.dcRowStaff {
+  justify-content: flex-end;
+}
+.dcBubble {
+  max-width: 85%;
+  border-radius: 12px;
+  padding: 8px 11px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--a-card-2);
+  color: var(--a-text);
+}
+.dcBubbleStaff {
+  background: var(--a-primary-soft);
+}
+.dcAuthor {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--a-primary);
+  margin-bottom: 2px;
+}
+.dcMeta {
+  font-size: 10.5px;
+  color: var(--a-muted);
+  margin-top: 4px;
+  text-align: right;
+}
+.dcComposer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .evidenceThumb {
   width: 72px;
   height: 72px;

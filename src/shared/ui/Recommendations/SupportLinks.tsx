@@ -1,17 +1,24 @@
 import { Link } from 'react-router-dom'
+import { useAppDispatch } from '../../../app/store/hooks'
+import { supportUiActions } from '../../../features/support/model/supportUiSlice'
 import styles from './Recommendations.module.css'
 
-const links = ['О нас', 'Тех. поддержка']
-
 export function SupportLinks() {
+  const dispatch = useAppDispatch()
   return (
     <div className={styles.footer}>
       <nav className={styles.linkList} aria-label="О сервисе и поддержка">
-        {links.map((label) => (
-          <a key={label} className={styles.linkRow} href="#" onClick={(e) => e.preventDefault()}>
-            {label}
-          </a>
-        ))}
+        <a className={styles.linkRow} href="#" onClick={(e) => e.preventDefault()}>
+          О нас
+        </a>
+        {/* Обращения в поддержку (обсуждения) — модалка со списком/перепиской. */}
+        <button
+          type="button"
+          className={styles.linkRow}
+          onClick={() => dispatch(supportUiActions.openSupport())}
+        >
+          Тех. поддержка
+        </button>
         <Link className={styles.linkRow} to="/legal/terms">
           Правовая информация
         </Link>

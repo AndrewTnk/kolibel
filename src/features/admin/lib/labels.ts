@@ -5,6 +5,8 @@ import type {
   ReportStatus,
   ReportPriority,
   ReportTargetType,
+  DiscussionStatus,
+  DiscussionCategory,
 } from '../model/types'
 
 type Tone = 'green' | 'yellow' | 'red' | 'blue' | 'gray'
@@ -40,4 +42,16 @@ export const targetType: Record<ReportTargetType, string> = {
   post: 'Публикация',
   comment: 'Комментарий',
   vacancy: 'Вакансия',
+}
+
+export const discussionStatus: Record<DiscussionStatus, { label: string; tone: Tone }> = {
+  open: { label: 'Открыто', tone: 'green' },
+  closed: { label: 'Закрыто', tone: 'gray' },
+}
+
+export const discussionCategory: Record<DiscussionCategory, string> = {
+  question: 'Вопрос',
+  problem: 'Проблема',
+  appeal: 'Оспаривание решения',
+  other: 'Другое',
 }

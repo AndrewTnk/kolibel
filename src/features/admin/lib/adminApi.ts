@@ -17,6 +17,10 @@ import type {
   ReportTargetType,
   ReportPriority,
   AdminRole,
+  DiscussionBucket,
+  DiscussionListResult,
+  AdminDiscussionDetail,
+  DiscussionStatus,
 } from '../model/types'
 
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
@@ -122,6 +126,24 @@ export const adminApi = {
       p_note: note,
       p_reason: reason,
     }),
+
+  // ── Обсуждения (обращения в поддержку, миграция 0054) ──
+  discussions: (p: Page & { bucket?: DiscussionBucket } = {}) =>
+    rpc<DiscussionListResult>('get_admin_discussions', {
+      p_bucket: p.bucket ?? '',
+      p_search: p.search ?? '',
+      p_limit: p.limit ?? 12,
+      p_offset: p.offset ?? 0,
+    }),
+
+  discussion: (id: string) => rpc<AdminDiscussionDetail | null>('get_admin_discussion', { p_id: id }),
+
+  /** Ответ поддержки (анонимный для пользователя) + уведомление kind 'support'. */
+  replyDiscussion: (id: string, body: string) =>
+    rpc<void>('admin_reply_discussion', { p_id: id, p_body: body }),
+
+  setDiscussionStatus: (id: string, status: DiscussionStatus) =>
+    rpc<void>('admin_set_discussion_status', { p_id: id, p_status: status }),
 
   // ── Роли (admin only) ───────────────────────────────────
   grantRole: (userId: string, role: AdminRole) =>

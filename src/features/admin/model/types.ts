@@ -129,6 +129,43 @@ export type ReportCounts = {
 }
 export type ReportListResult = { rows: AdminReportRow[]; total: number; counts: ReportCounts }
 
+// ── Обсуждения (обращения в поддержку, миграция 0054) ─────
+export type DiscussionCategory = 'question' | 'problem' | 'appeal' | 'other'
+export type DiscussionStatus = 'open' | 'closed'
+/** Корзина списка: '' — все, waiting — открытые с последним сообщением от пользователя. */
+export type DiscussionBucket = '' | 'waiting' | 'open' | 'closed'
+export type AdminDiscussionRow = {
+  id: string
+  user: EntityRef
+  category: DiscussionCategory
+  subject: string
+  status: DiscussionStatus
+  /** Ждёт ответа поддержки (открыто + последнее сообщение от пользователя). */
+  waiting: boolean
+  createdAt: string
+  lastMessageAt: string
+  lastPreview: string | null
+}
+export type DiscussionCounts = { all: number; waiting: number; open: number; closed: number }
+export type DiscussionListResult = { rows: AdminDiscussionRow[]; total: number; counts: DiscussionCounts }
+export type AdminDiscussionMessage = {
+  id: string
+  kind: 'user' | 'staff'
+  body: string
+  createdAt: string
+  /** Кто из staff ответил — видно только в админке. */
+  staff: EntityRef | null
+}
+export type AdminDiscussionDetail = {
+  id: string
+  user: EntityRef
+  category: DiscussionCategory
+  subject: string
+  status: DiscussionStatus
+  createdAt: string
+  messages: AdminDiscussionMessage[]
+}
+
 export type ReportHistoryItem = {
   id: string
   action: string

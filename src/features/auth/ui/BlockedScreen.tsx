@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { signOut } from '../model/authThunks'
+import { supportUiActions } from '../../support/model/supportUiSlice'
 import s from './BlockedScreen.module.css'
 
 /**
@@ -30,6 +31,14 @@ export function BlockedScreen() {
         <div className={s.title}>Аккаунт заблокирован</div>
         {moderation.reason.trim() ? <div className={s.reason}>{moderation.reason}</div> : null}
         <div className={s.message}>{message}</div>
+        {/* Обращение в поддержку с категорией «Оспорить решение»: сессия у заблокированного
+            валидна, SupportModal смонтирована выше этого экрана (z 5100 > 5000). */}
+        <button
+          className={s.btnGhost}
+          onClick={() => dispatch(supportUiActions.openSupport({ preset: 'appeal' }))}
+        >
+          Оспорить блокировку
+        </button>
         <button className={s.btn} onClick={() => void dispatch(signOut())}>
           Выйти
         </button>

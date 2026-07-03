@@ -7,6 +7,7 @@ import { notificationsActions } from '../model/notificationsSlice'
 import { notifTarget, isPostKind } from '../lib/notificationLink'
 import { feedActions } from '../../feed/model/feedSlice'
 import { moderationUiActions } from '../../moderation/model/moderationUiSlice'
+import { supportUiActions } from '../../support/model/supportUiSlice'
 import styles from './NotificationToast.module.css'
 
 function initials(title: string): string {
@@ -51,6 +52,8 @@ export function NotificationToast() {
         onClick={() => {
           if (toast.kind === 'moderation') {
             if (toast.entityId) dispatch(moderationUiActions.openModerationResponse(toast.entityId))
+          } else if (toast.kind === 'support') {
+            dispatch(supportUiActions.openSupport(toast.entityId ? { discussionId: toast.entityId } : undefined))
           } else if (isPostKind(toast.kind)) {
             if (!isMobile && toast.entityId) dispatch(feedActions.openPost(toast.entityId))
           } else {
@@ -60,7 +63,7 @@ export function NotificationToast() {
           dispatch(notificationsActions.dismissToast())
         }}
       >
-        {toast.kind === 'moderation' ? (
+        {toast.kind === 'moderation' || toast.kind === 'support' ? (
           <span className={[styles.av, styles.avSquare, styles.avMod].join(' ')} aria-hidden>
             <img className={styles.avMark} src="/logo/kolibel-mark.png" alt="" />
           </span>

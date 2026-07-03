@@ -21,6 +21,7 @@ import { CompaniesPage } from '../../pages/admin/CompaniesPage'
 import { VacanciesPage as AdminVacanciesPage } from '../../pages/admin/VacanciesPage'
 import { ContentPage } from '../../pages/admin/ContentPage'
 import { ReportsPage } from '../../pages/admin/ReportsPage'
+import { DiscussionsPage } from '../../pages/admin/DiscussionsPage'
 import { AnalyticsPage } from '../../pages/admin/AnalyticsPage'
 
 export const router = createBrowserRouter([
@@ -136,6 +137,7 @@ export const router = createBrowserRouter([
       { path: 'vacancies', element: <AdminVacanciesPage /> },
       { path: 'content', element: <ContentPage /> },
       { path: 'reports', element: <ReportsPage /> },
+      { path: 'discussions', element: <DiscussionsPage /> },
       {
         path: 'analytics',
         element: (

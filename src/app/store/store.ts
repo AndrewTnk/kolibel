@@ -19,6 +19,7 @@ import { reportUiReducer } from '../../features/reports/model/reportUiSlice'
 import { moderationUiReducer } from '../../features/moderation/model/moderationUiSlice'
 import { articlesReducer } from '../../features/articles/model/articlesSlice'
 import { portfolioReducer } from '../../features/portfolio/model/portfolioSlice'
+import { supportUiReducer } from '../../features/support/model/supportUiSlice'
 
 const combinedReducer = combineReducers({
   auth: authReducer,
@@ -40,6 +41,7 @@ const combinedReducer = combineReducers({
   moderationUi: moderationUiReducer,
   articles: articlesReducer,
   portfolio: portfolioReducer,
+  supportUi: supportUiReducer,
 })
 
 export type RootState = ReturnType<typeof combinedReducer>

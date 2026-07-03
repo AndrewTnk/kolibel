@@ -14,6 +14,7 @@ const NAV: NavDef[] = [
   { to: '/admin/vacancies', label: 'Вакансии', icon: 'briefcase' },
   { to: '/admin/content', label: 'Публикации', icon: 'post' },
   { to: '/admin/reports', label: 'Жалобы', icon: 'flag' },
+  { to: '/admin/discussions', label: 'Обсуждения', icon: 'message' },
   { to: '/admin/analytics', label: 'Аналитика', icon: 'chart', adminOnly: true },
 ]
 

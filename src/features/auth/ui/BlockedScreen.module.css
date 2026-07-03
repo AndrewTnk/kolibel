@@ -70,3 +70,20 @@
 .btn:hover {
   filter: brightness(0.96);
 }
+
+/* Второстепенное действие — «Оспорить блокировку» (обращение в поддержку). */
+.btnGhost {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--primary, #ff6b5e);
+  background: transparent;
+  color: var(--primary, #ff6b5e);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btnGhost:hover {
+  background: var(--primarySoftBg, rgba(255, 127, 80, 0.08));
+}

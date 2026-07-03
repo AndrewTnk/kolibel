@@ -297,8 +297,8 @@ function ReportDetail({
                 style={{ marginTop: 10 }}
                 placeholder={
                   selected === 'measures'
-                    ? 'Сообщение нарушителю и автору жалобы…'
-                    : 'Комментарий модерации (виден автору жалобы)…'
+                    ? 'Сообщение нарушителю (автор жалобы его не увидит)…'
+                    : 'Комментарий автору жалобы (почему отклонили, опционально)…'
                 }
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}

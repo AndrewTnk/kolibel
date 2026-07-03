@@ -91,7 +91,6 @@ export function CompaniesPage() {
             <thead>
               <tr>
                 <th>Компания</th>
-                <th>Основатель</th>
                 <th>Вакансий</th>
                 <th>Подписчиков</th>
                 <th>Регистрация</th>
@@ -102,14 +101,14 @@ export function CompaniesPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} className={s.empty}>
+                  <td colSpan={6} className={s.empty}>
                     Загрузка…
                   </td>
                 </tr>
               )}
               {!loading && data?.rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className={s.empty}>
+                  <td colSpan={6} className={s.empty}>
                     Ничего не найдено
                   </td>
                 </tr>
@@ -128,7 +127,6 @@ export function CompaniesPage() {
                         </div>
                       </div>
                     </td>
-                    <td className={s.cellMuted}>{c.founder || '—'}</td>
                     <td>{fmtNum(c.vacancyCount)}</td>
                     <td>{fmtNum(c.followerCount)}</td>
                     <td className={s.cellMuted}>{fmtDate(c.createdAt)}</td>

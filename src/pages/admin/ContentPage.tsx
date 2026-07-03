@@ -58,7 +58,7 @@ function PostsTable() {
         <thead>
           <tr>
             <th>Автор</th>
-            <th>Текст</th>
+            <th>Пост</th>
             <th>Лайки</th>
             <th>Комм.</th>
             <th>Дата</th>
@@ -90,9 +90,10 @@ function PostsTable() {
                 </div>
               </td>
               <td>
-                <div className={s.entitySub} style={{ maxWidth: 360, whiteSpace: 'normal' }}>
-                  {p.excerpt || <span className={s.cellMuted}>(без текста)</span>}
-                </div>
+                {/* Deep-link открывает модалку поста в основном приложении (staff видит и удалённые). */}
+                <a className={s.cellLink} href={`/?post=${p.id}`} target="_blank" rel="noreferrer">
+                  <Ic.post /> Открыть пост
+                </a>
               </td>
               <td>{fmtNum(p.likeCount)}</td>
               <td>{fmtNum(p.commentCount)}</td>

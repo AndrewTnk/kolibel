@@ -907,6 +907,24 @@
   width: 15px;
   height: 15px;
 }
+/* Ссылка в ячейке таблицы (например, «Открыть пост» в Публикациях) */
+.cellLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--a-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cellLink:hover {
+  text-decoration: underline;
+}
+.cellLink svg {
+  width: 14px;
+  height: 14px;
+}
 .evidence {
   display: flex;
   flex-wrap: wrap;

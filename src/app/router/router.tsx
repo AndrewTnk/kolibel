@@ -10,6 +10,7 @@ import { SettingsPage } from '../../pages/SettingsPage/SettingsPage.tsx'
 import { MyVacanciesPage } from '../../pages/MyVacanciesPage/MyVacanciesPage.tsx'
 import { PublicProfilePage } from '../../pages/PublicProfilePage/PublicProfilePage.tsx'
 import { ArticlePage } from '../../pages/ArticlePage/ArticlePage.tsx'
+import { LegalPage } from '../../pages/LegalPage/LegalPage.tsx'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RootLayout } from './RootLayout'
 import { AdminRoute, RequireAdmin } from '../../features/admin/ui/AdminRoute'
@@ -109,6 +110,11 @@ export const router = createBrowserRouter([
   {
     path: '/auth',
     element: <AuthPage />,
+  },
+  {
+    // Правовые документы — публичные, без авторизации (на них ссылается форма регистрации).
+    path: '/legal/:slug?',
+    element: <LegalPage />,
   },
   {
     path: '*',

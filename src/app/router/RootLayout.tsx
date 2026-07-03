@@ -5,6 +5,7 @@ import { VacancyModal } from '../../features/vacancies/ui/VacancyModal'
 import { VacancyModals } from '../../features/vacancies/ui/VacancyModals'
 import { ContactToast } from '../../features/vacancies/ui/ContactToast'
 import { PullToRefresh } from '../../shared/ui/PullToRefresh/PullToRefresh'
+import { CookieConsent } from '../../shared/ui/CookieConsent/CookieConsent'
 import { NotificationToast } from '../../features/notifications/ui/NotificationToast'
 import { PostModal } from '../../features/feed/ui/PostModal'
 import { ReportModal } from '../../features/reports/ui/ReportModal'
@@ -34,6 +35,7 @@ export function RootLayout() {
       <VacancyModal />
       <VacancyModals />
       <ContactToast />
+      <CookieConsent />
       {analyticsOpen ? (
         <ProfileAnalyticsModal onClose={() => dispatch(profileActions.closeAnalytics())} />
       ) : null}

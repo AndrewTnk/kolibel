@@ -116,9 +116,7 @@ export function AuthPage() {
           <a href="#" onClick={(e) => e.preventDefault()}>
             Тех. поддержка
           </a>
-          <a href="#" onClick={(e) => e.preventDefault()}>
-            Справочный центр
-          </a>
+          <NavLink to="/legal/terms">Правовая информация</NavLink>
         </div>
       </div>
 

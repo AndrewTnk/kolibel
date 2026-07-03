@@ -76,6 +76,9 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
   const [fullName, setFullName] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(true);
+  // Согласия при регистрации (152-ФЗ): условия+обработка ПДн и отдельно — распространение (публичный профиль).
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePublic, setAgreePublic] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const busy = status === "loading";
@@ -106,6 +109,7 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
     if (!password || password.length < 6) return;
     if (mode === "register") {
       if (!password2 || password2 !== password) return;
+      if (!agreeTerms || !agreePublic) return;
       const res = await dispatch(
         signUp({
           email,
@@ -127,6 +131,7 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
     !email ||
     !password ||
     (mode === "register" && (!password2 || password2 !== password)) ||
+    (mode === "register" && (!agreeTerms || !agreePublic)) ||
     !!validation.email ||
     !!validation.password ||
     !!validation.password2;
@@ -275,6 +280,52 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
           </div>
         ) : null}
 
+        {isRegister ? (
+          <div className={styles.agreeBlock}>
+            <div className={styles.agreeRow}>
+              <label className={styles.check} aria-label="Согласие с условиями и обработкой данных">
+                <input
+                  type="checkbox"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                />
+                <span className={styles.box}>
+                  <CheckMark />
+                </span>
+              </label>
+              <span className={styles.agreeText}>
+                Принимаю{" "}
+                <a href="/legal/terms" target="_blank" rel="noreferrer">
+                  Пользовательское соглашение
+                </a>{" "}
+                и даю{" "}
+                <a href="/legal/consent" target="_blank" rel="noreferrer">
+                  согласие на обработку персональных данных
+                </a>
+              </span>
+            </div>
+            <div className={styles.agreeRow}>
+              <label className={styles.check} aria-label="Согласие на показ профиля другим пользователям">
+                <input
+                  type="checkbox"
+                  checked={agreePublic}
+                  onChange={(e) => setAgreePublic(e.target.checked)}
+                />
+                <span className={styles.box}>
+                  <CheckMark />
+                </span>
+              </label>
+              <span className={styles.agreeText}>
+                Разрешаю показывать мой профиль другим пользователям —{" "}
+                <a href="/legal/public-profile" target="_blank" rel="noreferrer">
+                  согласие на распространение
+                </a>{" "}
+                (можно выключить в настройках)
+              </span>
+            </div>
+          </div>
+        ) : null}
+
         {error ? <div className={styles.serverError}>{error}</div> : null}
 
         <Button type="submit" fullWidth className={styles.submit} disabled={submitDisabled}>
@@ -299,17 +350,19 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
           )}
         </div>
 
-        <div className={styles.disclaimer}>
-          Продолжая, ты соглашаешься с{" "}
-          <a href="#" onClick={(e) => e.preventDefault()}>
-            условиями
-          </a>{" "}
-          и{" "}
-          <a href="#" onClick={(e) => e.preventDefault()}>
-            политикой данных
-          </a>
-          .
-        </div>
+        {!isRegister ? (
+          <div className={styles.disclaimer}>
+            Продолжая, ты соглашаешься с{" "}
+            <a href="/legal/terms" target="_blank" rel="noreferrer">
+              условиями
+            </a>{" "}
+            и{" "}
+            <a href="/legal/privacy" target="_blank" rel="noreferrer">
+              политикой данных
+            </a>
+            .
+          </div>
+        ) : null}
       </form>
     </>
   );

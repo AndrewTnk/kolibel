@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom'
 import styles from './Recommendations.module.css'
 
-const links = ['О нас', 'Тех. поддержка', 'Справочный центр']
+const links = ['О нас', 'Тех. поддержка']
 
 export function SupportLinks() {
   return (
@@ -11,6 +12,9 @@ export function SupportLinks() {
             {label}
           </a>
         ))}
+        <Link className={styles.linkRow} to="/legal/terms">
+          Правовая информация
+        </Link>
       </nav>
 
       <div className={styles.footerBrand}>

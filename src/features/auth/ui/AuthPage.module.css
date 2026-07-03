@@ -257,6 +257,14 @@
 .swap{ text-align: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
 .swap button{ border: 0; background: none; padding: 0; cursor: pointer; color: var(--primary); font-weight: 800; }
 .swap button:hover{ text-decoration: underline; }
+/* Согласия при регистрации (152-ФЗ): чекбокс + текст со ссылками на /legal/* */
+.agreeBlock{ display: grid; gap: 10px; }
+.agreeRow{ display: flex; align-items: flex-start; gap: 10px; }
+.agreeRow .check{ margin-top: 1px; }
+.agreeText{ font-size: 12.5px; line-height: 1.5; color: var(--text-2); }
+.agreeText a{ color: var(--primary); font-weight: 700; text-decoration: none; }
+.agreeText a:hover{ text-decoration: underline; }
+
 .disclaimer{ text-align: center; margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.5; }
 .disclaimer a{ color: var(--text-2); font-weight: 600; text-decoration: none; }
 .disclaimer a:hover{ text-decoration: underline; }

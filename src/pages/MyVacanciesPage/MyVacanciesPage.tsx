@@ -453,7 +453,6 @@ export function MyVacanciesPage() {
                       onToggleStatus={() => toggleStatus(v)}
                       onCloseVacancy={() => closeVacancy(v)}
                       onReopen={() => reopenVacancy(v)}
-                      onPromote={() => showToast('Вакансия поднята в выдаче')}
                     />
                   ))}
                 </div>
@@ -651,7 +650,6 @@ function MyVacCard({
   onToggleStatus,
   onCloseVacancy,
   onReopen,
-  onPromote,
 }: {
   v: Vacancy
   status: VacancyStatus
@@ -664,7 +662,6 @@ function MyVacCard({
   onToggleStatus: () => void
   onCloseVacancy: () => void
   onReopen: () => void
-  onPromote: () => void
 }) {
   const c = vacCounts(applicants)
   const conv = v.views ? `${Math.round((c.total / v.views) * 1000) / 10}%` : '—'
@@ -766,11 +763,6 @@ function MyVacCard({
           {status === 'closed' ? (
             <button className={styles.vAct} title="Возобновить вакансию" onClick={(e) => stop(e, onReopen)}>
               <Icon.play />
-            </button>
-          ) : null}
-          {status === 'active' ? (
-            <button className={styles.vAct} title="Продвинуть" onClick={(e) => stop(e, onPromote)}>
-              <Icon.rocket />
             </button>
           ) : null}
         </div>

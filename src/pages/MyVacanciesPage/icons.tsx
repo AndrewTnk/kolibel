@@ -43,14 +43,6 @@ export const Icon = {
       <polygon points="6 4 20 12 6 20 6 4" />
     </svg>
   ),
-  rocket: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" {...s} aria-hidden>
-      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z" />
-      <path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
-      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
-      <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
-    </svg>
-  ),
   back: () => (
     <svg width="15" height="15" viewBox="0 0 24 24" {...s} strokeWidth={2.4} aria-hidden>
       <line x1="19" y1="12" x2="5" y2="12" />

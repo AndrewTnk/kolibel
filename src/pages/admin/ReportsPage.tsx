@@ -474,7 +474,7 @@ export function ReportsPage() {
               <div className={s.search}>
                 <Ic.search />
                 <input
-                  placeholder="Поиск по жалобам…"
+                  placeholder="Поиск по жалобам или #ID…"
                   value={searchRaw}
                   onChange={(e) => {
                     setSearchRaw(e.target.value)

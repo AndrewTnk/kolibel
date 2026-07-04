@@ -60,7 +60,6 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
   }, [dispatch, authorId, portfolioLoaded])
 
   const [tab, setTab] = useState<'resume' | 'posts' | 'portfolio' | 'articles'>('resume')
-  const [expanded, setExpanded] = useState(readOnly)
   const [modal, setModal] = useState<ProfileModalState>(null)
   const [layout, setLayout] = useState<SectionId[]>(DEFAULT_LAYOUT)
   const [toast, setToast] = useState<string | null>(null)
@@ -140,14 +139,7 @@ export function ProfileSheet({ resume, readOnly = false, heroActions, rail, post
                 </div>
 
                 {tab === 'resume' ? (
-                  <ResumeView
-                    expanded={expanded}
-                    onToggle={() => setExpanded((v) => !v)}
-                    layout={layout}
-                    open={setModal}
-                    resume={resume}
-                    readOnly={readOnly}
-                  />
+                  <ResumeView layout={layout} open={setModal} resume={resume} readOnly={readOnly} />
                 ) : null}
               </div>
 

@@ -20,6 +20,7 @@ import { MobilePostComposer } from "../../../features/feed/ui/MobilePostComposer
 import { AuthModal } from "../../../features/auth/ui/AuthModal";
 import { GlobalSearch } from "../../../features/search/ui/GlobalSearch";
 import { BottomNav } from "../BottomNav/BottomNav";
+import { SupportLinks } from "../Recommendations/SupportLinks";
 import styles from "./AppHeader.module.css";
 
 /** Название текущего раздела для мобильного тайтл-бара (по маршруту). */
@@ -543,6 +544,20 @@ export function AppHeader({ hideBarOnMobile = false }: { hideBarOnMobile?: boole
                     </span>{" "}
                     Настройки аккаунта
                   </button>
+                  {isMobile ? (
+                    <>
+                      <div className={styles.acctSep} />
+                      {/* Футер-блок (Что нового/Поддержка/Правовая) — на мобилке
+                          живёт в этом меню (сайдбары с ним скрыты). Клик по
+                          любому пункту закрывает меню. */}
+                      <div
+                        className={styles.acctSupport}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <SupportLinks />
+                      </div>
+                    </>
+                  ) : null}
                   <button
                     className={styles.acctAct}
                     role="menuitem"

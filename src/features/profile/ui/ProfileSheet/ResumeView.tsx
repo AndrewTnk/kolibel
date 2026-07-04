@@ -38,8 +38,6 @@ function contactIcon(label: string) {
 }
 
 type Props = {
-  expanded: boolean
-  onToggle: () => void
   layout: SectionId[]
   open: (modal: ProfileModalState) => void
   /** Данные резюме (просмотр чужого). По умолчанию — из стора (свой). */
@@ -67,12 +65,13 @@ function SecHead({ title, meta, onEdit, onAdd }: { title: string; meta?: string;
   )
 }
 
-export function ResumeView({ expanded, onToggle, layout, open, resume: propResume, readOnly = false }: Props) {
+export function ResumeView({ layout, open, resume: propResume, readOnly = false }: Props) {
   const storeResume = useAppSelector((st) => st.profile.resume)
   const resume = propResume ?? storeResume
 
-  const visibleAside = expanded ? ASIDE.filter((id) => layout.includes(id)) : (['contacts'] as SectionId[])
-  const visibleMain = expanded ? MAIN.filter((id) => layout.includes(id)) : (['about'] as SectionId[])
+  // Резюме всегда развёрнуто (решение владельца 2026-07-03; сворачивание убрано).
+  const visibleAside = ASIDE.filter((id) => layout.includes(id))
+  const visibleMain = MAIN.filter((id) => layout.includes(id))
 
   // В режиме просмотра редактор не открываем, пустые секции скрываем.
   const edit = readOnly ? undefined : (m: ProfileModalState) => open(m)
@@ -278,30 +277,6 @@ export function ResumeView({ expanded, onToggle, layout, open, resume: propResum
         <div className={s.resumeAside}>{visibleAside.map(renderAside)}</div>
         <div className={s.resumeMain}>{visibleMain.map(renderMain)}</div>
       </div>
-
-      {!expanded ? (
-        <div className={s.collapsedHint}>
-          <span className={s.collapsedHintIco}>
-            <Ic.briefcase />
-          </span>
-          <div className={s.collapsedHintTx}>
-            <div className={s.collapsedHintT}>Развернуть полное резюме</div>
-            <div className={s.collapsedHintS}>
-              Опыт работы ({resume.experience.length}), Образование ({resume.education.length}), Навыки (
-              {resume.skills.length}), Языки ({resume.languages.length})
-            </div>
-          </div>
-          <button type="button" className={[s.btn, s.btnTonal].join(' ')} onClick={onToggle}>
-            <Ic.chevronDown /> Развернуть
-          </button>
-        </div>
-      ) : (
-        <div className={s.collapseToggleRow}>
-          <button type="button" className={s.collapseToggle} onClick={onToggle}>
-            <Ic.chevronUp /> Свернуть резюме
-          </button>
-        </div>
-      )}
     </div>
   )
 }

@@ -1879,3 +1879,82 @@
     height: calc(100vh - 100px);
   }
 }
+
+/* ── Пересылка / выделение / long-press (2026-07-04) ─────── */
+
+/* Пометка «Переслано от …» в пузыре (как в Telegram). */
+.fwdLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 3px;
+}
+
+/* Панель режима выделения (вместо шапки треда). */
+.selBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--primarySoftBg, rgba(255, 127, 80, 0.07));
+}
+.selCount {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+.selActions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.selDanger {
+  color: #dc2626;
+}
+
+/* Строки сообщений в режиме выделения. */
+.msgSelectable {
+  cursor: pointer;
+  border-radius: 12px;
+}
+/* Клики по вложениям/ссылкам внутри пузыря не должны срабатывать — только выбор строки. */
+.msgSelectable .bubble {
+  pointer-events: none;
+}
+.msgSelected {
+  background: var(--primarySoftBg, rgba(255, 127, 80, 0.1));
+}
+.selDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex: none;
+  align-self: center;
+  margin-right: 8px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: transparent;
+}
+.selDotOn {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+/* У своих сообщений (прижаты вправо) точка выбора остаётся у левого края строки. */
+.msgMe .selDot {
+  margin-right: auto;
+}
+
+/* Мобилка: long-press не должен вызывать выделение текста/системное меню. */
+@media (max-width: 980px) {
+  .msgRow {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}

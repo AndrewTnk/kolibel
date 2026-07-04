@@ -6,9 +6,11 @@ export type ModerationResolution = 'measures' | 'reject'
  *  - content_removed — нарушителю (удалён пост/комментарий);
  *  - vacancy_removed — компании (снята вакансия);
  *  - account_blocked — нарушителю (заблокирован аккаунт; на практике показывается
- *    экраном блокировки при входе, но тип поддерживаем).
+ *    экраном блокировки при входе, но тип поддерживаем);
+ *  - warning — предупреждение нарушителю (мера по жалобе на сообщение чата,
+ *    миграция 0055: без удаления и блокировки).
  */
-export type ModerationKind = 'report_result' | 'content_removed' | 'vacancy_removed' | 'account_blocked'
+export type ModerationKind = 'report_result' | 'content_removed' | 'vacancy_removed' | 'account_blocked' | 'warning'
 
 /** Ответ модерации (читается из moderation_responses; одна модалка на все типы). */
 export type ModerationResponse = {

@@ -35,6 +35,7 @@ import { WriteModal } from '../../features/company/ui/WriteModal/WriteModal'
 import { RecommendedCandidates } from '../../widgets/RecommendedCandidates/RecommendedCandidates'
 import { formatPosted, formatSalary, workFormatLabels } from '../../features/vacancies/lib/labels'
 import { BlockSkeleton } from '../../shared/ui/Skeleton/Skeleton'
+import { SupportLinks } from '../../shared/ui/Recommendations/SupportLinks'
 import { CompanyBadge } from '../../shared/ui/CompanyBadge/CompanyBadge'
 import { Icon } from './icons'
 import styles from './MyVacanciesPage.module.css'
@@ -520,6 +521,7 @@ export function MyVacanciesPage() {
               )}
 
               <RecommendedCandidates />
+              <SupportLinks />
             </aside>
           </div>
         </div>

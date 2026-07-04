@@ -34,6 +34,11 @@ export function ChatAttachView({ attach }: { attach: ChatAttach }) {
     }
   }, [zoom])
 
+  // Служебное вложение текстовой пересылки: несёт только forwardedFrom,
+  // строку «Переслано от …» рендерит пузырь (ChatThread), тут рисовать нечего.
+  // (Ранний return строго ПОСЛЕ всех хуков.)
+  if (kind === 'forward') return null
+
   if (url && isImage) {
     // Фото открывается полноэкранным лайтбоксом в этой же вкладке (как в ленте), не в новой.
     return (

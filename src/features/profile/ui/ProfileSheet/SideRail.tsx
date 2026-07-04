@@ -5,6 +5,7 @@ import type { ProfileModalState } from './ProfileModals'
 import { Ic } from './icons'
 import { RecommendedPeople } from '../../../../shared/ui/Recommendations/RecommendedPeople'
 import { ArticlesBlock } from '../../../articles/ui/ArticlesBlock'
+import { SupportLinks } from '../../../../shared/ui/Recommendations/SupportLinks'
 import s from './ProfileSheet.module.css'
 
 type CompletionItem = { id: string; text: string; done: boolean; modal?: ProfileModalState }
@@ -129,6 +130,10 @@ export function SideRail({ open }: Props) {
       {/* Люди в сфере — единый стиль с главной (RecRow + «+ Связь»/«✓ Связь») */}
       <div className="hideOnMobile">
         <RecommendedPeople title="Люди в твоей сфере" />
+      </div>
+
+      <div className="hideOnMobile">
+        <SupportLinks />
       </div>
     </>
   )

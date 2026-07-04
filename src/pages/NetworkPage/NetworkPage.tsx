@@ -11,6 +11,7 @@ import { loadVacancies } from '../../features/vacancies/model/vacancyThunks'
 import { NetworkHero } from '../../widgets/NetworkHero/NetworkHero'
 import { NetworkRecommendations } from '../../widgets/NetworkRecommendations/NetworkRecommendations'
 import { NetworkActivity } from '../../widgets/NetworkActivity/NetworkActivity'
+import { SupportLinks } from '../../shared/ui/Recommendations/SupportLinks'
 import styles from './NetworkPage.module.css'
 
 type NetModal = { kind: 'connections'; groups: ConnectionGroups } | null
@@ -54,6 +55,11 @@ function NetworkView({ audience }: { audience: 'user' | 'company' }) {
           <NetworkRecommendations onFollow={onFollow} />
 
           <NetworkActivity audience={audience} />
+
+          {/* Страница одноколоночная → футер в одну линию: пункты слева, копирайт справа. */}
+          <div className={[styles.pageFoot, 'hideOnMobile'].join(' ')}>
+            <SupportLinks horizontal />
+          </div>
         </div>
       </main>
 

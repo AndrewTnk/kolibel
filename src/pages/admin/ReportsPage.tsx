@@ -24,6 +24,7 @@ const TARGET_ICON: Record<ReportTargetType, keyof typeof Ic> = {
   post: 'post',
   comment: 'message',
   vacancy: 'briefcase',
+  message: 'message',
 }
 
 const ACTION_LABEL: Record<string, string> = {
@@ -196,9 +197,26 @@ function ReportDetail({
             <div className={s.contentBox}>
               <div className={s.contentMeta}>
                 <TargetIcon style={{ width: 14, height: 14 }} />
-                {r.content.kind === 'post' ? 'Публикация' : 'Комментарий'} от {fmtDateTime(r.content.createdAt)}
+                {r.content.kind === 'post' ? 'Публикация' : r.content.kind === 'message' ? 'Сообщение' : 'Комментарий'} от{' '}
+                {fmtDateTime(r.content.createdAt)}
                 {r.content.removed && ' · удалён'}
               </div>
+              {/* Сообщение чата: показываем сам текст — иначе объект жалобы не найти
+                  (сообщения нигде не ищутся по разделам). */}
+              {r.content.kind === 'message' && r.content.text && (
+                <div className={s.contentText} style={{ marginTop: 8 }}>
+                  {r.content.text}
+                </div>
+              )}
+              {r.content.kind === 'message' && r.content.messageId && (
+                <div className={s.idRow}>
+                  <span className={s.idLabel}>ID сообщения</span>
+                  <span className={s.idValue}>{r.content.messageId}</span>
+                  <button className={s.copyBtn} title="Скопировать" onClick={() => copyId(r.content!.messageId!)}>
+                    <Ic.copy />
+                  </button>
+                </div>
+              )}
               {r.content.kind === 'comment' && r.content.commentId && (
                 <div className={s.idRow}>
                   <span className={s.idLabel}>ID коммента</span>
@@ -276,7 +294,11 @@ function ReportDetail({
                 <>
                   <div className={s.detailLabel} style={{ marginTop: 12 }}>
                     Причина (
-                    {r.targetType === 'user' || r.targetType === 'company' ? 'блокировка аккаунта' : 'удаление контента'})
+                    {r.targetType === 'user' || r.targetType === 'company'
+                      ? 'блокировка аккаунта'
+                      : r.targetType === 'message'
+                        ? 'предупреждение отправителю'
+                        : 'удаление контента'})
                   </div>
                   <select
                     className={s.select}

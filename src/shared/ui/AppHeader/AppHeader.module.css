@@ -362,6 +362,11 @@
   margin: 6px 4px;
 }
 
+/* Футер-блок SupportLinks внутри меню аккаунта (мобилка). */
+.acctSupport {
+  padding: 0 4px;
+}
+
 .acctAct {
   display: flex;
   align-items: center;

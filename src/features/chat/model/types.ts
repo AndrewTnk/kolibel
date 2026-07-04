@@ -32,7 +32,8 @@ export type SharedProfile = {
 export type ChatAttach = {
   title: string
   subtitle?: string
-  kind?: 'photo' | 'video' | 'file' | 'loc' | 'contact' | 'vacancy' | 'post' | 'profile' | 'voice' | 'report'
+  /** 'forward' — служебный kind для текстовой пересылки: несёт только forwardedFrom, не рендерится. */
+  kind?: 'photo' | 'video' | 'file' | 'loc' | 'contact' | 'vacancy' | 'post' | 'profile' | 'voice' | 'report' | 'forward'
   /** Публичный URL загруженного файла (фото/видео/документ). */
   url?: string
   /** MIME-тип файла. */
@@ -51,6 +52,8 @@ export type ChatAttach = {
   reportCategory?: string
   /** Снимок статуса жалобы: new | reviewing | resolved | rejected. */
   reportStatus?: string
+  /** Имя автора исходного сообщения при пересылке — строка «Переслано от …» в пузыре. */
+  forwardedFrom?: string
 }
 
 /** Реакция на сообщение (агрегат по эмодзи). */

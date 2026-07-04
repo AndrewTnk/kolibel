@@ -110,6 +110,17 @@ export const ChatIco = {
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
     </svg>
   ),
+  flag: (p: P) => (
+    <svg width="14" height="14" viewBox="0 0 24 24" {...s} {...p}>
+      <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
+    </svg>
+  ),
+  checkCircle: (p: P) => (
+    <svg width="14" height="14" viewBox="0 0 24 24" {...s} {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.5 12.5 2.5 2.5 5-5.5" />
+    </svg>
+  ),
   edit: (p: P) => (
     <svg width="14" height="14" viewBox="0 0 24 24" {...s} {...p}>
       <path d="M12 20h9" />

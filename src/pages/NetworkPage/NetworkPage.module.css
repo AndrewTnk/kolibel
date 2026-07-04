@@ -26,6 +26,11 @@
   gap: 18px;
 }
 
+/* Футер SupportLinks (horizontal) — во всю ширину колонки контента. */
+.pageFoot {
+  width: 100%;
+}
+
 .toast {
   position: fixed;
   bottom: 20px;

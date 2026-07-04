@@ -18,6 +18,7 @@ import { SubscribedCompanies } from '../../features/vacancies/ui/SubscribedCompa
 import { JobTipCard } from '../../widgets/JobTipCard/JobTipCard'
 import { ApplicationsTracker } from '../../widgets/ApplicationsTracker/ApplicationsTracker'
 import { BlockSkeleton } from '../../shared/ui/Skeleton/Skeleton'
+import { SupportLinks } from '../../shared/ui/Recommendations/SupportLinks'
 import { IcClose, IcFilter, IcSearch } from '../../features/vacancies/ui/icons'
 import styles from './VacanciesPage.module.css'
 
@@ -229,12 +230,17 @@ export function VacanciesPage() {
         {isCompany ? (
           <div className={styles.layout} style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
             {center}
+            {/* Company-режим без сайдбаров → футер узкой колонкой по центру. */}
+            <div className={[styles.soloFoot, 'hideOnMobile'].join(' ')}>
+              <SupportLinks />
+            </div>
           </div>
         ) : (
           <div className={styles.layout}>
             <aside className={styles.sidebarLeft} aria-label="Подписки и подсказки">
               <SubscribedCompanies />
               <JobTipCard />
+              <SupportLinks />
             </aside>
 
             {center}

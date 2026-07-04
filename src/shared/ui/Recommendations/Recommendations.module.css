@@ -398,53 +398,80 @@
   color: var(--accent);
 }
 
-/* ── Ссылки (о нас / тех. поддержка) — в строку с переносом, по центру ── */
-.linkList {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 16px;
-  padding: 4px 8px;
-}
-
-.linkRow {
-  width: fit-content;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  text-decoration: none;
-  transition: color 0.12s ease;
-  /* Пункт может быть <button> (Тех. поддержка → модалка) — сбрасываем вид кнопки. */
-  border: none;
-  background: none;
-  padding: 0;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.linkRow:hover {
-  color: var(--primary);
-}
-
+/* ── SupportLinks: футер приложения (пункты с иконками + копирайт) ── */
 .footer {
   display: flex;
   flex-direction: column;
 }
 
-.footerBrand {
-  display: flex;
+/* Горизонтальный вариант (проп horizontal): пункты слева, копирайт справа,
+   тонкая линия сверху. Для широких/одноколоночных страниц (сеть). */
+.footerRow {
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  margin-top: 14px;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.footerRow .footNav {
+  display: flex;
+  grid-template-columns: none;
+  gap: 4px;
+}
+.footerRow .footSep {
+  display: none;
+}
+.footerRow .footCopy {
+  margin-left: auto;
 }
 
-.footerBrandImg {
-  height: 22px;
-  width: auto;
-  display: block;
-  opacity: 0.95;
+.footNav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+
+.footRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  /* Пункт может быть <button> (Тех. поддержка → модалка) — сбрасываем вид кнопки. */
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.footRow:hover {
+  color: var(--primary);
+  background: var(--primarySoftBg, rgba(255, 127, 80, 0.08));
+}
+
+.footRow svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.footSep {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 8px 8px;
+}
+
+.footCopy {
+  padding: 0 8px;
+  font-size: 11.5px;
+  color: var(--muted);
 }
 
 .userList {

@@ -105,7 +105,7 @@ export type AdminComment = {
 // ── Жалобы ─────────────────────────────────────────────────
 export type ReportPriority = 'low' | 'medium' | 'high'
 export type ReportStatus = 'new' | 'reviewing' | 'resolved' | 'rejected'
-export type ReportTargetType = 'user' | 'company' | 'post' | 'comment' | 'vacancy'
+export type ReportTargetType = 'user' | 'company' | 'post' | 'comment' | 'vacancy' | 'message'
 /** Корзина (таб) списка жалоб. '' = все. */
 export type ReportBucket = '' | 'reviewing' | 'attention' | 'resolved' | 'rejected'
 
@@ -190,10 +190,12 @@ export type AdminReportDetail = {
   createdAt: string
   updatedAt: string
   content: {
-    kind: 'post' | 'comment'
+    kind: 'post' | 'comment' | 'message'
     text: string
     postId?: string
     commentId?: string
+    /** Сообщение чата (kind 'message') — его текст показываем целиком, иначе не найти. */
+    messageId?: string
     createdAt: string
     removed: boolean
   } | null

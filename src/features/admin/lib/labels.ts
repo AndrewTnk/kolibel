@@ -42,6 +42,7 @@ export const targetType: Record<ReportTargetType, string> = {
   post: 'Публикация',
   comment: 'Комментарий',
   vacancy: 'Вакансия',
+  message: 'Сообщение',
 }
 
 export const discussionStatus: Record<DiscussionStatus, { label: string; tone: Tone }> = {

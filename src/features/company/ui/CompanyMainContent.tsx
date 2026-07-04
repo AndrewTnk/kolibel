@@ -23,6 +23,7 @@ import { CreateVacancyModal } from '../../vacancies/ui/CreateVacancyModal'
 import { CompanyAnalyticsModal } from './CompanyAnalyticsModal/CompanyAnalyticsModal'
 import { CompanyPulse } from '../../../widgets/CompanyPulse/CompanyPulse'
 import { ArticlesBlock } from '../../articles/ui/ArticlesBlock'
+import { SupportLinks } from '../../../shared/ui/Recommendations/SupportLinks'
 import { loadAuthorArticles } from '../../articles/model/articleThunks'
 import { GalleryStrip } from './GalleryStrip'
 import { fetchCompanyEmployees, type CompanyEmployee } from '../lib/companyTeamApi'
@@ -615,6 +616,8 @@ function SideRail({ c, onOpen }: { c: CompanyProfile; onOpen: (m: ModalKind) => 
           <button type="button" className={styles.emptyAdd} onClick={() => onOpen('contacts')}>+ Добавить контакты</button>
         )}
       </div>
+
+      <SupportLinks />
     </>
   )
 }

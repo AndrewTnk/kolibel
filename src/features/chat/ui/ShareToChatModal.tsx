@@ -15,17 +15,22 @@ export type ShareMessage = {
 
 /**
  * Универсальный пикер «Отправить в чат»: список существующих бесед с поиском
- * и множественным выбором. По «Отправить» рассылает одно и то же сообщение
- * (текст и/или вложение) во все выбранные беседы. Используется для шеринга
- * профиля (ссылка текстом), поста и вакансии (вложения-карточки).
+ * и множественным выбором. По «Отправить» рассылает сообщение (текст и/или
+ * вложение) во все выбранные беседы. Используется для шеринга профиля
+ * (ссылка текстом), поста и вакансии (вложения-карточки), а также для
+ * пересылки сообщений из чата (`messages` — пачка, шлётся по порядку).
  */
 export function ShareToChatModal({
   message,
+  messages,
   title = 'Отправить в чат',
   onClose,
   onSent,
 }: {
-  message: ShareMessage
+  /** Одиночное сообщение (шеринг профиля/поста/вакансии). */
+  message?: ShareMessage
+  /** Пачка сообщений (пересылка из чата) — в каждую беседу по порядку. */
+  messages?: ShareMessage[]
   title?: string
   onClose: () => void
   onSent?: (count: number) => void
@@ -75,18 +80,24 @@ export function ShareToChatModal({
 
   async function send() {
     if (!selected.size || sending) return
+    const items = messages && messages.length ? messages : message ? [message] : []
+    if (!items.length) return
     setSending(true)
     try {
       await Promise.all(
-        [...selected].map((conversationId) =>
-          dispatch(
-            sendMessage({
-              conversationId,
-              text: message.text ?? '',
-              attach: message.attach ?? null,
-            }),
-          ),
-        ),
+        [...selected].map(async (conversationId) => {
+          // Внутри одной беседы шлём по порядку (пересылка нескольких сообщений
+          // должна сохранить их последовательность); беседы — параллельно.
+          for (const item of items) {
+            await dispatch(
+              sendMessage({
+                conversationId,
+                text: item.text ?? '',
+                attach: item.attach ?? null,
+              }),
+            )
+          }
+        }),
       )
       const n = selected.size
       onSent?.(n)

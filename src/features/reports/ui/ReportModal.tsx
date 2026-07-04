@@ -16,6 +16,7 @@ const TARGET_NOUN: Record<ReportTargetType, string> = {
   vacancy: 'вакансию',
   user: 'пользователя',
   company: 'компанию',
+  message: 'сообщение',
 }
 
 const MAX_LEN = 1000

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type TouchEvent as ReactTouchEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
@@ -9,6 +9,7 @@ import { dayKey, formatDaySeparator, formatMessageTime } from '../lib/format'
 import { useChatAttach } from '../lib/useChatAttach'
 import { ChatAvatar } from './ChatAvatar'
 import { ChatAttachView } from './ChatAttachView'
+import { ShareToChatModal, type ShareMessage } from './ShareToChatModal'
 import { ChatIco } from './chatIcons'
 import { CompanyBadge } from '../../../shared/ui/CompanyBadge/CompanyBadge'
 import { EmojiPicker } from '../../../shared/ui/EmojiPicker/EmojiPicker'
@@ -61,6 +62,21 @@ export function ChatThread({
   const [ctx, setCtx] = useState<Ctx | null>(null)
   // Редактируемое сообщение (текст грузится в композер).
   const [editing, setEditing] = useState<ChatMessage | null>(null)
+  // Пересылка: сообщения для пикера «Переслать» (модалка выбора чатов).
+  const [forwardMsgs, setForwardMsgs] = useState<ChatMessage[] | null>(null)
+  // Режим выделения (как в Telegram): клик по сообщению — выбор, сверху панель действий.
+  const [selectMode, setSelectMode] = useState(false)
+  const [selIds, setSelIds] = useState<Set<string>>(new Set())
+  // Long-press на мобилке: таймер + стартовая точка (сдвиг > 10px = скролл, отмена).
+  const lpTimer = useRef<number | null>(null)
+  const lpPoint = useRef<{ x: number; y: number } | null>(null)
+  // Гард от «клика-призрака» сразу после открытия меню лонг-прессом.
+  const ctxOpenedAt = useRef(0)
+
+  // Имя текущего аккаунта — для пометки «Переслано от …» у своих сообщений.
+  const myName = useAppSelector((st) =>
+    st.account.type === 'company' ? st.company.profile.name : st.profile.resume.fullName,
+  )
   // Отложенное удаление сообщений: id → дедлайн (ms). До дедлайна показываем отсчёт+отмену.
   const [delDeadlines, setDelDeadlines] = useState<Record<string, number>>({})
   const [, forceTick] = useState(0)
@@ -100,6 +116,9 @@ export function ChatThread({
   // Закрытие поповеров/меню по клику вне и Esc
   useEffect(() => {
     function onDocClick() {
+      // «Клик-призрак» сразу после открытия меню лонг-прессом (touchend → click) —
+      // не даём ему тут же закрыть только что открытое меню.
+      if (Date.now() - ctxOpenedAt.current < 350) return
       setAttachOpen(false)
       setEmojiOpen(false)
       setHeadMenu(false)
@@ -171,6 +190,118 @@ export function ChatThread({
     setEmpty(true)
   }
 
+  // ── Пересылка / выделение / жалоба (контекстное меню, как в Telegram) ──
+
+  /** Автор для пометки «Переслано от …»: у повторной пересылки сохраняем оригинального. */
+  function forwardName(m: ChatMessage): string {
+    if (m.attach?.forwardedFrom) return m.attach.forwardedFrom
+    return m.sender === 'me' ? myName || 'Вы' : conversation.title
+  }
+
+  /** Содержимое пересылки для пикера чатов (по порядку отправки). */
+  function forwardPayload(msgs: ChatMessage[]): ShareMessage[] {
+    return [...msgs]
+      .sort((a, b) => a.createdAt - b.createdAt)
+      .map((m) => ({
+        text: m.text,
+        attach: m.attach
+          ? { ...m.attach, forwardedFrom: forwardName(m) }
+          : { kind: 'forward' as const, title: '', forwardedFrom: forwardName(m) },
+      }))
+  }
+
+  /** Жалоба на сообщение (target 'message', миграция 0055) — превью в заголовок модалки. */
+  function reportMessage(m: ChatMessage) {
+    setCtx(null)
+    dispatch(
+      reportUiActions.openReport({
+        type: 'message',
+        id: m.id,
+        title: (m.text || m.attach?.title || 'Сообщение').slice(0, 60),
+      }),
+    )
+  }
+
+  function enterSelect(m: ChatMessage) {
+    setCtx(null)
+    setSelectMode(true)
+    setSelIds(new Set([m.id]))
+  }
+
+  function toggleSel(id: string) {
+    setSelIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      if (!next.size) setSelectMode(false)
+      return next
+    })
+  }
+
+  function exitSelect() {
+    setSelectMode(false)
+    setSelIds(new Set())
+  }
+
+  function copySelected() {
+    const text = conversation.messages
+      .filter((m) => selIds.has(m.id))
+      .map((m) => m.text || m.attach?.title || '')
+      .filter(Boolean)
+      .join('\n\n')
+    void navigator.clipboard?.writeText(text)
+    exitSelect()
+  }
+
+  function deleteSelected() {
+    const ids = conversation.messages.filter((m) => selIds.has(m.id) && m.sender === 'me').map((m) => m.id)
+    if (ids.length) {
+      const deadline = Date.now() + DELETE_DELAY
+      setDelDeadlines((prev) => {
+        const next = { ...prev }
+        ids.forEach((id) => {
+          next[id] = deadline
+        })
+        return next
+      })
+    }
+    exitSelect()
+  }
+
+  // ── Long-press на мобилке: открыть меню (или тогл выбора в режиме выделения) ──
+  const LONG_PRESS_MS = 450
+
+  function lpStart(m: ChatMessage) {
+    return (e: ReactTouchEvent<HTMLDivElement>) => {
+      const t = e.touches[0]
+      lpPoint.current = { x: t.clientX, y: t.clientY }
+      if (lpTimer.current) window.clearTimeout(lpTimer.current)
+      lpTimer.current = window.setTimeout(() => {
+        lpTimer.current = null
+        if (selectMode) {
+          toggleSel(m.id)
+        } else {
+          ctxOpenedAt.current = Date.now()
+          setCtx({ msg: m, x: lpPoint.current?.x ?? 40, y: lpPoint.current?.y ?? 40 })
+        }
+      }, LONG_PRESS_MS)
+    }
+  }
+
+  function lpMove(e: ReactTouchEvent<HTMLDivElement>) {
+    if (!lpTimer.current || !lpPoint.current) return
+    const t = e.touches[0]
+    // Палец поехал (скролл) — это не long-press.
+    if (Math.abs(t.clientX - lpPoint.current.x) > 10 || Math.abs(t.clientY - lpPoint.current.y) > 10) lpCancel()
+  }
+
+  function lpCancel() {
+    if (lpTimer.current) {
+      window.clearTimeout(lpTimer.current)
+      lpTimer.current = null
+    }
+  }
+
   function replySnapshot(m: ChatMessage): ChatMessage['replyTo'] {
     return {
       author: m.sender === 'me' ? 'Вы' : conversation.title,
@@ -212,9 +343,54 @@ export function ChatThread({
   ]
 
   const messages = conversation.messages
+  // Все выбранные — мои (для кнопки «Удалить» в панели выделения).
+  const selAllMine =
+    selIds.size > 0 && messages.filter((m) => selIds.has(m.id)).every((m) => m.sender === 'me')
 
   return (
     <div className={styles.threadCol}>
+      {selectMode ? (
+        /* Режим выделения: панель действий вместо шапки (как в Telegram). */
+        <div className={styles.selBar}>
+          <button type="button" className={styles.tBtn} onClick={exitSelect} aria-label="Отменить выделение">
+            <ChatIco.close />
+          </button>
+          <span className={styles.selCount}>Выбрано: {selIds.size}</span>
+          <div className={styles.selActions}>
+            <button
+              type="button"
+              className={styles.tBtn}
+              title="Копировать"
+              aria-label="Копировать"
+              disabled={!selIds.size}
+              onClick={copySelected}
+            >
+              <ChatIco.copy width={17} height={17} />
+            </button>
+            <button
+              type="button"
+              className={styles.tBtn}
+              title="Переслать"
+              aria-label="Переслать"
+              disabled={!selIds.size}
+              onClick={() => setForwardMsgs(messages.filter((m) => selIds.has(m.id)))}
+            >
+              <ChatIco.forward width={17} height={17} />
+            </button>
+            {selAllMine && onDeleteMessage ? (
+              <button
+                type="button"
+                className={[styles.tBtn, styles.selDanger].join(' ')}
+                title="Удалить"
+                aria-label="Удалить"
+                onClick={deleteSelected}
+              >
+                <ChatIco.trash width={17} height={17} />
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : (
       <div className={styles.threadHead}>
         {onBack ? (
           <button type="button" className={styles.backBtn} onClick={onBack} aria-label="Назад">
@@ -332,6 +508,7 @@ export function ChatThread({
           ) : null}
         </div>
       </div>
+      )}
 
       <div className={styles.canvas} ref={canvasRef} onScroll={onCanvasScroll}>
         {messages.map((m, i) => {
@@ -376,17 +553,43 @@ export function ChatThread({
                 </div>
               ) : null}
               <div
-                className={[styles.msgRow, m.sender === 'me' ? styles.msgMe : styles.msgThem, tailHide ? styles.tailHide : ''].join(' ')}
+                className={[
+                  styles.msgRow,
+                  m.sender === 'me' ? styles.msgMe : styles.msgThem,
+                  tailHide ? styles.tailHide : '',
+                  selectMode ? styles.msgSelectable : '',
+                  selectMode && selIds.has(m.id) ? styles.msgSelected : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={selectMode ? () => toggleSel(m.id) : undefined}
                 onContextMenu={
                   readOnly
                     ? undefined
                     : (e) => {
                         e.preventDefault()
+                        if (selectMode) {
+                          toggleSel(m.id)
+                          return
+                        }
+                        ctxOpenedAt.current = Date.now()
                         setCtx({ msg: m, x: e.clientX, y: e.clientY })
                       }
                 }
+                onTouchStart={readOnly ? undefined : lpStart(m)}
+                onTouchMove={readOnly ? undefined : lpMove}
+                onTouchEnd={readOnly ? undefined : lpCancel}
+                onTouchCancel={readOnly ? undefined : lpCancel}
               >
-                {m.sender === 'me' && !readOnly ? (
+                {selectMode ? (
+                  <span
+                    className={[styles.selDot, selIds.has(m.id) ? styles.selDotOn : ''].filter(Boolean).join(' ')}
+                    aria-hidden
+                  >
+                    {selIds.has(m.id) ? <ChatIco.check1 width={11} height={9} /> : null}
+                  </span>
+                ) : null}
+                {m.sender === 'me' && !readOnly && !selectMode ? (
                   <div className={styles.msgQuick}>
                     <button type="button" title="Ответить" onClick={(e) => { e.stopPropagation(); setReplyTo(m) }}>
                       <ChatIco.reply />
@@ -395,6 +598,11 @@ export function ChatThread({
                 ) : null}
                 <div className={styles.bubbleWrap}>
                   <div className={styles.bubble}>
+                    {m.attach?.forwardedFrom ? (
+                      <div className={styles.fwdLabel}>
+                        <ChatIco.forward width={11} height={11} /> Переслано от {m.attach.forwardedFrom}
+                      </div>
+                    ) : null}
                     {m.replyTo ? (
                       <div className={styles.replyChip}>
                         <div className={styles.replyChipAu}>{m.replyTo.author ?? 'Вы'}</div>
@@ -413,7 +621,7 @@ export function ChatThread({
                     </span>
                   </div>
                 </div>
-                {m.sender === 'them' && !readOnly ? (
+                {m.sender === 'them' && !readOnly && !selectMode ? (
                   <div className={styles.msgQuick}>
                     <button type="button" title="Ответить" onClick={(e) => { e.stopPropagation(); setReplyTo(m) }}>
                       <ChatIco.reply />
@@ -562,9 +770,17 @@ export function ChatThread({
               className={styles.ctxMenu}
               style={{
                 left: Math.min(ctx.x, window.innerWidth - 230),
-                top: Math.min(ctx.y, window.innerHeight - 240),
+                top: Math.min(ctx.y, window.innerHeight - 340),
               }}
               onClick={(e) => e.stopPropagation()}
+              onClickCapture={(e) => {
+                // «Клик-призрак» после лонг-пресса: палец отпущен над меню — не даём
+                // случайно нажать пункт в первые мгновения после открытия.
+                if (Date.now() - ctxOpenedAt.current < 350) {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }
+              }}
             >
               <button
                 type="button"
@@ -585,6 +801,19 @@ export function ChatThread({
                 }}
               >
                 <ChatIco.copy /> Копировать
+              </button>
+              <button
+                type="button"
+                className={styles.ctxRow}
+                onClick={() => {
+                  setForwardMsgs([ctx.msg])
+                  setCtx(null)
+                }}
+              >
+                <ChatIco.forward /> Переслать
+              </button>
+              <button type="button" className={styles.ctxRow} onClick={() => enterSelect(ctx.msg)}>
+                <ChatIco.checkCircle /> Выделить
               </button>
               {ctx.msg.sender === 'me' && ctx.msg.text ? (
                 <button
@@ -607,10 +836,32 @@ export function ChatThread({
                   </button>
                 </>
               ) : null}
+              {ctx.msg.sender === 'them' ? (
+                <>
+                  <div className={styles.ctxDiv} />
+                  <button
+                    type="button"
+                    className={[styles.ctxRow, styles.ctxRowDanger].join(' ')}
+                    onClick={() => reportMessage(ctx.msg)}
+                  >
+                    <ChatIco.flag /> Пожаловаться
+                  </button>
+                </>
+              ) : null}
             </div>,
             document.body,
           )
         : null}
+
+      {/* Пересылка: пикер чатов (одно сообщение из меню или пачка из режима выделения). */}
+      {forwardMsgs ? (
+        <ShareToChatModal
+          title="Переслать"
+          messages={forwardPayload(forwardMsgs)}
+          onClose={() => setForwardMsgs(null)}
+          onSent={() => exitSelect()}
+        />
+      ) : null}
 
     </div>
   )

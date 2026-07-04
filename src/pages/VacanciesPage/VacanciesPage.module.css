@@ -34,6 +34,13 @@
   gap: 16px;
 }
 
+/* Футер SupportLinks в одноколоночном режиме (company) — узкой колонкой по центру. */
+.soloFoot {
+  max-width: 300px;
+  margin: 6px auto 0;
+  width: 100%;
+}
+
 /* ── Строка поиска ─────────────────────────────────────────── */
 .searchRow {
   display: flex;

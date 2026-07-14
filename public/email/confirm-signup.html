@@ -8,10 +8,10 @@
   <body style="margin:0;padding:0;background:#f4f6fa;">
     <!--
       Шаблон письма подтверждения регистрации для GoTrue (Supabase Auth).
-      Переменные Go-шаблона подставляет GoTrue при отправке:
-        {{ .Token }}   — 6-значный код подтверждения
-        {{ .SiteURL }} — адрес сайта (для логотипа из public/logo)
-      Разметка на таблицах + инлайн-стили — так письмо корректно рисуется в почтовых клиентах.
+      Переменную {{ .Token }} (6-значный код) подставляет GoTrue при отправке.
+      Логотип — АБСОЛЮТНЫЙ публичный URL (не {{ .SiteURL }}: там localhost, и картинка
+      в письме была бы битой). Разметка на таблицах + инлайн-стили — так письмо
+      корректно рисуется в почтовых клиентах.
     -->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fa;padding:32px 16px;">
       <tr>
@@ -20,7 +20,7 @@
             <!-- Шапка с логотипом -->
             <tr>
               <td align="center" style="padding:28px 24px 8px;">
-                <img src="{{ .SiteURL }}/logo/kolibel-full.png" alt="Kolibel" height="34" style="height:34px;display:block;border:0;" />
+                <img src="https://kolibel.vercel.app/logo/kolibel-full.png" alt="Kolibel" height="34" style="height:34px;display:block;border:0;" />
               </td>
             </tr>
 

@@ -88,6 +88,17 @@
   background: linear-gradient(180deg, #fff8f3 0%, #fdece2 100%);
 }
 
+/* Пустое состояние (нет вакансий/людей): спокойная карточка без декоративных блобов. */
+.empty {
+  background: var(--card);
+}
+.empty .kind {
+  color: var(--muted);
+}
+.empty .name {
+  color: var(--text-2);
+}
+
 .kind {
   position: relative;
   display: inline-flex;

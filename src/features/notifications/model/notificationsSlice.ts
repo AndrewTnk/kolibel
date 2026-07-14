@@ -2,8 +2,16 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { AppNotification, NotificationKind } from './types'
 import { loadNotifications } from './notificationsThunks'
 
-/** Карта настроек по типам: ключ отсутствует или true → уведомление включено. */
-export type NotificationPrefs = Partial<Record<NotificationKind, boolean>>
+/**
+ * Карта настроек по типам: ключ отсутствует или true → уведомление включено.
+ * `_since` — момент (ms epoch) ПОСЛЕДНЕГО включения типа: уведомления этого типа,
+ * созданные раньше, не показываем. Нужно, потому что сервер пишет строки-уведомления
+ * всегда (настройки — только клиентский фильтр); без этого после «выключить → включить»
+ * сыпался бы весь бэклог, накопленный за время отключения.
+ */
+export type NotificationPrefs = Partial<Record<NotificationKind, boolean>> & {
+  _since?: Partial<Record<NotificationKind, number>>
+}
 
 type NotificationsState = {
   items: AppNotification[]
@@ -25,6 +33,20 @@ const initialState: NotificationsState = {
 export function isKindEnabled(prefs: NotificationPrefs, kind: NotificationKind): boolean {
   if (kind === 'system') return true
   return prefs[kind] !== false
+}
+
+/**
+ * Показывать ли уведомление: тип включён И создано не раньше момента последнего
+ * включения типа (`_since`). Отсекает бэклог, накопленный за время отключения.
+ */
+export function isNotifVisible(
+  prefs: NotificationPrefs,
+  kind: NotificationKind,
+  createdAt: number,
+): boolean {
+  if (!isKindEnabled(prefs, kind)) return false
+  const since = prefs._since?.[kind]
+  return since == null || createdAt >= since
 }
 
 const slice = createSlice({

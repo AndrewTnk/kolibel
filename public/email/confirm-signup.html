@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Подтверждение регистрации в Kolibel</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f6fa;">
+    <!--
+      Шаблон письма подтверждения регистрации для GoTrue (Supabase Auth).
+      Переменные Go-шаблона подставляет GoTrue при отправке:
+        {{ .Token }}   — 6-значный код подтверждения
+        {{ .SiteURL }} — адрес сайта (для логотипа из public/logo)
+      Разметка на таблицах + инлайн-стили — так письмо корректно рисуется в почтовых клиентах.
+    -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fa;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <!-- Шапка с логотипом -->
+            <tr>
+              <td align="center" style="padding:28px 24px 8px;">
+                <img src="{{ .SiteURL }}/logo/kolibel-full.png" alt="Kolibel" height="34" style="height:34px;display:block;border:0;" />
+              </td>
+            </tr>
+
+            <!-- Заголовок -->
+            <tr>
+              <td align="center" style="padding:12px 32px 0;">
+                <h1 style="margin:0;font-size:22px;line-height:1.25;font-weight:800;color:#3d2b1f;">
+                  Подтверди почту
+                </h1>
+                <p style="margin:10px 0 0;font-size:15px;line-height:1.5;color:#6b7280;">
+                  Введи этот код на странице регистрации, чтобы завершить создание аккаунта.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Код -->
+            <tr>
+              <td align="center" style="padding:24px 32px 8px;">
+                <div style="display:inline-block;padding:16px 28px;background:#fff8f3;border:1px solid #f3d8c4;border-radius:14px;">
+                  <span style="font-size:34px;font-weight:800;letter-spacing:10px;color:#ff7f50;">{{ .Token }}</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Примечание -->
+            <tr>
+              <td align="center" style="padding:12px 32px 28px;">
+                <p style="margin:0;font-size:13px;line-height:1.5;color:#9aa1ad;">
+                  Код действует ограниченное время. Если ты не регистрировался в Kolibel — просто
+                  проигнорируй это письмо.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Подвал -->
+            <tr>
+              <td style="padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f3;">
+                <p style="margin:0;font-size:12px;line-height:1.5;color:#9aa1ad;text-align:center;">
+                  Kolibel — тёплая сеть профессионалов.<br />
+                  Это письмо отправлено автоматически, отвечать на него не нужно.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

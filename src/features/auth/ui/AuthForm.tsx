@@ -6,13 +6,37 @@ import { signIn, signUp } from "../model/authThunks.ts";
 import { Button } from "../../../shared/ui/Button/Button";
 import { Input } from "../../../shared/ui/Input/Input";
 import { sanitizePersonName, sanitizeCompanyName } from "../../../shared/lib/nameValidation";
+import { evaluatePassword, MIN_PASSWORD_LENGTH } from "../lib/passwordStrength";
+import { OtpStep } from "./OtpStep";
 import styles from "./AuthPage.module.css";
 
 type Mode = "login" | "register";
 type AccountKind = "user" | "company";
 
+// Цвет сегментов/подписи индикатора сложности по уровню пароля.
+const PW_BAR: Record<string, string> = {
+  invalid: styles.pwBarInvalid,
+  medium: styles.pwBarMedium,
+  good: styles.pwBarGood,
+};
+const PW_LABEL: Record<string, string> = {
+  invalid: styles.pwLabelInvalid,
+  medium: styles.pwLabelMedium,
+  good: styles.pwLabelGood,
+};
+
 function isEmail(v: string) {
   return /^\S+@\S+\.\S+$/.test(v);
+}
+
+/**
+ * Регистрация — только на российскую почту (новое требование законодательства РФ).
+ * Разрешаем домены национальных зон `.ru` и `.рф`.
+ */
+function isRussianEmail(v: string) {
+  if (!isEmail(v)) return false;
+  const domain = v.split("@")[1]?.toLowerCase() ?? "";
+  return domain.endsWith(".ru") || domain.endsWith(".рф");
 }
 
 function EyeIcon({ off }: { off: boolean }) {
@@ -56,8 +80,12 @@ function CompanyIcon() {
 }
 
 type Props = {
-  /** Вызывается после успешного входа/регистрации. */
-  onSuccess: () => void;
+  /**
+   * Вызывается после успешного входа/регистрации.
+   * `onboarding: true` — только что созданный аккаунт, вести сразу на мастер
+   * заполнения профиля (иначе на долю секунды мелькнёт главная перед редиректом).
+   */
+  onSuccess: (opts?: { onboarding?: boolean }) => void;
   /** Режим добавления аккаунта (модалка в шапке): меняет подсказки. */
   addMode?: boolean;
 };
@@ -69,6 +97,8 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
   const error = useAppSelector((s) => s.auth.error);
 
   const [mode, setMode] = useState<Mode>("login");
+  // Шаг подтверждения почты кодом (после регистрации, если включено подтверждение).
+  const [otpStep, setOtpStep] = useState(false);
   const [accountKind, setAccountKind] = useState<AccountKind>("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -84,10 +114,25 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
   const busy = status === "loading";
   const isRegister = mode === "register";
 
+  // Сложность пароля (для индикатора при регистрации).
+  const pw = useMemo(() => evaluatePassword(password), [password]);
+  const pwState =
+    pw.level === "invalid"
+      ? ("error" as const)
+      : pw.level === "good"
+        ? ("success" as const)
+        : pw.level === "medium"
+          ? ("warning" as const)
+          : undefined;
+
   const validation = useMemo(() => {
     const e: Record<string, string | null> = { email: null, password: null, password2: null };
     if (email && !isEmail(email)) e.email = "Проверь email";
-    if (password && password.length < 6) e.password = "Минимум 6 символов";
+    else if (mode === "register" && email && !isRussianEmail(email))
+      e.email = "Неверный формат почты";
+    // Пароль при входе — простая проверка длины; при регистрации ведём индикатором сложности.
+    if (mode === "login" && password && password.length < MIN_PASSWORD_LENGTH)
+      e.password = `Минимум ${MIN_PASSWORD_LENGTH} символов`;
     if (mode === "register" && password2 && password2 !== password) e.password2 = "Пароли не совпадают";
     return e;
   }, [email, password, password2, mode]);
@@ -106,8 +151,10 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
     setTouched({ email: true, password: true, password2: true });
 
     if (!email || !isEmail(email)) return;
-    if (!password || password.length < 6) return;
+    if (!password) return;
     if (mode === "register") {
+      if (!isRussianEmail(email)) return;
+      if (!pw.canSubmit) return;
       if (!password2 || password2 !== password) return;
       if (!agreeTerms || !agreePublic) return;
       const res = await dispatch(
@@ -118,10 +165,15 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
           accountType: accountKind,
         }),
       );
-      if (signUp.fulfilled.match(res)) onSuccess();
+      if (signUp.fulfilled.match(res)) {
+        // Включено подтверждение почты — показываем ввод кода; иначе сразу на онбординг.
+        if (res.payload.needsConfirmation) setOtpStep(true);
+        else onSuccess({ onboarding: true });
+      }
       return;
     }
 
+    if (password.length < MIN_PASSWORD_LENGTH) return;
     const res = await dispatch(signIn({ email, password }));
     if (signIn.fulfilled.match(res)) onSuccess();
   }
@@ -130,11 +182,10 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
     busy ||
     !email ||
     !password ||
-    (mode === "register" && (!password2 || password2 !== password)) ||
-    (mode === "register" && (!agreeTerms || !agreePublic)) ||
     !!validation.email ||
-    !!validation.password ||
-    !!validation.password2;
+    (isRegister
+      ? !pw.canSubmit || !password2 || password2 !== password || !agreeTerms || !agreePublic
+      : !!validation.password);
 
   const pwToggle = (
     <button
@@ -147,6 +198,19 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
       <EyeIcon off={showPw} />
     </button>
   );
+
+  if (otpStep) {
+    return (
+      <OtpStep
+        email={email}
+        onVerified={() => onSuccess({ onboarding: true })}
+        onBack={() => {
+          setOtpStep(false);
+          dispatch(authActions.clearError());
+        }}
+      />
+    );
+  }
 
   return (
     <>
@@ -241,10 +305,33 @@ export function AuthForm({ onSuccess, addMode = false }: Props) {
           onBlur={() => touch("password")}
           autoComplete={mode === "login" ? "current-password" : "new-password"}
           placeholder="••••••••"
-          error={touched.password ? validation.password : null}
-          hint={isRegister ? "Минимум 6 символов" : undefined}
+          error={!isRegister && touched.password ? validation.password : null}
+          state={isRegister && password ? pwState : undefined}
+          hint={
+            isRegister && !password
+              ? `Минимум ${MIN_PASSWORD_LENGTH} символов и заглавная буква`
+              : undefined
+          }
           endAdornment={pwToggle}
         />
+
+        {isRegister && password ? (
+          <div className={styles.pwMeter}>
+            <div className={styles.pwBars} aria-hidden>
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className={[styles.pwBar, i < pw.filled ? PW_BAR[pw.level] : ""]
+                    .filter(Boolean)
+                    .join(" ")}
+                />
+              ))}
+            </div>
+            <div className={[styles.pwLabel, PW_LABEL[pw.level]].filter(Boolean).join(" ")}>
+              {pw.label}
+            </div>
+          </div>
+        ) : null}
 
         {isRegister ? (
           <Input

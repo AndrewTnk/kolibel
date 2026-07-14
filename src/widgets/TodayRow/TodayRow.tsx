@@ -200,6 +200,38 @@ export function TodayRow() {
             </article>
           ) : null}
 
+          {!loading && !vacancy && showCard('vacancy') ? (
+            <article
+              className={[styles.card, styles.empty].join(' ')}
+              role="button"
+              tabIndex={0}
+              onClick={() => nav('/vacancies')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') nav('/vacancies')
+              }}
+            >
+              <div className={styles.kind}>Вакансии</div>
+              <div className={styles.body}>
+                <div className={styles.name}>Пока нет подходящих вакансий</div>
+                <div className={styles.why}>
+                  Новые появляются каждый день. Загляни в раздел вакансий или вернись позже.
+                </div>
+              </div>
+              <div className={styles.foot}>
+                <button
+                  type="button"
+                  className={styles.cta}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    nav('/vacancies')
+                  }}
+                >
+                  Смотреть вакансии <ArrowIcon />
+                </button>
+              </div>
+            </article>
+          ) : null}
+
           {!loading && person && showCard('person') ? (
             <article
               className={[styles.card, styles.person].join(' ')}
@@ -242,6 +274,38 @@ export function TodayRow() {
                   }}
                 >
                   {isFollowing ? '✓ Связь' : (<><PlusIcon />&nbsp;Связь</>)}
+                </button>
+              </div>
+            </article>
+          ) : null}
+
+          {!loading && !person && showCard('person') ? (
+            <article
+              className={[styles.card, styles.empty].join(' ')}
+              role="button"
+              tabIndex={0}
+              onClick={() => nav('/network')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') nav('/network')
+              }}
+            >
+              <div className={styles.kind}>Люди</div>
+              <div className={styles.body}>
+                <div className={styles.name}>Пока некого посоветовать</div>
+                <div className={styles.why}>
+                  Заполни профиль и загляни в «Сеть» — здесь появятся люди из твоей сферы.
+                </div>
+              </div>
+              <div className={styles.foot}>
+                <button
+                  type="button"
+                  className={styles.cta}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    nav('/network')
+                  }}
+                >
+                  Открыть сеть <ArrowIcon />
                 </button>
               </div>
             </article>

@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { supabase } from '../../../shared/lib/supabase'
-import { notificationsActions, isKindEnabled, type NotificationPrefs } from './notificationsSlice'
+import { notificationsActions, isKindEnabled, isNotifVisible, type NotificationPrefs } from './notificationsSlice'
 import type { AppNotification, NotificationKind } from './types'
 import { selectViewedConversationId } from '../../chat/model/chatUiSlice'
 import type { RootState } from '../../../app/store/store'
@@ -110,7 +110,7 @@ export const loadNotifications = createAsyncThunk<AppNotification[], void>(
     if (error) throw new Error(error.message)
     const items = (data as NotificationRow[])
       .map(rowToNotification)
-      .filter((n) => isKindEnabled(prefs, n.kind))
+      .filter((n) => isNotifVisible(prefs, n.kind, n.createdAt))
     return enrichNotificationAvatars(items)
   },
 )
@@ -148,7 +148,7 @@ export const pollNewNotifications = createAsyncThunk<void, void>(
     const known = new Set(items.map((n) => n.id))
     const toAdd = rows
       .map(rowToNotification)
-      .filter((n) => isKindEnabled(prefs, n.kind) && !known.has(n.id))
+      .filter((n) => isNotifVisible(prefs, n.kind, n.createdAt) && !known.has(n.id))
     if (!toAdd.length) return
 
     await enrichNotificationAvatars(toAdd)
@@ -175,8 +175,16 @@ export const updateNotificationPrefs = createAsyncThunk<void, NotificationPrefs>
     const me = await currentUserId()
     if (!me) throw new Error('Нет активной сессии')
     const prev = (getState() as { notifications: { prefs: NotificationPrefs } }).notifications.prefs
-    const nextPrefs = { ...prev, ...patch }
-    dispatch(notificationsActions.setPrefs(patch)) // оптимистично
+    // Для типов, ВКЛючаемых этим патчем (были off → true), фиксируем момент включения:
+    // накопленный за время отключения бэклог этого типа показывать не будем.
+    const now = Date.now()
+    const since: Partial<Record<NotificationKind, number>> = { ...(prev._since ?? {}) }
+    for (const [kind, val] of Object.entries(patch) as [NotificationKind, boolean][]) {
+      if (val === true && !isKindEnabled(prev, kind)) since[kind] = now
+    }
+    const patchWithSince: NotificationPrefs = { ...patch, _since: since }
+    const nextPrefs = { ...prev, ...patchWithSince }
+    dispatch(notificationsActions.setPrefs(patchWithSince)) // оптимистично
     const { error } = await supabase
       .from('profiles')
       .update({ notification_prefs: nextPrefs })

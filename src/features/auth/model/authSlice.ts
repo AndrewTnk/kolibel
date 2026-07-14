@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { AuthSession } from './types'
-import { bootstrapAuth, signIn, signOut, signUp } from './authThunks.ts'
+import { bootstrapAuth, signIn, signOut, signUp, verifyEmailOtp } from './authThunks.ts'
 
 /** Статус модерации текущего аккаунта (для экрана блокировки при входе). */
 export type AccountModeration = {
@@ -84,12 +84,27 @@ const slice = createSlice({
     })
     b.addCase(signUp.fulfilled, (s, a) => {
       s.status = 'idle'
-      s.session = a.payload
-      s.user = a.payload?.user ?? null
+      // При включённом подтверждении почты сессии ещё нет — ждём код (payload.session=null).
+      s.session = a.payload.session
+      s.user = a.payload.session?.user ?? null
     })
     b.addCase(signUp.rejected, (s, a) => {
       s.status = 'idle'
       s.error = a.error.message ?? 'Ошибка регистрации'
+    })
+
+    b.addCase(verifyEmailOtp.pending, (s) => {
+      s.status = 'loading'
+      s.error = null
+    })
+    b.addCase(verifyEmailOtp.fulfilled, (s, a) => {
+      s.status = 'idle'
+      s.session = a.payload
+      s.user = a.payload?.user ?? null
+    })
+    b.addCase(verifyEmailOtp.rejected, (s, a) => {
+      s.status = 'idle'
+      s.error = a.error.message ?? 'Не удалось подтвердить код'
     })
 
     b.addCase(signOut.pending, (s) => {

@@ -40,9 +40,9 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
         </button>
         <AuthForm
           addMode
-          onSuccess={() => {
+          onSuccess={(opts) => {
             onClose();
-            navigate("/");
+            navigate(opts?.onboarding ? "/onboarding" : "/");
           }}
         />
       </div>

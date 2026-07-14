@@ -279,17 +279,13 @@
   font-weight: 600;
 }
 
+/* Подвал экрана входа — только копирайт по центру. */
 .leftFoot{
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-  flex-wrap: wrap;
-  font-size: 13px;
+  text-align: center;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 8px;
 }
-.leftFoot a{ color: inherit; text-decoration: none; }
-.leftFoot a:hover{ color: var(--text); }
 
 /* ПРАВО: визуал-граф */
 .right{
@@ -470,4 +466,111 @@
 
 @media (max-width: 460px){
   .social{ grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Индикатор сложности пароля (регистрация): полоса из 3 сегментов + подпись. */
+.pwMeter{
+  display: grid;
+  gap: 7px;
+  margin-top: -6px;
+}
+.pwBars{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.pwBar{
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background .15s ease;
+}
+.pwBarInvalid{ background: #dc2626; }
+.pwBarMedium{ background: #6b7280; }
+.pwBarGood{ background: #16a34a; }
+
+.pwLabel{
+  font-size: 12px;
+  font-weight: 600;
+}
+.pwLabelInvalid{ color: #dc2626; }
+.pwLabelMedium{ color: #6b7280; }
+.pwLabelGood{ color: #16a34a; }
+
+/* ── Шаг ввода кода подтверждения (OTP) ── */
+.otpWrap{
+  display: grid;
+  gap: 14px;
+}
+.otpBack{
+  justify-self: start;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.otpBack:hover{ color: var(--text); }
+
+.otpBoxes{
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 2px;
+}
+.otpBox{
+  width: 100%;
+  height: 56px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  transition: box-shadow .12s ease, border-color .12s ease;
+}
+.otpBox:focus{
+  outline: none;
+  border-color: var(--primaryFocus);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+.otpBoxError{
+  border-color: rgba(220, 38, 38, 0.65);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.14);
+}
+
+.otpStatus{
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.otpStatusOk{
+  font-size: 13px;
+  color: #16a34a;
+  font-weight: 700;
+}
+.otpResend{
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.otpResend button{
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--primary);
+}
+.otpResend button:hover{ color: var(--primaryHover); }
+
+@media (max-width: 460px){
+  .otpBoxes{ gap: 6px; }
+  .otpBox{ height: 50px; font-size: 20px; }
 }

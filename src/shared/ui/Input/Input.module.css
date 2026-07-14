@@ -44,6 +44,21 @@
   box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.14);
 }
 
+/* Подсветка под состояние (индикатор сложности пароля и т.п.): свечение видно
+   всегда, не только на фокусе, чтобы пользователь замечал смену цвета. */
+.inputDanger{
+  border-color: rgba(220, 38, 38, 0.65);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.14);
+}
+.inputWarn{
+  border-color: rgba(107, 114, 128, 0.6);
+  box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.14);
+}
+.inputSuccess{
+  border-color: rgba(22, 163, 74, 0.65);
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.14);
+}
+
 .hint{
   font-size: 12px;
   color: var(--muted);

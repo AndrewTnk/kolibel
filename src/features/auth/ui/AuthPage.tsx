@@ -105,19 +105,13 @@ export function AuthPage() {
         <div className={styles.formWrap}>
           <AuthForm
             addMode={addMode}
-            onSuccess={() => nav(from ?? "/", { replace: true })}
+            onSuccess={(opts) =>
+              nav(opts?.onboarding ? "/onboarding" : from ?? "/", { replace: true })
+            }
           />
         </div>
 
-        <div className={styles.leftFoot}>
-          <a href="#" onClick={(e) => e.preventDefault()}>
-            О нас
-          </a>
-          <a href="#" onClick={(e) => e.preventDefault()}>
-            Тех. поддержка
-          </a>
-          <NavLink to="/legal/terms">Правовая информация</NavLink>
-        </div>
+        <div className={styles.leftFoot}>© Kolibel, {new Date().getFullYear()}</div>
       </div>
 
       {/* ПРАВО — живой граф связей (на десктопе) */}

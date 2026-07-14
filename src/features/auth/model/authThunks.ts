@@ -16,6 +16,11 @@ function translateAuthError(message: string): string {
   if (m.includes('user already registered')) return 'Пользователь с таким email уже зарегистрирован'
   if (m.includes('email not confirmed')) return 'Email не подтверждён — проверьте почту'
   if (m.includes('password should be at least')) return 'Пароль слишком короткий'
+  // Ошибки кода подтверждения (OTP) — проверяем ДО общего 'is invalid' (иначе он бы
+  // выдал «Некорректный email»).
+  if (m.includes('token has expired') || m.includes('otp_expired') || m.includes('expired'))
+    return 'Код устарел — запросите новый'
+  if (m.includes('token') || m.includes('otp')) return 'Неверный код'
   if (m.includes('is invalid')) return 'Некорректный email'
   if (m.includes('signups are disabled') || m.includes('signup is disabled'))
     return 'Регистрация по email отключена в настройках Supabase'
@@ -46,9 +51,17 @@ export const signIn = createAsyncThunk<
   return mapSession(data.session)
 })
 
+/** Результат регистрации: либо сразу сессия (autoconfirm), либо ожидание кода с почты. */
+export type SignUpResult = {
+  session: AuthSession | null
+  /** true → включено подтверждение email, на почту ушёл 6-значный код, ждём ввода. */
+  needsConfirmation: boolean
+  email: string
+}
+
 /** Регистрация. Имя/название и тип аккаунта сохраняются в user_metadata. */
 export const signUp = createAsyncThunk<
-  AuthSession | null,
+  SignUpResult,
   { email: string; password: string; fullName?: string; accountType?: 'user' | 'company' }
 >('auth/signUp', async ({ email, password, fullName, accountType = 'user' }) => {
   const { data, error } = await supabase.auth.signUp({
@@ -62,12 +75,29 @@ export const signUp = createAsyncThunk<
     },
   })
   if (error) throw new Error(translateAuthError(error.message))
-  // Если в Supabase включено подтверждение email — сессии не будет до подтверждения.
-  if (!data.session) {
-    throw new Error('Письмо для подтверждения отправлено на email. Подтвердите адрес и войдите.')
-  }
+  // Если в Supabase включено подтверждение email — сессии нет: на почту ушёл код,
+  // форма переключается на ввод кода (не ошибка). Если autoconfirm — сессия сразу.
+  return { session: mapSession(data.session), needsConfirmation: !data.session, email }
+})
+
+/** Подтверждение регистрации 6-значным кодом из письма → выдаёт сессию. */
+export const verifyEmailOtp = createAsyncThunk<
+  AuthSession | null,
+  { email: string; token: string }
+>('auth/verifyOtp', async ({ email, token }) => {
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
+  if (error) throw new Error(translateAuthError(error.message))
   return mapSession(data.session)
 })
+
+/** Повторно отправить код подтверждения регистрации на почту. */
+export const resendSignupOtp = createAsyncThunk<void, string>(
+  'auth/resendOtp',
+  async (email) => {
+    const { error } = await supabase.auth.resend({ type: 'signup', email })
+    if (error) throw new Error(translateAuthError(error.message))
+  },
+)
 
 /** Выход. */
 export const signOut = createAsyncThunk<void, void>('auth/signOut', async (_, { dispatch }) => {
